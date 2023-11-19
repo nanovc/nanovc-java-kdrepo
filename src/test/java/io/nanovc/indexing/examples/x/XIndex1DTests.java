@@ -27,14 +27,14 @@ public abstract class XIndex1DTests
     @Test
     public void creationTest()
     {
-        createIndex();
+        createIndex(1);
     }
 
     @Test
     public void index_Zero()
     {
         // Create the index:
-        TIndex index = createIndex();
+        TIndex index = createIndex(1);
 
         // Create the items we want to index:
         X itemZero = new X(0);
@@ -67,7 +67,7 @@ public abstract class XIndex1DTests
     public void index_Pos1()
     {
         // Create the index:
-        TIndex index = createIndex();
+        TIndex index = createIndex(1);
 
         // Create the items we want to index:
         X itemPos1 = new X(1);
@@ -100,7 +100,7 @@ public abstract class XIndex1DTests
     public void index_Neg1()
     {
         // Create the index:
-        TIndex index = createIndex();
+        TIndex index = createIndex(1);
 
         // Create the items we want to index:
         X itemNeg1 = new X(-1);
@@ -133,7 +133,7 @@ public abstract class XIndex1DTests
     public void index_Neg1_Pos1()
     {
         // Create the index:
-        TIndex index = createIndex();
+        TIndex index = createIndex(1);
 
         // Create the items we want to index:
         X itemNeg1 = new X(-1);
@@ -168,7 +168,7 @@ public abstract class XIndex1DTests
     public void index_Pos1_Neg1()
     {
         // Create the index:
-        TIndex index = createIndex();
+        TIndex index = createIndex(1);
 
         // Create the items we want to index:
         X itemPos1 = new X(1);
@@ -203,7 +203,7 @@ public abstract class XIndex1DTests
     public void index_Neg1_Zero_Pos1()
     {
         // Create the index:
-        TIndex index = createIndex();
+        TIndex index = createIndex(1);
 
         // Create the items we want to index:
         X itemNeg1 = new X(-1);
@@ -240,7 +240,7 @@ public abstract class XIndex1DTests
     public void index_Zero_Pos1_Neg1()
     {
         // Create the index:
-        TIndex index = createIndex();
+        TIndex index = createIndex(1);
 
         // Create the items we want to index:
         X itemNeg1 = new X(-1);
@@ -277,7 +277,7 @@ public abstract class XIndex1DTests
     public void index_Pos1_Neg1_Zero()
     {
         // Create the index:
-        TIndex index = createIndex();
+        TIndex index = createIndex(1);
 
         // Create the items we want to index:
         X itemNeg1 = new X(-1);
@@ -314,7 +314,7 @@ public abstract class XIndex1DTests
     public void index_Pos1_Zero_Neg1()
     {
         // Create the index:
-        TIndex index = createIndex();
+        TIndex index = createIndex(1);
 
         // Create the items we want to index:
         X itemNeg1 = new X(-1);
@@ -487,7 +487,7 @@ public abstract class XIndex1DTests
     private void assertRandom(long itemCount, double range, long queries, Function<RandomGenerator, Double> randomProvider)
     {
         // Create the index:
-        TIndex index = createIndex();
+        TIndex index = createIndex(range);
 
         // Create the random number generator:
         RandomGeneratorFactory<RandomGenerator> randomGeneratorFactory = RandomGeneratorFactory.getDefault();
@@ -538,9 +538,10 @@ public abstract class XIndex1DTests
     /**
      * A factory method to create an index of the specific type.
      *
+     * @param range The range of the data set.
      * @return A new index of the specific type.
      */
-    protected abstract TIndex createIndex();
+    protected abstract TIndex createIndex(double range);
 
     //#endregion Implementation Specific Methods
 
@@ -555,7 +556,7 @@ public abstract class XIndex1DTests
          *
          * @return A new index of the specific type.
          */
-        @Override protected XLinearIndex1D createIndex()
+        @Override protected XLinearIndex1D createIndex(double range)
         {
             return new XLinearIndex1D();
         }
@@ -569,9 +570,23 @@ public abstract class XIndex1DTests
          *
          * @return A new index of the specific type.
          */
-        @Override protected XBinaryTreeIndex1D createIndex()
+        @Override protected XBinaryTreeIndex1D createIndex(double range)
         {
             return new XBinaryTreeIndex1D();
+        }
+    }
+
+    public static class GridTests extends XIndex1DTests<XGridIndex1D>
+    {
+
+        /**
+         * A factory method to create an index of the specific type.
+         *
+         * @return A new index of the specific type.
+         */
+        @Override protected XGridIndex1D createIndex(double range)
+        {
+            return new XGridIndex1D(new X((int) -range), new X((int) range), 100);
         }
     }
 
@@ -583,7 +598,7 @@ public abstract class XIndex1DTests
          *
          * @return A new index of the specific type.
          */
-        @Override protected XRepoIndex1D createIndex()
+        @Override protected XRepoIndex1D createIndex(double range)
         {
             return new XRepoIndex1D();
         }

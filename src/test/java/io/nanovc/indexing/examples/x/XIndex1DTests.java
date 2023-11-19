@@ -2,9 +2,16 @@ package io.nanovc.indexing.examples.x;
 
 import io.nanovc.indexing.Index1D;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.function.Function;
+import java.util.random.RandomGenerator;
+import java.util.random.RandomGeneratorFactory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -381,10 +388,156 @@ public abstract class XIndex1DTests
     }
 
 
+    /**
+     * This generates uniformly distributed random values from -RANGE to +RANGE.
+     * It then queries it a defined number of times.
+     * <p>
+     * Parameterised tests are described here:
+     * <a href="https://junit.org/junit5/docs/current/user-guide/#writing-tests-parameterized-tests-sources-CsvSource">CSV Sources</a>
+     */
+    @ParameterizedTest(name = "[{index}] Random Linear Sampling {arguments}")
+    @CsvSource(
+        delimiter = '|', quoteCharacter = '"',
+        useHeadersInDisplayName = true,
+        textBlock = """
+            Scenario     |  ITEM_COUNT  | RANGE       | QUERIES
+            Warmup       |  20_000      | 1_000_000.0 | 20_000
+            #
+            Tiny Few     |  1_000       | 1_000_000.0 | 1_000
+            Small Few    |  10_000      | 1_000_000.0 | 1_000
+            Medium Few   |  100_000     | 1_000_000.0 | 1_000
+            Large Few    |  1_000_000   | 1_000_000.0 | 1_000
+            #
+            Tiny Some    |  1_000       | 1_000_000.0 | 10_000
+            Small Some   |  10_000      | 1_000_000.0 | 10_000
+            Medium Some  |  100_000     | 1_000_000.0 | 10_000
+            # Large Some   |  1_000_000   | 1_000_000.0 | 10_000
+            #
+            Tiny Many    |  1_000       | 1_000_000.0 | 100_000
+            Small Many   |  10_000      | 1_000_000.0 | 100_000
+            # Medium Many  |  100_000     | 1_000_000.0 | 100_000
+            # Large Many   |  1_000_000   | 1_000_000.0 | 100_000
+            #
+            Tiny Many    |  1_000       | 1_000_000.0 | 1_000_000
+            # Small Lots   |  10_000      | 1_000_000.0 | 1_000_000
+            # Medium Lots  |  100_000     | 1_000_000.0 | 1_000_000
+            # Large Lots   |  1_000_000   | 1_000_000.0 | 1_000_000
+            """
+    )
+    public void index_Random_Linear(String scenario, long itemCount, double range, long queries)
+    {
+        assertRandom(
+            itemCount, range, queries,
+            randomGenerator -> randomGenerator.nextDouble(0d, range * 2) - range
+        );
+    }
+
+    /**
+     * This generates normally  distributed random values (gaussian) with a mean of 0 and a standard deviation of RANGE.
+     * It then queries it a defined number of times.
+     * <p>
+     * Parameterised tests are described here:
+     * <a href="https://junit.org/junit5/docs/current/user-guide/#writing-tests-parameterized-tests-sources-CsvSource">CSV Sources</a>
+     */
+    @ParameterizedTest(name = "[{index}] Random Gaussian Sampling {arguments}")
+    @CsvSource(
+        delimiter = '|', quoteCharacter = '"',
+        useHeadersInDisplayName = true,
+        textBlock = """
+            Scenario     |  ITEM_COUNT  | RANGE       | QUERIES
+            Warmup       |  20_000      | 1_000_000.0 | 20_000
+            #
+            Tiny Few     |  1_000       | 1_000_000.0 | 1_000
+            Small Few    |  10_000      | 1_000_000.0 | 1_000
+            Medium Few   |  100_000     | 1_000_000.0 | 1_000
+            Large Few    |  1_000_000   | 1_000_000.0 | 1_000
+            #
+            Tiny Some    |  1_000       | 1_000_000.0 | 10_000
+            Small Some   |  10_000      | 1_000_000.0 | 10_000
+            Medium Some  |  100_000     | 1_000_000.0 | 10_000
+            # Large Some   |  1_000_000   | 1_000_000.0 | 10_000
+            #
+            Tiny Many    |  1_000       | 1_000_000.0 | 100_000
+            Small Many   |  10_000      | 1_000_000.0 | 100_000
+            # Medium Many  |  100_000     | 1_000_000.0 | 100_000
+            # Large Many   |  1_000_000   | 1_000_000.0 | 100_000
+            #
+            Tiny Many    |  1_000       | 1_000_000.0 | 1_000_000
+            # Small Lots   |  10_000      | 1_000_000.0 | 1_000_000
+            # Medium Lots  |  100_000     | 1_000_000.0 | 1_000_000
+            # Large Lots   |  1_000_000   | 1_000_000.0 | 1_000_000
+            """
+    )
+    public void index_Random_Gaussian(String scenario, long itemCount, double range, long queries)
+    {
+        assertRandom(
+            itemCount, range, queries,
+            randomGenerator -> randomGenerator.nextGaussian(0d, range)
+        );
+    }
+
+    /**
+     * Asserts the random implementation.
+     *
+     * @param itemCount      The number of items to generate.
+     * @param range          The range of the numbers to generate.
+     * @param queries        The queries to perform.
+     * @param randomProvider The implementation that gets the next random number for the item.
+     */
+    private void assertRandom(long itemCount, double range, long queries, Function<RandomGenerator, Double> randomProvider)
+    {
+        // Create the index:
+        TIndex index = createIndex();
+
+        // Create the random number generator:
+        RandomGeneratorFactory<RandomGenerator> randomGeneratorFactory = RandomGeneratorFactory.getDefault();
+        RandomGenerator randomGenerator = randomGeneratorFactory.create(1234L);
+
+        // Generate random values to index:
+        for (long i = 0; i < itemCount; i++)
+        {
+            // Get the next randomValue
+            double nextValue = randomProvider.apply(randomGenerator);
+
+            // Create the item:
+            X item = new X((int) nextValue);
+
+            // Index the item:
+            index.add(item);
+        }
+
+        // Create a histogram of the distances:
+        Map<Integer, Integer> histogram = new TreeMap<>();
+
+        // Query the index by sweeping through it:
+        for (int step = (int) (range * 2 / queries), i = (int) -range; i < range; i += step)
+        {
+            // Create the item that we want to query:
+            X item = new X(i);
+
+            // Query the index:
+            X nearest = index.searchNearest(item);
+
+            // Work out the distance to the item:
+            int distance = X.measureDistance(item, nearest);
+
+            // Update the histogram:
+            histogram.compute(distance, (k, v) -> v == null ? 1 : v + 1);
+        }
+
+        // Print out the histogram:
+        // for (Map.Entry<Integer, Integer> entry : histogram.entrySet())
+        // {
+        //     System.out.println("Distance: " + entry.getKey() + " Count: " + entry.getValue());
+        // }
+    }
+
+
     //#region Implementation Specific Methods
 
     /**
      * A factory method to create an index of the specific type.
+     *
      * @return A new index of the specific type.
      */
     protected abstract TIndex createIndex();

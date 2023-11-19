@@ -1,15 +1,15 @@
 package io.nanovc.kdrepos.examples.x;
 
-import io.nanovc.kdrepos.KDRepoIndex;
+import io.nanovc.kdrepos.RepoIndexKD;
 import io.nanovc.kdrepos.Measurer;
-import io.nanovc.kdrepos.OneDRepoIndex;
+import io.nanovc.kdrepos.RepoIndex1D;
 
 import java.util.Comparator;
 
 /**
- * A {@link KDRepoIndex} for single dimensional values of type {@link X}.
+ * A {@link RepoIndexKD} for single dimensional values of type {@link X}.
  */
-public class XKDRepoIndex extends OneDRepoIndex<
+public class XRepoIndex1D extends RepoIndex1D<
     X,
     Integer,
     Measurer<X,Integer>,
@@ -17,9 +17,9 @@ public class XKDRepoIndex extends OneDRepoIndex<
     >
 {
 
-    public XKDRepoIndex()
+    public XRepoIndex1D()
     {
-        super(XKDRepoIndex::measureDistance, Integer::compare);
+        super(XRepoIndex1D::measureDistance, Integer::compare);
     }
 
     public static int measureDistance(X o1, X o2)

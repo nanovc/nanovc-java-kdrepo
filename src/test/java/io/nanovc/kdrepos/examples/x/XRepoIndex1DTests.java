@@ -8,19 +8,19 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-class XKDRepoIndexTests
+class XRepoIndex1DTests
 {
     @Test
     public void creationTest()
     {
-        new XKDRepoIndex();
+        new XRepoIndex1D();
     }
 
     @Test
     public void index_Pos1()
     {
         // Create the index:
-        XKDRepoIndex index = new XKDRepoIndex();
+        XRepoIndex1D index = new XRepoIndex1D();
 
         // Create the items we want to index:
         X itemPos1 = new X(1);
@@ -53,7 +53,7 @@ class XKDRepoIndexTests
     public void index_Neg1()
     {
         // Create the index:
-        XKDRepoIndex index = new XKDRepoIndex();
+        XRepoIndex1D index = new XRepoIndex1D();
 
         // Create the items we want to index:
         X itemNeg1 = new X(-1);
@@ -86,7 +86,7 @@ class XKDRepoIndexTests
     public void index_Pos1_Neg1()
     {
         // Create the index:
-        XKDRepoIndex index = new XKDRepoIndex();
+        XRepoIndex1D index = new XRepoIndex1D();
 
         // Create the items we want to index:
         X itemPos1 = new X(1);
@@ -128,7 +128,7 @@ class XKDRepoIndexTests
      * @param expectedClosestToPos2 The item that is expected to be closest to +2.
      */
     void assertNeg2Neg1ZeroPos1Pos2(
-        XKDRepoIndex index,
+        XRepoIndex1D index,
         X expectedClosestToNeg2,
         X expectedClosestToNeg1,
         X expectedClosestToZero,

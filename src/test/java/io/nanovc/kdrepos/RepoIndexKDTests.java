@@ -3,13 +3,13 @@ package io.nanovc.kdrepos;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the {@link KDRepoIndex}.
+ * Tests the {@link RepoIndexKD}.
  */
-public class KDRepoTests
+public class RepoIndexKDTests
 {
     @Test
     public void creationTest()
     {
-        new KDRepoIndex();
+        new RepoIndexKD();
     }
 }

@@ -5,19 +5,19 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * A one dimensional {@link KDRepoIndex}.
+ * A one dimensional {@link RepoIndexKD}.
  *
  * @param <TItem>               The specific type of data that the index is for.
  * @param <TDistance>           The type for the distance between the items.
  * @param <TMeasurer>           The type for the measurer that can measure the distance between items.
  * @param <TDistanceComparator> The comparator that compares distances between items.
  */
-public class OneDRepoIndex<
+public class LinearIndex1D<
     TItem,
     TDistance,
     TMeasurer extends Measurer<TItem, TDistance>,
     TDistanceComparator extends Comparator<TDistance>
-    > extends KDRepoIndex
+    > extends RepoIndexKD
 {
     /**
      * The items in this index for dimension one.
@@ -31,7 +31,7 @@ public class OneDRepoIndex<
 
     private final TMeasurer measurer;
 
-    public OneDRepoIndex(TMeasurer measurer, TDistanceComparator comparator)
+    public LinearIndex1D(TMeasurer measurer, TDistanceComparator comparator)
     {
         this.measurer = measurer;
         distanceComparator = comparator;

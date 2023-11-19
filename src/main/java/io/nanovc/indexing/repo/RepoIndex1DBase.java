@@ -22,17 +22,28 @@ public abstract class RepoIndex1DBase<
     TMeasurer extends Measurer<TItem, TDistance>,
     TDistanceComparator extends Comparator<TDistance>
     >
-    extends Index1DBase<TItem, TDistance, TMeasurer, TDistanceComparator>
-    implements BinaryTreeIndex1D<TItem, TDistance, TMeasurer, TDistanceComparator>
+    extends Index1DBase<TItem>
+    implements RepoIndex1D<TItem, TDistance, TMeasurer, TDistanceComparator>
 {
+    /**
+     * The measurer that measures distances between items.
+     */
+    private final TMeasurer measurer;
+
+    /**
+     * The comparator to use for comparing distances of items.
+     */
+    private final TDistanceComparator distanceComparator;
+
     /**
      * The items in this index for dimension one.
      */
     private final List<TItem> items = new ArrayList<>();
 
-    public RepoIndex1DBase(TMeasurer measurer, TDistanceComparator comparator)
+    public RepoIndex1DBase(TMeasurer measurer, TDistanceComparator distanceComparator)
     {
-        super(measurer, comparator);
+        this.measurer = measurer;
+        this.distanceComparator = distanceComparator;
     }
 
     /**
@@ -57,10 +68,6 @@ public abstract class RepoIndex1DBase<
 
         // Keep track of the closest item:
         TItem closestItem = null;
-
-        // Cache dependencies:
-        TMeasurer measurer = this.getMeasurer();
-        TDistanceComparator distanceComparator = this.getDistanceComparator();
 
         // Go linearly through each item:
         for (TItem otherItem : this.items)

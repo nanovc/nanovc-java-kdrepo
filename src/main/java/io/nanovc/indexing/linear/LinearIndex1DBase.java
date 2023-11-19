@@ -21,17 +21,28 @@ public abstract class LinearIndex1DBase<
     TMeasurer extends Measurer<TItem, TDistance>,
     TDistanceComparator extends Comparator<TDistance>
     >
-    extends Index1DBase<TItem, TDistance, TMeasurer, TDistanceComparator>
+    extends Index1DBase<TItem>
     implements LinearIndex1D<TItem, TDistance, TMeasurer, TDistanceComparator>
 {
+    /**
+     * The measurer that measures distances between items.
+     */
+    private final TMeasurer measurer;
+
+    /**
+     * The comparator to use for comparing distances of items.
+     */
+    private final TDistanceComparator distanceComparator;
+
     /**
      * The items in this index for dimension one.
      */
     private final List<TItem> items = new ArrayList<>();
 
-    public LinearIndex1DBase(TMeasurer measurer, TDistanceComparator comparator)
+    public LinearIndex1DBase(TMeasurer measurer, TDistanceComparator distanceComparator)
     {
-        super(measurer, comparator);
+        this.measurer = measurer;
+        this.distanceComparator = distanceComparator;
     }
 
     /**
@@ -92,5 +103,24 @@ public abstract class LinearIndex1DBase<
         }
 
         return closestItem;
+    }
+
+
+    /**
+     * Gets the measurer that measures distances between items.
+     * @return The measurer that measures distances between items.
+     */
+    public TMeasurer getMeasurer()
+    {
+        return measurer;
+    }
+
+    /**
+     * Gets the comparator to use for comparing distances of items.
+     * @return The comparator to use for comparing distances of items.
+     */
+    public TDistanceComparator getDistanceComparator()
+    {
+        return distanceComparator;
     }
 }

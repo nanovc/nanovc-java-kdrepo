@@ -1,11 +1,9 @@
 package io.nanovc.indexing.examples.x;
 
 import io.nanovc.indexing.Index1D;
-import io.nanovc.indexing.Measurer;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -15,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
  * Tests the various index implementations for a 1D data structure.
  */
 public abstract class XIndex1DTests
-    <TIndex extends Index1D<X, Integer, Measurer<X, Integer>, Comparator<Integer>>>
+    <TIndex extends Index1D<X>>
 {
 
 
@@ -231,6 +229,117 @@ public abstract class XIndex1DTests
         );
     }
 
+    @Test
+    public void index_Zero_Pos1_Neg1()
+    {
+        // Create the index:
+        TIndex index = createIndex();
+
+        // Create the items we want to index:
+        X itemNeg1 = new X(-1);
+        X itemZero = new X(0);
+        X itemPos1 = new X(1);
+
+        // Index the items:
+        index.add(itemZero);
+        index.add(itemPos1);
+        index.add(itemNeg1);
+
+        // Make sure the index returns the expected items:
+        assertNeg2Neg1ZeroPos1Pos2(
+            index,
+
+            // Closest to -2:
+            itemNeg1,
+
+            // Closest to -1:
+            itemNeg1,
+
+            // Closest to 0:
+            itemZero,
+
+            // Closest to +1:
+            itemPos1,
+
+            // Closest to +2:
+            itemPos1
+        );
+    }
+
+    @Test
+    public void index_Pos1_Neg1_Zero()
+    {
+        // Create the index:
+        TIndex index = createIndex();
+
+        // Create the items we want to index:
+        X itemNeg1 = new X(-1);
+        X itemZero = new X(0);
+        X itemPos1 = new X(1);
+
+        // Index the items:
+        index.add(itemPos1);
+        index.add(itemNeg1);
+        index.add(itemZero);
+
+        // Make sure the index returns the expected items:
+        assertNeg2Neg1ZeroPos1Pos2(
+            index,
+
+            // Closest to -2:
+            itemNeg1,
+
+            // Closest to -1:
+            itemNeg1,
+
+            // Closest to 0:
+            itemZero,
+
+            // Closest to +1:
+            itemPos1,
+
+            // Closest to +2:
+            itemPos1
+        );
+    }
+
+    @Test
+    public void index_Pos1_Zero_Neg1()
+    {
+        // Create the index:
+        TIndex index = createIndex();
+
+        // Create the items we want to index:
+        X itemNeg1 = new X(-1);
+        X itemZero = new X(0);
+        X itemPos1 = new X(1);
+
+        // Index the items:
+        index.add(itemPos1);
+        index.add(itemZero);
+        index.add(itemNeg1);
+
+        // Make sure the index returns the expected items:
+        assertNeg2Neg1ZeroPos1Pos2(
+            index,
+
+            // Closest to -2:
+            itemNeg1,
+
+            // Closest to -1:
+            itemNeg1,
+
+            // Closest to 0:
+            itemZero,
+
+            // Closest to +1:
+            itemPos1,
+
+            // Closest to +2:
+            itemPos1
+        );
+    }
+
     /**
      * This performs the assertion of the index at specific intervals.
      *
@@ -266,8 +375,8 @@ public abstract class XIndex1DTests
             X nearest = index.searchNearest(assertionEntry.samplePoint());
 
             // Make sure the item is the exact same instance as the original one:
-            assertEquals(assertionEntry.expectedNearest, nearest);
-            assertSame(assertionEntry.expectedNearest, nearest);
+            assertEquals(assertionEntry.expectedNearest, nearest, "We didn't get the expected nearest answer when querying " + assertionEntry.samplePoint);
+            assertSame(assertionEntry.expectedNearest, nearest, "We didn't get the expected nearest instance when querying " + assertionEntry.samplePoint);
         }
     }
 

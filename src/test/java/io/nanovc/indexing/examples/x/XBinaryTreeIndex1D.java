@@ -10,6 +10,7 @@ import java.util.Comparator;
  */
 public class XBinaryTreeIndex1D extends BinaryTreeIndex1DImplementation<
     X,
+    Comparator<X>,
     Integer,
     Measurer<X,Integer>,
     Comparator<Integer>
@@ -18,7 +19,7 @@ public class XBinaryTreeIndex1D extends BinaryTreeIndex1DImplementation<
 
     public XBinaryTreeIndex1D()
     {
-        super(X::measureDistance, Integer::compare);
+        super(X::compareTo, X::measureDistance, Integer::compare);
     }
 
 }

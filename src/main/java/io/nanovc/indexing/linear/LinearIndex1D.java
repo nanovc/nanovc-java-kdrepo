@@ -19,6 +19,6 @@ public interface LinearIndex1D<
     TMeasurer extends Measurer<TItem, TDistance>,
     TDistanceComparator extends Comparator<TDistance>
     >
-    extends Index1D<TItem, TDistance, TMeasurer, TDistanceComparator>
+    extends Index1D<TItem>
 {
 }

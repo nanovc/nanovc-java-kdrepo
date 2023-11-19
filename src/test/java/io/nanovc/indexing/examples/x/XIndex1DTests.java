@@ -1,26 +1,35 @@
 package io.nanovc.indexing.examples.x;
 
+import io.nanovc.indexing.Index1D;
+import io.nanovc.indexing.Measurer;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-class XRepoIndex1DTests
+/**
+ * Tests the various index implementations for a 1D data structure.
+ */
+public abstract class XIndex1DTests
+    <TIndex extends Index1D<X, Integer, Measurer<X, Integer>, Comparator<Integer>>>
 {
+
+
     @Test
     public void creationTest()
     {
-        new XRepoIndex1D();
+        createIndex();
     }
 
     @Test
     public void index_Pos1()
     {
         // Create the index:
-        XRepoIndex1D index = new XRepoIndex1D();
+        TIndex index = createIndex();
 
         // Create the items we want to index:
         X itemPos1 = new X(1);
@@ -53,7 +62,7 @@ class XRepoIndex1DTests
     public void index_Neg1()
     {
         // Create the index:
-        XRepoIndex1D index = new XRepoIndex1D();
+        TIndex index = createIndex();
 
         // Create the items we want to index:
         X itemNeg1 = new X(-1);
@@ -86,7 +95,7 @@ class XRepoIndex1DTests
     public void index_Pos1_Neg1()
     {
         // Create the index:
-        XRepoIndex1D index = new XRepoIndex1D();
+        TIndex index = createIndex();
 
         // Create the items we want to index:
         X itemPos1 = new X(1);
@@ -128,7 +137,7 @@ class XRepoIndex1DTests
      * @param expectedClosestToPos2 The item that is expected to be closest to +2.
      */
     void assertNeg2Neg1ZeroPos1Pos2(
-        XRepoIndex1D index,
+        TIndex index,
         X expectedClosestToNeg2,
         X expectedClosestToNeg1,
         X expectedClosestToZero,
@@ -156,6 +165,50 @@ class XRepoIndex1DTests
             assertSame(assertionEntry.expectedNearest, nearest);
         }
     }
+
+
+    //#region Implementation Specific Methods
+
+    /**
+     * A factory method to create an index of the specific type.
+     * @return A new index of the specific type.
+     */
+    protected abstract TIndex createIndex();
+
+    //#endregion Implementation Specific Methods
+
+
+    //#region Index Implementations to Test
+
+    public static class LinearTests extends XIndex1DTests<XLinearIndex1D>
+    {
+
+        /**
+         * A factory method to create an index of the specific type.
+         *
+         * @return A new index of the specific type.
+         */
+        @Override protected XLinearIndex1D createIndex()
+        {
+            return new XLinearIndex1D();
+        }
+    }
+
+    public static class BinaryTests extends XIndex1DTests<XBinaryTreeIndex1D>
+    {
+
+        /**
+         * A factory method to create an index of the specific type.
+         *
+         * @return A new index of the specific type.
+         */
+        @Override protected XBinaryTreeIndex1D createIndex()
+        {
+            return new XBinaryTreeIndex1D();
+        }
+    }
+
+    //#endregion
 
 
 }

@@ -1,40 +1,37 @@
-package io.nanovc.indexing;
+package io.nanovc.indexing.binarytree;
+
+import io.nanovc.indexing.Index1DBase;
+import io.nanovc.indexing.Measurer;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 /**
- * A one dimensional {@link RepoIndexKD}.
+ * A base class for a one dimensional {@link BinaryTreeIndex1D}.
  *
  * @param <TItem>               The specific type of data that the index is for.
  * @param <TDistance>           The type for the distance between the items.
  * @param <TMeasurer>           The type for the measurer that can measure the distance between items.
  * @param <TDistanceComparator> The comparator that compares distances between items.
  */
-public class RepoIndex1D<
+public abstract class BinaryTreeIndex1DBase<
     TItem,
     TDistance,
     TMeasurer extends Measurer<TItem, TDistance>,
     TDistanceComparator extends Comparator<TDistance>
-    > extends RepoIndexKD
+    >
+    extends Index1DBase<TItem, TDistance, TMeasurer, TDistanceComparator>
+    implements BinaryTreeIndex1D<TItem, TDistance, TMeasurer, TDistanceComparator>
 {
     /**
      * The items in this index for dimension one.
      */
-    private List<TItem> items = new ArrayList<>();
+    private final List<TItem> items = new ArrayList<>();
 
-    /**
-     * The comparator to use for comparing distances of items.
-     */
-    private TDistanceComparator distanceComparator;
-
-    private final TMeasurer measurer;
-
-    public RepoIndex1D(TMeasurer measurer, TDistanceComparator comparator)
+    public BinaryTreeIndex1DBase(TMeasurer measurer, TDistanceComparator comparator)
     {
-        this.measurer = measurer;
-        distanceComparator = comparator;
+        super(measurer, comparator);
     }
 
     /**
@@ -60,11 +57,15 @@ public class RepoIndex1D<
         // Keep track of the closest item:
         TItem closestItem = null;
 
+        // Cache dependencies:
+        TMeasurer measurer = this.getMeasurer();
+        TDistanceComparator distanceComparator = this.getDistanceComparator();
+
         // Go linearly through each item:
         for (TItem otherItem : this.items)
         {
             // Measure the distance to the item:
-            TDistance distance = this.measurer.measureDistanceBetween(otherItem, item);
+            TDistance distance = measurer.measureDistanceBetween(otherItem, item);
 
             // Check whether this is the first distance we have:
             if (shortestDistance == null)
@@ -79,7 +80,7 @@ public class RepoIndex1D<
                 // This is not the first distance we have measured.
 
                 // Check if this is the new shortest distance:
-                if (this.distanceComparator.compare(distance, shortestDistance) < 0)
+                if (distanceComparator.compare(distance, shortestDistance) < 0)
                 {
                     // This item is closer than the previous one.
 

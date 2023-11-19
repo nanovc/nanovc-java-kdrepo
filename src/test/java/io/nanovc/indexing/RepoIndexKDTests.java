@@ -1,5 +1,6 @@
 package io.nanovc.indexing;
 
+import io.nanovc.indexing.repo.RepoIndexKD;
 import org.junit.jupiter.api.Test;
 
 /**

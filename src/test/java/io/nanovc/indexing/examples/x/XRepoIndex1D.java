@@ -1,14 +1,14 @@
 package io.nanovc.indexing.examples.x;
 
 import io.nanovc.indexing.Measurer;
-import io.nanovc.indexing.linear.LinearIndex1DImplementation;
+import io.nanovc.indexing.repo.RepoIndex1DImplementation;
 
 import java.util.Comparator;
 
 /**
- * A {@link LinearIndex1DImplementation} for single dimensional values of type {@link X}.
+ * A {@link RepoIndex1DImplementation} for single dimensional values of type {@link X}.
  */
-public class XLinearIndex1D extends LinearIndex1DImplementation<
+public class XRepoIndex1D extends RepoIndex1DImplementation<
     X,
     Integer,
     Measurer<X,Integer>,
@@ -16,7 +16,7 @@ public class XLinearIndex1D extends LinearIndex1DImplementation<
     >
 {
 
-    public XLinearIndex1D()
+    public XRepoIndex1D()
     {
         super(X::measureDistance, Integer::compare);
     }

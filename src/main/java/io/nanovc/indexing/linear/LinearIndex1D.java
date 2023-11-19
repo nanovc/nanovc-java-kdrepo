@@ -2,12 +2,11 @@ package io.nanovc.indexing.linear;
 
 import io.nanovc.indexing.Index1D;
 import io.nanovc.indexing.Measurer;
-import io.nanovc.indexing.repo.RepoIndexKD;
 
 import java.util.Comparator;
 
 /**
- * A one dimensional {@link RepoIndexKD}.
+ * A one dimensional {@link Index1D} that uses a linear list for its implementation.
  *
  * @param <TItem>               The specific type of data that the index is for.
  * @param <TDistance>           The type for the distance between the items.

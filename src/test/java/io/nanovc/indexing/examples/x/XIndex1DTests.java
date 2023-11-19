@@ -299,7 +299,7 @@ public abstract class XIndex1DTests
         }
     }
 
-    public static class BinaryTests extends XIndex1DTests<XBinaryTreeIndex1D>
+    public static class BinaryTreeTests extends XIndex1DTests<XBinaryTreeIndex1D>
     {
 
         /**
@@ -310,6 +310,20 @@ public abstract class XIndex1DTests
         @Override protected XBinaryTreeIndex1D createIndex()
         {
             return new XBinaryTreeIndex1D();
+        }
+    }
+
+    public static class RepoTests extends XIndex1DTests<XRepoIndex1D>
+    {
+
+        /**
+         * A factory method to create an index of the specific type.
+         *
+         * @return A new index of the specific type.
+         */
+        @Override protected XRepoIndex1D createIndex()
+        {
+            return new XRepoIndex1D();
         }
     }
 

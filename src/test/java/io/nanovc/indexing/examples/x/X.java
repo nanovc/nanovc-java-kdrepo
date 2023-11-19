@@ -1,4 +1,4 @@
-package io.nanovc.kdrepos.examples.x;
+package io.nanovc.indexing.examples.x;
 
 /**
  * A record for an X coordinate.

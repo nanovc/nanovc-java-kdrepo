@@ -1,4 +1,4 @@
-package io.nanovc.kdrepos.examples.x;
+package io.nanovc.indexing.examples.x;
 
 import org.junit.jupiter.api.Test;
 

@@ -1,4 +1,4 @@
-package io.nanovc.kdrepos;
+package io.nanovc.indexing;
 
 /**
  * A base class for a multidimensional (k-dimensional) index.

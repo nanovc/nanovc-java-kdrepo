@@ -1,4 +1,4 @@
-package io.nanovc.kdrepos;
+package io.nanovc.indexing;
 
 /**
  * This measures the distance between two items.

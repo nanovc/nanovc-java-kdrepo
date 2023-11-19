@@ -1,8 +1,8 @@
-package io.nanovc.kdrepos.examples.x;
+package io.nanovc.indexing.examples.x;
 
-import io.nanovc.kdrepos.RepoIndexKD;
-import io.nanovc.kdrepos.Measurer;
-import io.nanovc.kdrepos.RepoIndex1D;
+import io.nanovc.indexing.RepoIndexKD;
+import io.nanovc.indexing.Measurer;
+import io.nanovc.indexing.RepoIndex1D;
 
 import java.util.Comparator;
 

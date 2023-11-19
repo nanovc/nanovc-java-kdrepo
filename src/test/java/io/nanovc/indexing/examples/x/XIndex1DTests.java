@@ -26,6 +26,39 @@ public abstract class XIndex1DTests
     }
 
     @Test
+    public void index_Zero()
+    {
+        // Create the index:
+        TIndex index = createIndex();
+
+        // Create the items we want to index:
+        X itemZero = new X(0);
+
+        // Index the items:
+        index.add(itemZero);
+
+        // Make sure the index returns the expected items:
+        assertNeg2Neg1ZeroPos1Pos2(
+            index,
+
+            // Closest to -2:
+            itemZero,
+
+            // Closest to -1:
+            itemZero,
+
+            // Closest to 0:
+            itemZero,
+
+            // Closest to +1:
+            itemZero,
+
+            // Closest to +2:
+            itemZero
+        );
+    }
+
+    @Test
     public void index_Pos1()
     {
         // Create the index:
@@ -92,6 +125,41 @@ public abstract class XIndex1DTests
     }
 
     @Test
+    public void index_Neg1_Pos1()
+    {
+        // Create the index:
+        TIndex index = createIndex();
+
+        // Create the items we want to index:
+        X itemNeg1 = new X(-1);
+        X itemPos1 = new X(1);
+
+        // Index the items:
+        index.add(itemNeg1);
+        index.add(itemPos1);
+
+        // Make sure the index returns the expected items:
+        assertNeg2Neg1ZeroPos1Pos2(
+            index,
+
+            // Closest to -2:
+            itemNeg1,
+
+            // Closest to -1:
+            itemNeg1,
+
+            // Closest to 0:
+            itemNeg1,
+
+            // Closest to +1:
+            itemPos1,
+
+            // Closest to +2:
+            itemPos1
+        );
+    }
+
+    @Test
     public void index_Pos1_Neg1()
     {
         // Create the index:
@@ -117,6 +185,43 @@ public abstract class XIndex1DTests
 
             // Closest to 0:
             itemPos1,
+
+            // Closest to +1:
+            itemPos1,
+
+            // Closest to +2:
+            itemPos1
+        );
+    }
+
+    @Test
+    public void index_Neg1_Zero_Pos1()
+    {
+        // Create the index:
+        TIndex index = createIndex();
+
+        // Create the items we want to index:
+        X itemNeg1 = new X(-1);
+        X itemZero = new X(0);
+        X itemPos1 = new X(1);
+
+        // Index the items:
+        index.add(itemNeg1);
+        index.add(itemZero);
+        index.add(itemPos1);
+
+        // Make sure the index returns the expected items:
+        assertNeg2Neg1ZeroPos1Pos2(
+            index,
+
+            // Closest to -2:
+            itemNeg1,
+
+            // Closest to -1:
+            itemNeg1,
+
+            // Closest to 0:
+            itemZero,
 
             // Closest to +1:
             itemPos1,

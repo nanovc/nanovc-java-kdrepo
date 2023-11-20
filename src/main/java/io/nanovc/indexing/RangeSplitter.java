@@ -11,6 +11,7 @@ import java.util.List;
 public interface RangeSplitter<T>
 {
     /**
+     * This splits the range given by the two items into the given number of divisions.
      * @param o1            The first item to measure the distance from.
      * @param o2            The second item to measure the distance to.
      * @param divisions     The number of divisions to split the range into.

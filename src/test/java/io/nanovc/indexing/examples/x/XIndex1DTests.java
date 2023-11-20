@@ -1,20 +1,17 @@
 package io.nanovc.indexing.examples.x;
 
 import io.nanovc.indexing.Index1D;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.function.Function;
 import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests the various index implementations for a 1D data structure.
@@ -47,19 +44,19 @@ public abstract class XIndex1DTests
             index,
 
             // Closest to -2:
-            itemZero,
+            new Single<>(itemZero),
 
             // Closest to -1:
-            itemZero,
+            new Single<>(itemZero),
 
             // Closest to 0:
-            itemZero,
+            new Single<>(itemZero),
 
             // Closest to +1:
-            itemZero,
+            new Single<>(itemZero),
 
             // Closest to +2:
-            itemZero
+            new Single<>(itemZero)
         );
     }
 
@@ -80,19 +77,19 @@ public abstract class XIndex1DTests
             index,
 
             // Closest to -2:
-            itemPos1,
+            new Single<>(itemPos1),
 
             // Closest to -1:
-            itemPos1,
+            new Single<>(itemPos1),
 
             // Closest to 0:
-            itemPos1,
+            new Single<>(itemPos1),
 
             // Closest to +1:
-            itemPos1,
+            new Single<>(itemPos1),
 
             // Closest to +2:
-            itemPos1
+            new Single<>(itemPos1)
         );
     }
 
@@ -113,19 +110,19 @@ public abstract class XIndex1DTests
             index,
 
             // Closest to -2:
-            itemNeg1,
+            new Single<>(itemNeg1),
 
             // Closest to -1:
-            itemNeg1,
+            new Single<>(itemNeg1),
 
             // Closest to 0:
-            itemNeg1,
+            new Single<>(itemNeg1),
 
             // Closest to +1:
-            itemNeg1,
+            new Single<>(itemNeg1),
 
             // Closest to +2:
-            itemNeg1
+            new Single<>(itemNeg1)
         );
     }
 
@@ -148,19 +145,19 @@ public abstract class XIndex1DTests
             index,
 
             // Closest to -2:
-            itemNeg1,
+            new Single<>(itemNeg1),
 
             // Closest to -1:
-            itemNeg1,
+            new Single<>(itemNeg1),
 
             // Closest to 0:
-            itemNeg1,
+            new Either<>(itemNeg1, itemPos1),
 
             // Closest to +1:
-            itemPos1,
+            new Single<>(itemPos1),
 
             // Closest to +2:
-            itemPos1
+            new Single<>(itemPos1)
         );
     }
 
@@ -183,19 +180,19 @@ public abstract class XIndex1DTests
             index,
 
             // Closest to -2:
-            itemNeg1,
+            new Single<>(itemNeg1),
 
             // Closest to -1:
-            itemNeg1,
+            new Single<>(itemNeg1),
 
             // Closest to 0:
-            itemPos1,
+            new Either<>(itemNeg1, itemPos1),
 
             // Closest to +1:
-            itemPos1,
+            new Single<>(itemPos1),
 
             // Closest to +2:
-            itemPos1
+            new Single<>(itemPos1)
         );
     }
 
@@ -220,19 +217,19 @@ public abstract class XIndex1DTests
             index,
 
             // Closest to -2:
-            itemNeg1,
+            new Single<>(itemNeg1),
 
             // Closest to -1:
-            itemNeg1,
+            new Single<>(itemNeg1),
 
             // Closest to 0:
-            itemZero,
+            new Single<>(itemZero),
 
             // Closest to +1:
-            itemPos1,
+            new Single<>(itemPos1),
 
             // Closest to +2:
-            itemPos1
+            new Single<>(itemPos1)
         );
     }
 
@@ -257,19 +254,19 @@ public abstract class XIndex1DTests
             index,
 
             // Closest to -2:
-            itemNeg1,
+            new Single<>(itemNeg1),
 
             // Closest to -1:
-            itemNeg1,
+            new Single<>(itemNeg1),
 
             // Closest to 0:
-            itemZero,
+            new Single<>(itemZero),
 
             // Closest to +1:
-            itemPos1,
+            new Single<>(itemPos1),
 
             // Closest to +2:
-            itemPos1
+            new Single<>(itemPos1)
         );
     }
 
@@ -294,19 +291,19 @@ public abstract class XIndex1DTests
             index,
 
             // Closest to -2:
-            itemNeg1,
+            new Single<>(itemNeg1),
 
             // Closest to -1:
-            itemNeg1,
+            new Single<>(itemNeg1),
 
             // Closest to 0:
-            itemZero,
+            new Single<>(itemZero),
 
             // Closest to +1:
-            itemPos1,
+            new Single<>(itemPos1),
 
             // Closest to +2:
-            itemPos1
+            new Single<>(itemPos1)
         );
     }
 
@@ -331,19 +328,19 @@ public abstract class XIndex1DTests
             index,
 
             // Closest to -2:
-            itemNeg1,
+            new Single<>(itemNeg1),
 
             // Closest to -1:
-            itemNeg1,
+            new Single<>(itemNeg1),
 
             // Closest to 0:
-            itemZero,
+            new Single<>(itemZero),
 
             // Closest to +1:
-            itemPos1,
+            new Single<>(itemPos1),
 
             // Closest to +2:
-            itemPos1
+            new Single<>(itemPos1)
         );
     }
 
@@ -359,15 +356,15 @@ public abstract class XIndex1DTests
      */
     void assertNeg2Neg1ZeroPos1Pos2(
         TIndex index,
-        X expectedClosestToNeg2,
-        X expectedClosestToNeg1,
-        X expectedClosestToZero,
-        X expectedClosestToPos1,
-        X expectedClosestToPos2
+        SingleOrEither<X> expectedClosestToNeg2,
+        SingleOrEither<X> expectedClosestToNeg1,
+        SingleOrEither<X> expectedClosestToZero,
+        SingleOrEither<X> expectedClosestToPos1,
+        SingleOrEither<X> expectedClosestToPos2
     )
     {
         // Create the assertion entries that we need:
-        record IndexAssertionEntry(X samplePoint, X expectedNearest) {}
+        record IndexAssertionEntry(X samplePoint, SingleOrEither<X> expectedNearest) {}
         List<IndexAssertionEntry> assertionEntries = new ArrayList<>();
         assertionEntries.add(new IndexAssertionEntry(new X(-2), expectedClosestToNeg2));
         assertionEntries.add(new IndexAssertionEntry(new X(-1), expectedClosestToNeg1));
@@ -381,9 +378,25 @@ public abstract class XIndex1DTests
             // Search for the nearest item:
             X nearest = index.searchNearest(assertionEntry.samplePoint());
 
-            // Make sure the item is the exact same instance as the original one:
-            assertEquals(assertionEntry.expectedNearest, nearest, "We didn't get the expected nearest answer when querying " + assertionEntry.samplePoint);
-            assertSame(assertionEntry.expectedNearest, nearest, "We didn't get the expected nearest instance when querying " + assertionEntry.samplePoint);
+            // Get the options that the item could be:
+            SingleOrEither<X> expectedNearest = assertionEntry.expectedNearest;
+            List<X> possibleItems = expectedNearest.get();
+
+            // Make sure that the item matches any of the possible options:
+            boolean matchesAny = false;
+            for (X possibleItem : possibleItems)
+            {
+                // Check if the value is the same:
+                if (nearest.equals(possibleItem))
+                {
+                    // This is a match.
+                    matchesAny = true;
+                }
+            }
+
+            // Make sure we matched any option:
+            if (!matchesAny)
+                fail("We didn't get the expected nearest answer when querying " + assertionEntry.samplePoint + "... Expected: " + assertionEntry.expectedNearest + " Got: " + nearest);
         }
     }
 
@@ -606,5 +619,74 @@ public abstract class XIndex1DTests
 
     //#endregion
 
+    //#region Helper Classes
+
+    /**
+     * This represents either a single or either results.
+     */
+    abstract static class SingleOrEither<T>
+    {
+        /**
+         * Gets the options that the result might be.
+         *
+         * @return The options that the result might be.
+         */
+        abstract List<T> get();
+    }
+
+    /**
+     * A single item.
+     *
+     * @param <T> The type of item.
+     */
+    static class Single<T> extends SingleOrEither<T>
+    {
+        public final T item;
+
+        Single(T item) {this.item = item;}
+
+        List<T> get()
+        {
+            return Collections.singletonList(item);
+        }
+
+        @Override public String toString()
+        {
+            return item.toString();
+        }
+    }
+
+    /**
+     * Either of two items.
+     *
+     * @param <T> The type of item.
+     */
+    static class Either<T> extends SingleOrEither<T>
+    {
+        public final T item1;
+
+        public final T item2;
+
+        Either(T item1, T item2)
+        {
+            this.item1 = item1;
+            this.item2 = item2;
+        }
+
+        List<T> get()
+        {
+            return Arrays.asList(this.item1, this.item2);
+        }
+
+        @Override public String toString()
+        {
+            return "Either " +
+                   item1
+                   + " OR " +
+                   item2;
+        }
+    }
+
+    //#endregion
 
 }

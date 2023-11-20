@@ -36,12 +36,13 @@ public record X(int x)
     /**
      * This splits the range given by the two items into the given number of divisions.
      *
-     * @param o1            The first item to measure the distance from.
-     * @param o2            The second item to measure the distance to.
-     * @param divisions     The number of divisions to split the range into.
-     * @param splitsToAddTo The collection of splits to add to while we split the range.
+     * @param o1                         The first item to measure the distance from.
+     * @param o2                         The second item to measure the distance to.
+     * @param divisions                  The number of divisions to split the range into.
+     * @param includeExtraRightMostSplit True to include an extra item in the list (1 more than the requested number of divisions) to represent the right most edge of the range. If this is false then we only have the left edges, leading up to but not including the right part of the range.
+     * @param splitsToAddTo              The collection of splits to add to while we split the range.
      */
-    public static void splitRange(X o1, X o2, int divisions, List<X> splitsToAddTo)
+    public static void splitRange(X o1, X o2, int divisions, boolean includeExtraRightMostSplit, List<X> splitsToAddTo)
     {
         // Get the range:
         int startingValue = o1.x();
@@ -49,18 +50,15 @@ public record X(int x)
         int range = endingValue - startingValue;
 
         // Get the step:
-        int step = range / (divisions - 1);
+        int step = range / divisions;
 
         // Make sure the step is at least one unit:
         if (step == 0) step = 1;
 
-        // Add the starting item:
-        splitsToAddTo.add(o1);
-
         // Create the splits:
         for (
-            int innerDivisions = divisions - 2, i = 0, currentValue = startingValue + step;
-            (i < innerDivisions) && (currentValue < endingValue);
+            int i = 0, currentValue = startingValue;
+            (i < divisions) && (currentValue < endingValue);
             i++, currentValue += step
         )
         {
@@ -71,8 +69,8 @@ public record X(int x)
             splitsToAddTo.add(item);
         }
 
-        // Add the ending item:
-        splitsToAddTo.add(o2);
+        // Add the ending item if desired (NOTE: it means we might have more than the requested (divisions) items in the result, but this is useful to have an entry as the right most edge:
+        if (includeExtraRightMostSplit) splitsToAddTo.add(o2);
     }
 
     /**
@@ -92,7 +90,7 @@ public record X(int x)
         int range = endingValue - startingValue;
 
         // Get the step:
-        int step = range / (divisions - 1);
+        int step = range / divisions;
 
         // Make sure the step is at least one unit:
         if (step == 0) step = 1;

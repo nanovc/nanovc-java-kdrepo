@@ -88,7 +88,7 @@ public abstract class GridIndex1DBase<
 
         // Split the range:
         this.rangeSplits = new ArrayList<>(divisions);
-        this.rangeSplitter.splitRange(minRange, maxRange, divisions, this.rangeSplits);
+        this.rangeSplitter.splitRange(minRange, maxRange, divisions, true, this.rangeSplits);
 
         // Initialise the grid:
         this.items = new ArrayList<>(divisions);

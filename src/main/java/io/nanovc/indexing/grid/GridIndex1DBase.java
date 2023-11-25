@@ -88,7 +88,7 @@ public abstract class GridIndex1DBase<
 
         // Split the range:
         this.rangeSplits = new ArrayList<>(divisions);
-        this.rangeSplitter.splitRange(minRange, maxRange, divisions, true, this.rangeSplits);
+        this.splitRange(minRange, maxRange, divisions, true, this.rangeSplits);
 
         // Initialise the grid:
         this.items = new ArrayList<>(divisions);
@@ -99,6 +99,51 @@ public abstract class GridIndex1DBase<
     }
 
     /**
+     * This splits the range given by the two items into the given number of divisions.
+     *
+     * @param minRange                   The item at the minimum range to measure the distance from.
+     * @param maxRange                   The item at the maximum range to measure the distance to.
+     * @param divisions                  The number of divisions to split the range into.
+     * @param includeExtraRightMostSplit True to include an extra item in the list (1 more than the requested number of divisions) to represent the right most edge of the range. If this is false then we only have the left edges, leading up to but not including the right part of the range.
+     * @param splitsToAddTo              The collection of splits to add to while we split the range.
+     */
+    protected void splitRange(TItem minRange, TItem maxRange, int divisions, boolean includeExtraRightMostSplit, List<TItem> splitsToAddTo)
+    {
+        this.rangeSplitter.splitRange(minRange, maxRange, divisions, includeExtraRightMostSplit, splitsToAddTo);
+    }
+
+    /**
+     * Gets the lower range of the given division.
+     * @param divisionIndex The division that we want to get the lower range value of.
+     * @return The lower range of the given division.
+     */
+    protected TItem getDivisionMinRange(int divisionIndex)
+    {
+        // Make sure we are within our bounds:
+        divisionIndex = Math.max(0, Math.min(this.rangeSplits.size() - 1, divisionIndex));
+
+        // Get the division:
+        return this.rangeSplits.get(divisionIndex);
+    }
+
+    /**
+     * Gets the upper range of the given division.
+     * @param divisionIndex The division that we want to get the lower range value of.
+     * @return The lower range of the given division.
+     */
+    protected TItem getDivisionMaxRange(int divisionIndex)
+    {
+        // Get the next division:
+        int nextDivisionIndex = divisionIndex + 1;
+
+        // Make sure we are within our bounds:
+        nextDivisionIndex = Math.max(0, Math.min(this.rangeSplits.size() - 1, nextDivisionIndex));
+
+        // Get the division:
+        return this.rangeSplits.get(nextDivisionIndex);
+    }
+
+    /**
      * Adds the given item to the index.
      *
      * @param item The item to add to the index.
@@ -106,21 +151,68 @@ public abstract class GridIndex1DBase<
     public void add(TItem item)
     {
         // Find the index of the division in the range:
-        int index = this.rangeFinder.findIndexInRange(this.minRange, this.maxRange, this.divisions, item);
+        int index = findIndexInRange(this.minRange, this.maxRange, this.divisions, item);
 
         // Get the list at the index:
         addItemToIndex(item, index);
     }
 
+
+    /**
+     * This finds the division index for an item in a range that is defined by two other items.
+     *
+     * @param minRange          The item at the minimum range to measure the distance from.
+     * @param maxRange          The item at the maximum range to measure the distance to.
+     * @param divisions         The number of divisions to split the range into.
+     * @param itemToFindInRange The item to find the index of for the given range.
+     * @return The index of the division of the given item in the range specified.
+     */
+    protected int findIndexInRange(TItem minRange, TItem maxRange, int divisions, TItem itemToFindInRange)
+    {
+        return this.rangeFinder.findIndexInRange(minRange, maxRange, divisions, itemToFindInRange);
+    }
+
     /**
      * Adds the given item to the specific division index.
-     * @param item The item to add.
+     *
+     * @param item          The item to add.
      * @param divisionIndex The specific division index to add the item to.
      */
     protected void addItemToIndex(TItem item, int divisionIndex)
     {
+        // Get or create the list at the given division in the range:
+        List<TItem> itemsAtDivision = getOrCreateItemsAtDivision(divisionIndex);
+
+        // Add the item:
+        itemsAtDivision.add(item);
+    }
+
+    /**
+     * Gets the current list of items at the given division index.
+     * It doesn't create the list if it doesn't exist. Instead, if just returns null.
+     *
+     * @param divisionIndex The index of the division that we want to interrogate.
+     * @return The current list of items at the given division index.
+     */
+    protected List<TItem> getItemsAtDivision(int divisionIndex)
+    {
         // Get the list at the given division in the range:
+        //noinspection UnnecessaryLocalVariable
         List<TItem> itemsAtDivision = this.items.get(divisionIndex);
+        return itemsAtDivision;
+    }
+
+    /**
+     * Gets or creates the current list of items at the given division index.
+     * It creates the list if it doesn't exist yet.
+     *
+     * @param divisionIndex The index of the division that we want to interrogate.
+     * @return The current list of items at the given division index. This will be a newly created list if this is the first time it is being queried.
+     */
+    protected List<TItem> getOrCreateItemsAtDivision(int divisionIndex)
+    {
+        // Get the list at the given division in the range:
+        List<TItem> itemsAtDivision = getItemsAtDivision(divisionIndex);
 
         // Make sure we have a list:
         if (itemsAtDivision == null)
@@ -134,25 +226,34 @@ public abstract class GridIndex1DBase<
         }
         // Now we know we have a list at the given division index.
 
-        // Add the item:
-        itemsAtDivision.add(item);
+        return itemsAtDivision;
     }
 
+    /**
+     * Clears and releases the item collection at the given division index.
+     *
+     * @param divisionIndex The index of the division that we want to clear.
+     */
+    protected void clearItemsAtDivision(int divisionIndex)
+    {
+        this.items.set(divisionIndex, null);
+    }
 
     /**
      * This finds the nearest item in the index to the given item.
+     *
      * @param item The item to search for.
      * @return The nearest item to the given item.
      */
     public TItem searchNearest(TItem item)
     {
         // Find the index of the item that we are interested in:
-        int index = this.rangeFinder.findIndexInRange(this.minRange, this.maxRange, this.divisions, item);
+        int index = this.findIndexInRange(this.minRange, this.maxRange, this.divisions, item);
         int previousIndex = index - 1;
         int nextIndex = index + 1;
 
         // Get the list of items at that division:
-        MeasuredItem nearestItemAtIndex = searchNearestAtIndex(item, index);
+        MeasuredItem<TItem, TDistance> nearestItemAtIndex = searchNearestAtIndex(item, index);
 
         // Check whether we had an exact match:
         if (nearestItemAtIndex != null && nearestItemAtIndex.distance == null) return nearestItemAtIndex.item;
@@ -179,7 +280,7 @@ public abstract class GridIndex1DBase<
         // Now we have the positions of the previous index that contain items (or we are outside the range).
 
         // Check the previous index (there might be closer items near the edges of the division):
-        MeasuredItem nearestItemAtPreviousIndex;
+        MeasuredItem<TItem, TDistance> nearestItemAtPreviousIndex;
         if (previousIndex >= 0)
         {
             // We have a previous index.
@@ -188,7 +289,8 @@ public abstract class GridIndex1DBase<
             nearestItemAtPreviousIndex = searchNearestAtIndex(item, previousIndex);
 
             // Check whether we found an exact match:
-            if (nearestItemAtPreviousIndex != null && nearestItemAtPreviousIndex.distance == null) return nearestItemAtPreviousIndex.item;
+            if (nearestItemAtPreviousIndex != null && nearestItemAtPreviousIndex.distance == null)
+                return nearestItemAtPreviousIndex.item;
         }
         else
         {
@@ -217,7 +319,7 @@ public abstract class GridIndex1DBase<
         // Now we have the positions of the next index that contain items (or we are outside the range).
 
         // Check the next index (there might be closer items near the edges of the division):
-        MeasuredItem nearestItemAtNextIndex;
+        MeasuredItem<TItem, TDistance> nearestItemAtNextIndex;
         if (nextIndex < this.divisions)
         {
             // We have a next index.
@@ -226,7 +328,8 @@ public abstract class GridIndex1DBase<
             nearestItemAtNextIndex = searchNearestAtIndex(item, nextIndex);
 
             // Check whether we found an exact match:
-            if (nearestItemAtNextIndex != null && nearestItemAtNextIndex.distance == null) return nearestItemAtNextIndex.item;
+            if (nearestItemAtNextIndex != null && nearestItemAtNextIndex.distance == null)
+                return nearestItemAtNextIndex.item;
         }
         else
         {
@@ -385,11 +488,12 @@ public abstract class GridIndex1DBase<
 
     /**
      * This searches for the nearest item in the given division index.
-     * @param item The item to search for.
+     *
+     * @param item          The item to search for.
      * @param divisionIndex The division index to search in.
      * @return The nearest item that was found at the given division index.
      */
-    protected MeasuredItem searchNearestAtIndex(TItem item, int divisionIndex)
+    protected MeasuredItem<TItem, TDistance> searchNearestAtIndex(TItem item, int divisionIndex)
     {
         // Get the items at the division index:
         List<TItem> items = this.items.get(divisionIndex);
@@ -417,14 +521,14 @@ public abstract class GridIndex1DBase<
                     // This item is equal.
 
                     // Create the measured result:
-                    MeasuredItem result = new MeasuredItem();
+                    MeasuredItem<TItem, TDistance> result = new MeasuredItem<>();
                     result.item = indexedItem;
                     return result;
                 }
                 // Now we know that the items are not equal.
 
                 // Get the distance to the item:
-                TDistance distance = this.measurer.measureDistanceBetween(item, indexedItem);
+                TDistance distance = measureDistanceBetween(item, indexedItem);
 
                 // Check whether this distance is the best so far:
                 if (bestDistanceSoFar == null || this.distanceComparator.compare(distance, bestDistanceSoFar) < 0)
@@ -439,7 +543,7 @@ public abstract class GridIndex1DBase<
             // Now we have found the best item.
 
             // Create the result:
-            MeasuredItem result = new MeasuredItem();
+            MeasuredItem<TItem, TDistance> result = new MeasuredItem<>();
             result.item = bestItemSoFar;
             result.distance = bestDistanceSoFar;
             return result;
@@ -447,19 +551,91 @@ public abstract class GridIndex1DBase<
     }
 
     /**
-     * This is a measured result for an item.
+     * Measures the distance between the two items.
+     * @param item1 The first item to measure the distance between.
+     * @param item2 The second item to measure the distance between.
+     * @return The distance between the two items.
      */
-    protected class MeasuredItem
+    protected TDistance measureDistanceBetween(TItem item1, TItem item2)
     {
-        /**
-         * The item that was measured.
-         */
-        public TItem item;
-
-
-        /**
-         * The distance to the target that was measured.
-         */
-        public TDistance distance;
+        return this.measurer.measureDistanceBetween(item1, item2);
     }
+
+    /**
+     * Gets the minimum range of this index.
+     *
+     * @return The minimum range of this index.
+     */
+    @Override
+    public TItem getMinRange()
+    {
+        return minRange;
+    }
+
+    /**
+     * Gets the maximum range of this index.
+     *
+     * @return The maximum range of this index.
+     */
+    @Override
+    public TItem getMaxRange()
+    {
+        return maxRange;
+    }
+
+    /**
+     * Gets the number of divisions to use for this grid index.
+     *
+     * @return The number of divisions to use for this grid index.
+     */
+    @Override
+    public int getDivisions()
+    {
+        return divisions;
+    }
+
+    /**
+     * Gets the measurer that measures distances between items.
+     *
+     * @return The measurer that measures distances between items.
+     */
+    @Override
+    public TMeasurer getMeasurer()
+    {
+        return measurer;
+    }
+
+    /**
+     * Gets the comparator to use for comparing distances of items.
+     *
+     * @return The comparator to use for comparing distances of items.
+     */
+    @Override
+    public TDistanceComparator getDistanceComparator()
+    {
+        return distanceComparator;
+    }
+
+    /**
+     * Gets the range splitter that divides the range into a set of divisions.
+     *
+     * @return The range splitter that divides the range into a set of divisions.
+     */
+    @Override
+    public TRangeSplitter getRangeSplitter()
+    {
+        return rangeSplitter;
+    }
+
+    /**
+     * Gets the range finder that gets the index of an item in the divisions of a range.
+     *
+     * @return The range finder that gets the index of an item in the divisions of a range.
+     */
+    @Override
+    public TRangeFinder getRangeFinder()
+    {
+        return rangeFinder;
+    }
+
 }

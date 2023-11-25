@@ -27,4 +27,46 @@ public interface GridIndex1D<
     >
     extends Index1D<TItem>
 {
+
+    /**
+     * Gets the minimum range of this index.
+     * @return The minimum range of this index.
+     */
+    TItem getMinRange();
+
+    /**
+     * Gets the maximum range of this index.
+     * @return The maximum range of this index.
+     */
+    TItem getMaxRange();
+
+    /**
+     * Gets the number of divisions to use for this grid index.
+     * @return The number of divisions to use for this grid index.
+     */
+    int getDivisions();
+
+    /**
+     * Gets the measurer that measures distances between items.
+     * @return The measurer that measures distances between items.
+     */
+    TMeasurer getMeasurer();
+
+    /**
+     * Gets the comparator to use for comparing distances of items.
+     * @return The comparator to use for comparing distances of items.
+     */
+    TDistanceComparator getDistanceComparator();
+
+    /**
+     * Gets the range splitter that divides the range into a set of divisions.
+     * @return The range splitter that divides the range into a set of divisions.
+     */
+    TRangeSplitter getRangeSplitter();
+
+    /**
+     * Gets the range finder that gets the index of an item in the divisions of a range.
+     * @return The range finder that gets the index of an item in the divisions of a range.
+     */
+    TRangeFinder getRangeFinder();
 }

@@ -438,10 +438,11 @@ public abstract class XIndex1DTests
     )
     public void index_Random_Linear(String scenario, long itemCount, double range, long queries)
     {
-        assertRandom(
+        PerformanceStats performanceStats = assertRandom(
             itemCount, range, queries,
             randomGenerator -> randomGenerator.nextDouble(0d, range * 2) - range
         );
+        System.out.println(performanceStats.getPerformanceStatsAsString());
     }
 
     /**
@@ -482,10 +483,39 @@ public abstract class XIndex1DTests
     )
     public void index_Random_Gaussian(String scenario, long itemCount, double range, long queries)
     {
-        assertRandom(
+        PerformanceStats performanceStats = assertRandom(
             itemCount, range, queries,
             randomGenerator -> randomGenerator.nextGaussian(0d, range)
         );
+        System.out.println(performanceStats.getPerformanceStatsAsString());
+    }
+
+
+    /**
+     * This is used for tracking performance stats.
+     * @param itemCount           The number of items that were processed.
+     * @param addDurationNanos    The total number of nanoseconds it took to add all the items.
+     * @param queryCount          The total number of items that were searched for.
+     * @param searchDurationNanos The total number of nanoseconds it took to add all the items.
+     */
+    public record PerformanceStats(long itemCount, long addDurationNanos, long queryCount, long searchDurationNanos)
+    {
+        /**
+         * Gets the performance stats as a string.
+         * @return The performance stats as a string.
+         */
+        public String getPerformanceStatsAsString()
+        {
+            return String.format(
+                "Items: %,-15d    Adding: %,20dns %,20d/s    Queries: %,-15d   Searching %,20dns %,20d/s",
+                itemCount(),
+                addDurationNanos(),
+                itemCount() * 1_000_000_000L / addDurationNanos(),
+                queryCount(),
+                searchDurationNanos(),
+                queryCount() * 1_000_000_000L / searchDurationNanos()
+            );
+        }
     }
 
     /**
@@ -496,7 +526,7 @@ public abstract class XIndex1DTests
      * @param queries        The queries to perform.
      * @param randomProvider The implementation that gets the next random number for the item.
      */
-    private void assertRandom(long itemCount, double range, long queries, Function<RandomGenerator, Double> randomProvider)
+    private PerformanceStats assertRandom(long itemCount, double range, long queries, Function<RandomGenerator, Double> randomProvider)
     {
         // Create the index:
         TIndex index = createIndex(range);
@@ -504,6 +534,11 @@ public abstract class XIndex1DTests
         // Create the random number generator:
         RandomGeneratorFactory<RandomGenerator> randomGeneratorFactory = RandomGeneratorFactory.getDefault();
         RandomGenerator randomGenerator = randomGeneratorFactory.create(1234L);
+
+        // Track the duration and rate of operations:
+        long startNanos = System.nanoTime();
+        long addDurationNanos = 0L;
+        long searchDurationNanos = 0L;
 
         // Generate random values to index:
         for (long i = 0; i < itemCount; i++)
@@ -514,8 +549,17 @@ public abstract class XIndex1DTests
             // Create the item:
             X item = new X((int) nextValue);
 
+            // Track the time before adding:
+            long addStartNanos = System.nanoTime();
+
             // Index the item:
             index.add(item);
+
+            // Track the time after adding:
+            long addEndNanos = System.nanoTime();
+
+            // Accumulate the time:
+            addDurationNanos += addEndNanos - addStartNanos;
         }
 
         // Create a histogram of the distances:
@@ -527,8 +571,17 @@ public abstract class XIndex1DTests
             // Create the item that we want to query:
             X item = new X(i);
 
+            // Track the time it takes to search:
+            long searchStartNanos = System.nanoTime();
+
             // Query the index:
             X nearest = index.searchNearest(item);
+
+            // Track the time after searching:
+            long searchEndNanos = System.nanoTime();
+
+            // Accumulate the search time:
+            searchDurationNanos += searchEndNanos - searchStartNanos;
 
             // Work out the distance to the item:
             int distance = X.measureDistance(item, nearest);
@@ -542,6 +595,9 @@ public abstract class XIndex1DTests
         // {
         //     System.out.println("Distance: " + entry.getKey() + " Count: " + entry.getValue());
         // }
+
+        // Return the performance stats:
+        return new PerformanceStats(itemCount, addDurationNanos, queries, searchDurationNanos);
     }
 
 
@@ -588,7 +644,35 @@ public abstract class XIndex1DTests
         }
     }
 
-    public static class GridTests extends XIndex1DTests<XGridIndex1D>
+    public static class Grid2Tests extends XIndex1DTests<XGridIndex1D>
+    {
+
+        /**
+         * A factory method to create an index of the specific type.
+         *
+         * @return A new index of the specific type.
+         */
+        @Override protected XGridIndex1D createIndex(double range)
+        {
+            return new XGridIndex1D(new X((int) -range), new X((int) range), 2);
+        }
+    }
+
+    public static class Grid10Tests extends XIndex1DTests<XGridIndex1D>
+    {
+
+        /**
+         * A factory method to create an index of the specific type.
+         *
+         * @return A new index of the specific type.
+         */
+        @Override protected XGridIndex1D createIndex(double range)
+        {
+            return new XGridIndex1D(new X((int) -range), new X((int) range), 10);
+        }
+    }
+
+    public static class Grid100Tests extends XIndex1DTests<XGridIndex1D>
     {
 
         /**
@@ -602,7 +686,7 @@ public abstract class XIndex1DTests
         }
     }
 
-    public static class HierarchicalGridTests extends XIndex1DTests<XHierarchicalGridIndex1D>
+    public static class HierarchicalGridDiv10Max1Tests extends XIndex1DTests<XHierarchicalGridIndex1D>
     {
 
         /**
@@ -612,7 +696,49 @@ public abstract class XIndex1DTests
          */
         @Override protected XHierarchicalGridIndex1D createIndex(double range)
         {
-            return new XHierarchicalGridIndex1D(new X((int) -range), new X((int) range), 10);
+            return new XHierarchicalGridIndex1D(new X((int) -range), new X((int) range), 10, 1, 1);
+        }
+    }
+
+    public static class HierarchicalGridDiv100Max1Tests extends XIndex1DTests<XHierarchicalGridIndex1D>
+    {
+
+        /**
+         * A factory method to create an index of the specific type.
+         *
+         * @return A new index of the specific type.
+         */
+        @Override protected XHierarchicalGridIndex1D createIndex(double range)
+        {
+            return new XHierarchicalGridIndex1D(new X((int) -range), new X((int) range), 100, 1, 1);
+        }
+    }
+
+    public static class HierarchicalGridDiv10Max10Tests extends XIndex1DTests<XHierarchicalGridIndex1D>
+    {
+
+        /**
+         * A factory method to create an index of the specific type.
+         *
+         * @return A new index of the specific type.
+         */
+        @Override protected XHierarchicalGridIndex1D createIndex(double range)
+        {
+            return new XHierarchicalGridIndex1D(new X((int) -range), new X((int) range), 10, 10, 10);
+        }
+    }
+
+    public static class HierarchicalGridDiv100Max10Tests extends XIndex1DTests<XHierarchicalGridIndex1D>
+    {
+
+        /**
+         * A factory method to create an index of the specific type.
+         *
+         * @return A new index of the specific type.
+         */
+        @Override protected XHierarchicalGridIndex1D createIndex(double range)
+        {
+            return new XHierarchicalGridIndex1D(new X((int) -range), new X((int) range), 100, 10, 10);
         }
     }
 

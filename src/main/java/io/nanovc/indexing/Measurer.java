@@ -9,6 +9,7 @@ package io.nanovc.indexing;
 public interface Measurer<T,R>
 {
     /**
+     * Measures the distance between the two items.
      * @param o1 The first item to measure the distance from.
      * @param o2 The second item to measure the distance to.
      * @return The distance between the two items.

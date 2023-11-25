@@ -1,7 +1,6 @@
 package io.nanovc.indexing.examples.x;
 
 import io.nanovc.indexing.Index1D;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -11,7 +10,7 @@ import java.util.function.Function;
 import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Tests the various index implementations for a 1D data structure.
@@ -600,6 +599,20 @@ public abstract class XIndex1DTests
         @Override protected XGridIndex1D createIndex(double range)
         {
             return new XGridIndex1D(new X((int) -range), new X((int) range), 100);
+        }
+    }
+
+    public static class HierarchicalGridTests extends XIndex1DTests<XHierarchicalGridIndex1D>
+    {
+
+        /**
+         * A factory method to create an index of the specific type.
+         *
+         * @return A new index of the specific type.
+         */
+        @Override protected XHierarchicalGridIndex1D createIndex(double range)
+        {
+            return new XHierarchicalGridIndex1D(new X((int) -range), new X((int) range), 10);
         }
     }
 

@@ -1,10 +1,21 @@
 package io.nanovc.indexing.examples.x;
 
 import io.nanovc.indexing.Index1D;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
 import java.util.random.RandomGenerator;
@@ -15,10 +26,15 @@ import static org.junit.jupiter.api.Assertions.fail;
 /**
  * Tests the various index implementations for a 1D data structure.
  */
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class XIndex1DTests
     <TIndex extends Index1D<X>>
 {
 
+    /**
+     * The root path for performance data.
+     */
+    public static final Path PERFORMANCE_DATA_ROOT_PATH = Path.of("analysis", "performance", "data");
 
     @Test
     public void creationTest()
@@ -436,13 +452,14 @@ public abstract class XIndex1DTests
             # Large Lots   |  1_000_000   | 1_000_000.0 | 1_000_000
             """
     )
-    public void index_Random_Linear(String scenario, long itemCount, double range, long queries)
+    public void index_Random_Linear(String scenario, long itemCount, double range, long queries, TestInfo testInfo)
     {
         PerformanceStats performanceStats = assertRandom(
             itemCount, range, queries,
             randomGenerator -> randomGenerator.nextDouble(0d, range * 2) - range
         );
         System.out.println(performanceStats.getPerformanceStatsAsString());
+        savePerformanceData(new PerformanceData(testInfo, performanceStats, Map.of("Scenario", scenario, "Item Count", itemCount, "Range", range, "Queries", queries)));
     }
 
     /**
@@ -481,18 +498,87 @@ public abstract class XIndex1DTests
             # Large Lots   |  1_000_000   | 1_000_000.0 | 1_000_000
             """
     )
-    public void index_Random_Gaussian(String scenario, long itemCount, double range, long queries)
+    public void index_Random_Gaussian(String scenario, long itemCount, double range, long queries, TestInfo testInfo)
     {
         PerformanceStats performanceStats = assertRandom(
             itemCount, range, queries,
             randomGenerator -> randomGenerator.nextGaussian(0d, range)
         );
         System.out.println(performanceStats.getPerformanceStatsAsString());
+        savePerformanceData(new PerformanceData(testInfo, performanceStats, Map.of("Scenario", scenario, "Item Count", itemCount, "Range", range, "Queries", queries)));
     }
 
+    /**
+     * This holds all the performance data that is to be written to the analysis data folder.
+     */
+    public List<PerformanceData> allPerformanceData = new ArrayList<>();
+
+    /**
+     * Saves the performance data to save so that we can write it to CSV at the end of the tests.
+     *
+     * @param performanceData The performance data to save so that we can write it to CSV at the end of the tests.
+     */
+    public void savePerformanceData(PerformanceData performanceData)
+    {
+        allPerformanceData.add(performanceData);
+    }
+
+    /**
+     * This writes all the performance data that was gathered for this run.
+     */
+    @AfterAll
+    public void writePerformanceCSVData()
+    {
+        try
+        {
+            // Group all the performance tests by the file path that we need to write to:
+            Map<Path, List<PerformanceData>> groupedPerformanceData = new LinkedHashMap<>();
+
+            // Get the current time stamp for this run:
+            LocalDateTime now = LocalDateTime.now();
+
+            // Format the time stamp:
+            String timestamp = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss"));
+
+            // Go through all the performance data and write it out:
+            for (PerformanceData performanceData : allPerformanceData)
+            {
+                // Get path to write the performance data to:
+                Path filePath = getPerformanceStatsCSVFilePath(PERFORMANCE_DATA_ROOT_PATH, timestamp, performanceData);
+
+                // Make sure the path exists:
+                Files.createDirectories(filePath.getParent());
+
+                // Get the grouping of performance data for this file path:
+                List<PerformanceData> group = groupedPerformanceData.computeIfAbsent(filePath, path -> new ArrayList<>());
+
+                // Add the performance data to the group:
+                group.add(performanceData);
+            }
+            // Now we have grouped all the performance data by the file path that we want to save it to.
+
+            // Go through each group and write it to CSV file:
+            for (Map.Entry<Path, List<PerformanceData>> entry : groupedPerformanceData.entrySet())
+            {
+                // Get the file path:
+                Path filePath = entry.getKey();
+
+                // Get the group of performance data to write:
+                List<PerformanceData> group = entry.getValue();
+
+                // Write the performance data:
+                writePerformanceStatsToCSV(filePath, now, group);
+            }
+        }
+        catch (IOException e)
+        {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * This is used for tracking performance stats.
+     *
      * @param itemCount           The number of items that were processed.
      * @param addDurationNanos    The total number of nanoseconds it took to add all the items.
      * @param queryCount          The total number of items that were searched for.
@@ -502,6 +588,7 @@ public abstract class XIndex1DTests
     {
         /**
          * Gets the performance stats as a string.
+         *
          * @return The performance stats as a string.
          */
         public String getPerformanceStatsAsString()
@@ -516,6 +603,140 @@ public abstract class XIndex1DTests
                 queryCount() * 1_000_000_000L / searchDurationNanos()
             );
         }
+    }
+
+    /**
+     * This captures the performance data for a test that is to be written later.
+     *
+     * @param testInfo         The information about the test that has been run.
+     * @param performanceStats The performance stats for the actual run.
+     * @param context          Additional context for the test that is running.
+     */
+    public record PerformanceData(TestInfo testInfo, PerformanceStats performanceStats, Map<String, Object> context) {}
+
+    /**
+     * Writes the given performance stats to a CSV file.
+     *
+     * @param filePath               The path to write the performance data to.
+     * @param timestamp              The timestamp when the data was written.
+     * @param groupedPerformanceData The group of performance data to write to the CSV file.
+     */
+    public static void writePerformanceStatsToCSV(Path filePath, LocalDateTime timestamp, List<PerformanceData> groupedPerformanceData)
+    {
+        // Get the unique column names based on the context:
+        LinkedHashSet<String> contextColumns = new LinkedHashSet<>();
+        for (PerformanceData performanceDatum : groupedPerformanceData)
+        {
+            // Add all the context columns:
+            contextColumns.addAll(performanceDatum.context().keySet());
+        }
+        // Now we have all the context column names.
+
+        // Open the file:
+        try (
+            var fileWriter = Files.newBufferedWriter(
+                filePath,
+                StandardCharsets.UTF_8,
+                StandardOpenOption.WRITE,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING
+            );
+            var writer = new PrintWriter(fileWriter);
+        )
+        {
+            // Write the header:
+            writer.print("Class");
+            writer.print(",");
+            writer.print("Test");
+            writer.print(",");
+            writer.print("Display");
+            writer.print(",");
+            writer.print("Timestamp");
+            contextColumns.forEach(
+                column ->
+                {
+                    // Write the context header:
+                    writer.print(",");
+                    writer.print(column);
+                });
+            writer.print(",");
+            writer.print("Item Count");
+            writer.print(",");
+            writer.print("Add Duration Nanos");
+            writer.print(",");
+            writer.print("Query Count");
+            writer.print(",");
+            writer.print("Search Duration Nanos");
+            writer.println();
+
+            // Get the formatted timestamp:
+            String timestampString = timestamp.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+
+            // Write each line of performance data:
+            for (PerformanceData performanceDatum : groupedPerformanceData)
+            {
+                writer.print(performanceDatum.testInfo().getTestClass().orElseThrow().getName());
+                writer.print(",");
+                writer.print(performanceDatum.testInfo().getTestMethod().orElseThrow().getName());
+                writer.print(",");
+                writer.print("\"");
+                writer.print(performanceDatum.testInfo().getDisplayName());
+                writer.print("\"");
+                writer.print(",");
+                writer.print(timestampString);
+                contextColumns.forEach(
+                    column ->
+                    {
+                        // Get the value for this column:
+                        Object value = performanceDatum.context().getOrDefault(column, "");
+
+                        // Write the context:
+                        writer.print(",");
+                        writer.print(value == null ? "" : value);
+                    });
+                writer.print(",");
+                writer.print(performanceDatum.performanceStats.itemCount());
+                writer.print(",");
+                writer.print(performanceDatum.performanceStats.addDurationNanos());
+                writer.print(",");
+                writer.print(performanceDatum.performanceStats.queryCount());
+                writer.print(",");
+                writer.print(performanceDatum.performanceStats.searchDurationNanos());
+                writer.println();
+            }
+        }
+        catch (IOException e)
+        {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Gets the path to write performance stats to.
+     *
+     * @param rootPath        The root path where to write results to.
+     * @param timestamp       The timestamp for this entry.
+     * @param performanceData The performance data to get the path for.
+     * @return The path to write to.
+     */
+    private static Path getPerformanceStatsCSVFilePath(Path rootPath, String timestamp, PerformanceData performanceData)
+    {
+        String className = performanceData.testInfo().getTestClass().orElseThrow().getSimpleName();
+        String methodName = performanceData.testInfo().getTestMethod().orElseThrow().getName();
+
+        // Get the name of the file that we want to write:
+        String fileName = String.format(
+            "%s_%s.csv",
+            timestamp,
+            methodName
+        );
+
+        // Get the path to the file:
+        //noinspection UnnecessaryLocalVariable
+        Path filePath = rootPath
+            .resolve(className)
+            .resolve(fileName);
+        return filePath;
     }
 
     /**

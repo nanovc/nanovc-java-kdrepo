@@ -30,3 +30,30 @@ pages={1974--1979},
 year={2006},
 organization={IEEE}
 }
+
+
+
+### A Layered Grammar of Graphics
+| Field         | Value                                                                                                                  |
+|---------------|------------------------------------------------------------------------------------------------------------------------|
+| title         | A Layered Grammar of Graphics                                                                                          |
+| type          | Conference Proceedings                                                                                                 |
+| authors       | Hadley Wickham                                                                                                         |
+| publication   | Journal of Computational and Graphical Statistics                                                                      |
+| volume        | 19                                                                                                                     |
+| number        | 1                                                                                                                      |
+| pages         | 3-28                                                                                                                   |
+| year          | 2010                                                                                                                   |
+| issn          | 1061-8600                                                                                                              |
+| doi           | http://dx.doi.org/10.1198/jcgs.2009.07098                                                                              |
+| url           | https://vita.had.co.nz/papers/layered-grammar.pdf                                                                      |
+| url           | https://ucsb-bren.github.io/ESM296-3W-2016/refs/lit/Wickham%20-%202010%20-%20A%20Layered%20Grammar%20of%20Graphics.pdf |
+| pdf           | [layered-grammar.pdf](layered-grammar.pdf)                                                                             |
+| last-accessed | 17 Dec 2023                                                                                                            |
+
+#### Citation:
+Wickham, Hadley. "A layered grammar of graphics." Journal of Computational and Graphical Statistics 19.1 (2010): 3-28.
+Wickham, H. (2010). A layered grammar of graphics. Journal of Computational and Graphical Statistics, 19(1), 3-28.
+Wickham, Hadley. "A layered grammar of graphics." Journal of Computational and Graphical Statistics 19, no. 1 (2010): 3-28.
+Wickham, H., 2010. A layered grammar of graphics. Journal of Computational and Graphical Statistics, 19(1), pp.3-28.
+Wickham H. A layered grammar of graphics. Journal of Computational and Graphical Statistics. 2010 Jan 1;19(1):3-28.

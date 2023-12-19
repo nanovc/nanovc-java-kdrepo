@@ -82,7 +82,7 @@ public abstract class RepoIndex1DBase<
     /**
      * The items in this index for dimension one.
      */
-    private final List<List<TItem>> items;
+    private final Map<Integer, List<TItem>> items;
 
     /**
      * The smallest distance that we do not split beyond.
@@ -107,7 +107,7 @@ public abstract class RepoIndex1DBase<
     /**
      * These are the sub-grids that exist.
      */
-    private final Map<Integer, TSubGrid> subGrids = new HashMap<>();
+    private final Map<Integer, TSubGrid> subGrids;
 
     public RepoIndex1DBase(
         TItem minRange, TItem maxRange, int divisions,
@@ -135,11 +135,10 @@ public abstract class RepoIndex1DBase<
         this.splitRange(minRange, maxRange, divisions, true, this.rangeSplits);
 
         // Initialise the grid:
-        this.items = new ArrayList<>(divisions);
-        for (int i = 0; i < divisions; i++)
-        {
-            this.items.add(null);
-        }
+        this.items = new HashMap<>();
+
+        // Initialise the sub-grids:
+        this.subGrids = new HashMap<>();
     }
 
     /**
@@ -355,7 +354,7 @@ public abstract class RepoIndex1DBase<
             itemsAtDivision = new ArrayList<>();
 
             // Set this list at the division index:
-            this.items.set(divisionIndex, itemsAtDivision);
+            this.items.put(divisionIndex, itemsAtDivision);
         }
         // Now we know we have a list at the given division index.
 
@@ -369,7 +368,7 @@ public abstract class RepoIndex1DBase<
      */
     protected void clearItemsAtDivision(int divisionIndex)
     {
-        this.items.set(divisionIndex, null);
+        this.items.put(divisionIndex, null);
     }
 
     /**

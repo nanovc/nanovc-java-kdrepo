@@ -315,19 +315,6 @@ public abstract class RepoIndex1DBase<
 
             // Add the sub-grid:
             this.subGrids.put(divisionIndex, subGrid);
-
-            // Get all the items that are currently at the sub-division:
-            List<TItem> items = getItemsAtDivision(divisionIndex);
-
-            // Index all the items in the sub-grid:
-            for (TItem item : items)
-            {
-                // Index the item in the sub-grid:
-                subGrid.add(item);
-            }
-
-            // Clear the items from the current grid, because we have them indexed in the sub-grid:
-            this.clearItemsAtDivision(divisionIndex);
         }
 
         return subGrid;
@@ -408,19 +395,32 @@ public abstract class RepoIndex1DBase<
         // Expand out the previous index until we find items (keep searching left until we find a list of adjacent items):
         while (previousIndex > 0)
         {
-            // Check whether we have items at that index:
-            List<TItem> itemsAtIndex = this.items.get(previousIndex);
-            if (itemsAtIndex != null)
+            // Check whether we have a sub-grid at that index:
+            TSubGrid previousSubGrid = this.subGrids.get(previousIndex);
+            if (previousSubGrid != null)
             {
-                // We found items at this index.
+                // We found a sub-grid at this index.
                 // Stop searching:
                 break;
             }
             else
             {
-                // The items at this index were empty.
-                // Move to the previous index:
-                previousIndex--;
+                // There is no sub-grid at this index.
+                // Search for items at this index:
+                // Check whether we have items at that index:
+                List<TItem> itemsAtIndex = this.items.get(previousIndex);
+                if (itemsAtIndex != null)
+                {
+                    // We found items at this index.
+                    // Stop searching:
+                    break;
+                }
+                else
+                {
+                    // The items at this index were empty.
+                    // Move to the previous index:
+                    previousIndex--;
+                }
             }
         }
         // Now we have the positions of the previous index that contain items (or we are outside the range).
@@ -447,19 +447,32 @@ public abstract class RepoIndex1DBase<
         // Expand out the next index until we find items (keep searching right until we find a list of adjacent items):
         while (nextIndex < this.divisions)
         {
-            // Check whether we have items at that index:
-            List<TItem> itemsAtIndex = this.items.get(nextIndex);
-            if (itemsAtIndex != null)
+            // Check whether we have a sub-grid at that index:
+            TSubGrid nextSubGrid = this.subGrids.get(nextIndex);
+            if (nextSubGrid != null)
             {
-                // We found items at this index.
+                // We found a sub-grid at this index.
                 // Stop searching:
                 break;
             }
             else
             {
-                // The items at this index were empty.
-                // Move to the next index:
-                nextIndex++;
+                // There is no sub-grid at this index.
+
+                // Check whether we have items at that index:
+                List<TItem> itemsAtIndex = this.items.get(nextIndex);
+                if (itemsAtIndex != null)
+                {
+                    // We found items at this index.
+                    // Stop searching:
+                    break;
+                }
+                else
+                {
+                    // The items at this index were empty.
+                    // Move to the next index:
+                    nextIndex++;
+                }
             }
         }
         // Now we have the positions of the next index that contain items (or we are outside the range).

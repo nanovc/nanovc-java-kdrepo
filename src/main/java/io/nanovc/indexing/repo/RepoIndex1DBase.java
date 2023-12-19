@@ -85,6 +85,11 @@ public abstract class RepoIndex1DBase<
     private final Map<Integer, List<TItem>> items;
 
     /**
+     * This is the maximum number of items to keep in the grid before it splits the cell into a subgrid.
+     */
+    private final int maxItemThreshold;
+
+    /**
      * The smallest distance that we do not split beyond.
      */
     private final TDistance smallestSplittingDistance;
@@ -113,7 +118,7 @@ public abstract class RepoIndex1DBase<
         TItem minRange, TItem maxRange, int divisions,
         TMeasurer measurer, TDistanceComparator distanceComparator,
         TRangeSplitter rangeSplitter, TRangeFinder rangeFinder,
-        TDistance smallestSplittingDistance,
+        int maxItemThreshold, TDistance smallestSplittingDistance,
         SubGridSupplier<TItem, TDistance, TMeasurer, TDistanceComparator, TRangeSplitter, TRangeFinder, TContent, TArea, TCommit, TRepoHandler, TSubGrid> subGridSupplier,
         TRepoHandler repoHandler, RepoPath rootRepoPath
         )
@@ -125,6 +130,7 @@ public abstract class RepoIndex1DBase<
         this.distanceComparator = distanceComparator;
         this.rangeSplitter = rangeSplitter;
         this.rangeFinder = rangeFinder;
+        this.maxItemThreshold = maxItemThreshold;
         this.smallestSplittingDistance = smallestSplittingDistance;
         this.subGridSupplier = subGridSupplier;
         this.repoHandler = repoHandler;
@@ -238,23 +244,53 @@ public abstract class RepoIndex1DBase<
      */
     protected void addItemToIndex(TItem item, int divisionIndex)
     {
-        // Get or create the sub-grid for this division:
-        TSubGrid subGrid = this.getOrCreateSubGridAtDivision(divisionIndex);
-
-        // Check whether we got a sub-grid (NOTE: if we can't make the sub-grid smaller, we get null):
-        if (subGrid != null)
+        /// Check whether we have a sub-grid at this index:
+        TSubGrid existingSubGrid = this.getSubGridAtDivision(divisionIndex);
+        if (existingSubGrid != null)
         {
-            // We got a sub-grid.
+            // We already have an existing sub-grid.
 
-            // Add the item to the sub-grid:
-            subGrid.add(item);
+            // Delegate the call to the sub-grid:
+            existingSubGrid.add(item);
         }
         else
         {
-            // We couldn't get a sub-grid, probably because we are at the smallest size allowable.
+            // We don't have an existing sub-grid yet.
 
-            // Just add the item:
-            addItemToIndexLocal(item, divisionIndex);
+            // Get the list at the given division in the range:
+            List<TItem> itemsAtDivision = getItemsAtDivision(divisionIndex);
+
+            // Check whether we have too many items:
+            if (itemsAtDivision == null || itemsAtDivision.size() < this.getMaxItemThreshold())
+            {
+                // We are still below the item threshold.
+
+                // Allow the base class to handle this:
+                addItemToIndexLocal(item, divisionIndex);
+            }
+            else
+            {
+                // We are above the threshold of items.
+
+                // Get or create the sub-grid for this division:
+                TSubGrid subGrid = this.getOrCreateSubGridAtDivision(divisionIndex);
+
+                // Check whether we got a sub-grid (NOTE: if we can't make the sub-grid smaller, we get null):
+                if (subGrid != null)
+                {
+                    // We got a sub-grid.
+
+                    // Add the item to the sub-grid:
+                    subGrid.add(item);
+                }
+                else
+                {
+                    // We couldn't get a sub-grid, probably because we are at the smallest size allowable.
+
+                    // Just add the item:
+                    addItemToIndexLocal(item, divisionIndex);
+                }
+            }
         }
     }
 
@@ -308,7 +344,8 @@ public abstract class RepoIndex1DBase<
                 divisionMinRange, divisionMaxRange,
                 this.getDivisions(),
                 this.getMeasurer(), this.getDistanceComparator(), getRangeSplitter(), getRangeFinder(),
-                getSmallestSplittingDistance(),
+                this.getMaxItemThreshold(),
+                this.getSmallestSplittingDistance(),
                 this.getRepoHandler(), this.getRootRepoPath()
             );
 
@@ -779,9 +816,9 @@ public abstract class RepoIndex1DBase<
      *
      * @return A new sub-grid for the given range.
      */
-    protected TSubGrid createSubGrid(TItem minRange, TItem maxRange, int divisions, TMeasurer measurer, TDistanceComparator distanceComparator, TRangeSplitter rangeSplitter, TRangeFinder rangeFinder, TDistance smallestSplittingDistance, TRepoHandler repoHandler, RepoPath rootRepoPath)
+    protected TSubGrid createSubGrid(TItem minRange, TItem maxRange, int divisions, TMeasurer measurer, TDistanceComparator distanceComparator, TRangeSplitter rangeSplitter, TRangeFinder rangeFinder, int maxItemThreshold, TDistance smallestSplittingDistance, TRepoHandler repoHandler, RepoPath rootRepoPath)
     {
-        return this.subGridSupplier.createSubGrid(minRange, maxRange, divisions, measurer, distanceComparator, rangeSplitter, rangeFinder, smallestSplittingDistance, repoHandler, rootRepoPath);
+        return this.subGridSupplier.createSubGrid(minRange, maxRange, divisions, measurer, distanceComparator, rangeSplitter, rangeFinder, maxItemThreshold, smallestSplittingDistance, repoHandler, rootRepoPath);
     }
 
     /**
@@ -859,6 +896,16 @@ public abstract class RepoIndex1DBase<
     public TRangeFinder getRangeFinder()
     {
         return this.rangeFinder;
+    }
+
+    /**
+     * Gets the maximum number of items to keep in the grid before it splits the cell into a subgrid.
+     *
+     * @return The maximum number of items to keep in the grid before it splits the cell into a subgrid.
+     */
+    @Override public int getMaxItemThreshold()
+    {
+        return this.maxItemThreshold;
     }
 
     /**

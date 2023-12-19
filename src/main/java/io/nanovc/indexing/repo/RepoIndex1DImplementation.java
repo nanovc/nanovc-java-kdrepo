@@ -40,10 +40,10 @@ public class RepoIndex1DImplementation<
         TItem minRange, TItem maxRange, int divisions,
         TMeasurer measurer, TDistanceComparator comparator,
         TRangeSplitter rangeSplitter, TRangeFinder rangeFinder,
-        TDistance smallestSplittingDistance,
+        int maxItemThreshold, TDistance smallestSplittingDistance,
         SubGridSupplier<TItem, TDistance, TMeasurer, TDistanceComparator, TRangeSplitter, TRangeFinder, TContent, TArea, TCommit, TRepoHandler, TSubGrid> subGridSupplier,
         TRepoHandler repoHandler, RepoPath rootRepoPath)
     {
-        super(minRange, maxRange, divisions, measurer, comparator, rangeSplitter, rangeFinder, smallestSplittingDistance, subGridSupplier, repoHandler, rootRepoPath);
+        super(minRange, maxRange, divisions, measurer, comparator, rangeSplitter, rangeFinder, maxItemThreshold, smallestSplittingDistance, subGridSupplier, repoHandler, rootRepoPath);
     }
 }

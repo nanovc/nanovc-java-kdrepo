@@ -82,6 +82,12 @@ public interface RepoIndex1D<
     TRangeFinder getRangeFinder();
 
     /**
+     * Gets the maximum number of items to keep in the grid before it splits the cell into a subgrid.
+     * @return The maximum number of items to keep in the grid before it splits the cell into a subgrid.
+     */
+    int getMaxItemThreshold();
+
+    /**
      * Gets the smallest distance that we do not split beyond.
      * @return The smallest distance that we do not split beyond.
      */

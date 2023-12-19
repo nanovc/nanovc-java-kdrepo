@@ -41,6 +41,6 @@ public interface SubGridSupplier
      *
      * @return A new sub-grid for the given range.
      */
-    TSubGrid createSubGrid(TItem minRange, TItem maxRange, int divisions, TMeasurer measurer, TDistanceComparator distanceComparator, TRangeSplitter rangeSplitter, TRangeFinder rangeFinder, TDistance smallestSplittingDistance, TRepoHandler repoHandler, RepoPath rootRepoPath);
+    TSubGrid createSubGrid(TItem minRange, TItem maxRange, int divisions, TMeasurer measurer, TDistanceComparator distanceComparator, TRangeSplitter rangeSplitter, TRangeFinder rangeFinder, int maxItemThreshold, TDistance smallestSplittingDistance, TRepoHandler repoHandler, RepoPath rootRepoPath);
 
 }

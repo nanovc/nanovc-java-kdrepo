@@ -30,21 +30,21 @@ public class XRepoIndex1D extends RepoIndex1DImplementation<
     >
 {
 
-    public XRepoIndex1D(X minRange, X maxRange, int divisions, int smallestSplittingDistance, StringMemoryRepoHandler repoHandler, RepoPath rootRepoPath)
+    public XRepoIndex1D(X minRange, X maxRange, int divisions, int maxItemThreshold, int smallestSplittingDistance, StringMemoryRepoHandler repoHandler, RepoPath rootRepoPath)
     {
         super(
             minRange, maxRange, divisions, X::measureDistance, Integer::compare, X::splitRange, X::findIndexInRange,
-            smallestSplittingDistance,
+            maxItemThreshold, smallestSplittingDistance,
             XRepoIndex1D::createXRepoIndex1DSubGrid,
             repoHandler, rootRepoPath
             );
     }
 
-    public XRepoIndex1D(X minRange, X maxRange, int divisions, int smallestSplittingDistance)
+    public XRepoIndex1D(X minRange, X maxRange, int divisions, int maxItemThreshold, int smallestSplittingDistance)
     {
         this(
             minRange, maxRange, divisions,
-            smallestSplittingDistance,
+            maxItemThreshold, smallestSplittingDistance,
             new StringMemoryRepoHandler(), RepoPath.atRoot()
         );
     }
@@ -58,10 +58,10 @@ public class XRepoIndex1D extends RepoIndex1DImplementation<
         X minRange, X maxRange, int divisions,
         Measurer<X, Integer> measurer, Comparator<Integer> comparator,
         RangeSplitter<X> rangeSplitter, RangeFinder<X> rangeFinder,
-        int smallestSplittingDistance,
+        int maxItemThreshold, int smallestSplittingDistance,
         StringMemoryRepoHandler repoHandler, RepoPath rootRepoPath
         )
     {
-        return new XRepoIndex1D(minRange, maxRange, divisions, smallestSplittingDistance, repoHandler, rootRepoPath);
+        return new XRepoIndex1D(minRange, maxRange, divisions, maxItemThreshold, smallestSplittingDistance, repoHandler, rootRepoPath);
     }
 }

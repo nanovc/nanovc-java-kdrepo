@@ -1,6 +1,8 @@
 package io.nanovc.indexing.repo;
 
 import io.nanovc.indexing.Measurer;
+import io.nanovc.indexing.RangeFinder;
+import io.nanovc.indexing.RangeSplitter;
 
 import java.util.Comparator;
 
@@ -11,16 +13,20 @@ import java.util.Comparator;
  * @param <TDistance>           The type for the distance between the items.
  * @param <TMeasurer>           The type for the measurer that can measure the distance between items.
  * @param <TDistanceComparator> The comparator that compares distances between items.
+ * @param <TRangeSplitter>      The type for the range splitter that we need to use.
+ * @param <TRangeFinder>        The type for finding the index of an item in the divisions of a range.
  */
 public class RepoIndex1DImplementation<
     TItem,
     TDistance,
     TMeasurer extends Measurer<TItem, TDistance>,
-    TDistanceComparator extends Comparator<TDistance>
-    > extends RepoIndex1DBase<TItem, TDistance, TMeasurer, TDistanceComparator>
+    TDistanceComparator extends Comparator<TDistance>,
+    TRangeSplitter extends RangeSplitter<TItem>,
+    TRangeFinder extends RangeFinder<TItem>
+    > extends RepoIndex1DBase<TItem, TDistance, TMeasurer, TDistanceComparator, TRangeSplitter, TRangeFinder>
 {
-    public RepoIndex1DImplementation(TMeasurer measurer, TDistanceComparator comparator)
+    public RepoIndex1DImplementation(TItem minRange, TItem maxRange, int divisions, TMeasurer measurer, TDistanceComparator comparator, TRangeSplitter rangeSplitter, TRangeFinder rangeFinder)
     {
-        super(measurer, comparator);
+        super(minRange, maxRange, divisions, measurer, comparator, rangeSplitter, rangeFinder);
     }
 }

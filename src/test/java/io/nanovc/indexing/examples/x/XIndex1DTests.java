@@ -1245,7 +1245,7 @@ public abstract class XIndex1DTests
          */
         @Override protected XRepoIndex1D createIndex(double range)
         {
-            return new XRepoIndex1D();
+            return new XRepoIndex1D(new X((int) -range), new X((int) range), 100);
         }
     }
 

@@ -217,6 +217,21 @@ public abstract class RepoIndex1DBase<
     }
 
     /**
+     * Adds the given item to the specific division index in the local index.
+     *
+     * @param item          The item to add.
+     * @param divisionIndex The specific division index to add the item to.
+     */
+    protected void addItemToIndexLocal(TItem item, int divisionIndex)
+    {
+        // Get or create the list at the given division in the range:
+        List<TItem> itemsAtDivision = getOrCreateItemsAtDivision(divisionIndex);
+
+        // Add the item:
+        itemsAtDivision.add(item);
+    }
+
+    /**
      * Adds the given item to the specific division index.
      *
      * @param item          The item to add.
@@ -224,11 +239,98 @@ public abstract class RepoIndex1DBase<
      */
     protected void addItemToIndex(TItem item, int divisionIndex)
     {
-        // Get or create the list at the given division in the range:
-        List<TItem> itemsAtDivision = getOrCreateItemsAtDivision(divisionIndex);
+        // Get or create the sub-grid for this division:
+        TSubGrid subGrid = this.getOrCreateSubGridAtDivision(divisionIndex);
 
-        // Add the item:
-        itemsAtDivision.add(item);
+        // Check whether we got a sub-grid (NOTE: if we can't make the sub-grid smaller, we get null):
+        if (subGrid != null)
+        {
+            // We got a sub-grid.
+
+            // Add the item to the sub-grid:
+            subGrid.add(item);
+        }
+        else
+        {
+            // We couldn't get a sub-grid, probably because we are at the smallest size allowable.
+
+            // Just add the item:
+            addItemToIndexLocal(item, divisionIndex);
+        }
+    }
+
+    /**
+     * This gets the sub-grid that is currently at the division index.
+     * It does not create a sub-grid if one doesn't exist yet. Instead it returns null.
+     *
+     * @param divisionIndex The specific division index to get the sub-grid for.
+     * @return The sub-grid at the give division index, or null if one doesn't exist there yet.
+     */
+    protected TSubGrid getSubGridAtDivision(int divisionIndex)
+    {
+        return this.subGrids.get(divisionIndex);
+    }
+
+    /**
+     * This gets the sub-grid that is currently at the division index.
+     * It does not create a sub-grid if one doesn't exist yet. Instead, it returns null.
+     * It will re-index all the existing items into the created sub-grid if it creates one.
+     * It then clears the items in the local collection if it creates a sub-grid.
+     *
+     * @param divisionIndex The specific division index to get the sub-grid for.
+     * @return The sub-grid at the give division index, or null if one we cannot split the sub-grid up any further.
+     */
+    protected TSubGrid getOrCreateSubGridAtDivision(int divisionIndex)
+    {
+        // Check whether we already have a sub-grid:
+        TSubGrid subGrid = this.getSubGridAtDivision(divisionIndex);
+
+        // Make sure one exists:
+        if (subGrid == null)
+        {
+            // Work out the range for the sub-grid:
+            TItem divisionMinRange = this.getDivisionMinRange(divisionIndex);
+            TItem divisionMaxRange = this.getDivisionMaxRange(divisionIndex);
+
+            // Make sure that we are allowed to split the sub-grid up further:
+            TDistance distance = this.getMeasurer().measureDistanceBetween(divisionMinRange, divisionMaxRange);
+
+            // Check whether the size of the range is still bigger than our minimum:
+            if (this.getDistanceComparator().compare(distance, this.getSmallestSplittingDistance()) <= 0)
+            {
+                // The size of the sub-grid is smaller than the smallest allowable size.
+
+                // Flag that we can't create a sub-grid:
+                return null;
+            }
+
+            // Create a new sub-grid:
+            subGrid = createSubGrid(
+                divisionMinRange, divisionMaxRange,
+                this.getDivisions(),
+                this.getMeasurer(), this.getDistanceComparator(), getRangeSplitter(), getRangeFinder(),
+                getSmallestSplittingDistance(),
+                this.getRepoHandler(), this.getRootRepoPath()
+            );
+
+            // Add the sub-grid:
+            this.subGrids.put(divisionIndex, subGrid);
+
+            // Get all the items that are currently at the sub-division:
+            List<TItem> items = getItemsAtDivision(divisionIndex);
+
+            // Index all the items in the sub-grid:
+            for (TItem item : items)
+            {
+                // Index the item in the sub-grid:
+                subGrid.add(item);
+            }
+
+            // Clear the items from the current grid, because we have them indexed in the sub-grid:
+            this.clearItemsAtDivision(divisionIndex);
+        }
+
+        return subGrid;
     }
 
     /**
@@ -537,7 +639,7 @@ public abstract class RepoIndex1DBase<
      * @param divisionIndex The division index to search in.
      * @return The nearest item that was found at the given division index.
      */
-    protected MeasuredItem<TItem, TDistance> searchNearestAtIndex(TItem item, int divisionIndex)
+    protected MeasuredItem<TItem, TDistance> searchNearestAtIndexLocal(TItem item, int divisionIndex)
     {
         // Get the items at the division index:
         List<TItem> items = this.items.get(divisionIndex);
@@ -595,6 +697,61 @@ public abstract class RepoIndex1DBase<
     }
 
     /**
+     * This searches for the nearest item in the given division index.
+     *
+     * @param item          The item to search for.
+     * @param divisionIndex The division index to search in.
+     * @return The nearest item that was found at the given division index.
+     */
+    protected MeasuredItem<TItem, TDistance> searchNearestAtIndex(TItem item, int divisionIndex)
+    {
+        // Check whether we have a sub-grid at this division index:
+        TSubGrid existingSubGrid = this.getSubGridAtDivision(divisionIndex);
+        if (existingSubGrid != null)
+        {
+            // We have an existing sub-grid at this division index.
+
+            // Search for the item in the sub-grid:
+            TItem foundItem = existingSubGrid.searchNearest(item);
+
+            // Check whether an item was found:
+            if (foundItem != null)
+            {
+                // We found an item.
+
+                // Create the measured item:
+                MeasuredItem<TItem, TDistance> measuredItem = new MeasuredItem<>();
+
+                // Save the item:
+                measuredItem.item = foundItem;
+
+                // Check whether we have an exact match so that we don't have to measure the distance:
+                if (!foundItem.equals(item))
+                {
+                    // This is not the same item.
+
+                    // Measure the distance from the requested item to the found item:
+                    measuredItem.distance = this.measureDistanceBetween(item, measuredItem.item);
+                }
+
+                // Return the result:
+                return measuredItem;
+            }
+            else
+            {
+                // The sub-grid didn't find the nearest item.
+                return null;
+            }
+        }
+        else
+        {
+            // We don't have an existing sub-grid at this division index.
+            // Use the base implementation:
+            return searchNearestAtIndexLocal(item, divisionIndex);
+        }
+    }
+
+    /**
      * Measures the distance between the two items.
      * @param item1 The first item to measure the distance between.
      * @param item2 The second item to measure the distance between.
@@ -603,6 +760,16 @@ public abstract class RepoIndex1DBase<
     protected TDistance measureDistanceBetween(TItem item1, TItem item2)
     {
         return this.measurer.measureDistanceBetween(item1, item2);
+    }
+
+    /**
+     * A factory method to create a new sub-grid for the given range.
+     *
+     * @return A new sub-grid for the given range.
+     */
+    protected TSubGrid createSubGrid(TItem minRange, TItem maxRange, int divisions, TMeasurer measurer, TDistanceComparator distanceComparator, TRangeSplitter rangeSplitter, TRangeFinder rangeFinder, TDistance smallestSplittingDistance, TRepoHandler repoHandler, RepoPath rootRepoPath)
+    {
+        return this.subGridSupplier.createSubGrid(minRange, maxRange, divisions, measurer, distanceComparator, rangeSplitter, rangeFinder, smallestSplittingDistance, repoHandler, rootRepoPath);
     }
 
     /**

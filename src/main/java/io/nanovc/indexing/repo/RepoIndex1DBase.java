@@ -351,6 +351,19 @@ public abstract class RepoIndex1DBase<
 
             // Add the sub-grid:
             this.subGrids.put(divisionIndex, subGrid);
+
+            // Get all the items that are currently at the sub-division:
+            List<TItem> items = getItemsAtDivision(divisionIndex);
+
+            // Index all the items in the sub-grid:
+            for (TItem item : items)
+            {
+                // Index the item in the sub-grid:
+                subGrid.add(item);
+            }
+
+            // Clear the items from the current grid, because we have them indexed in the sub-grid:
+            this.clearItemsAtDivision(divisionIndex);
         }
 
         return subGrid;

@@ -105,4 +105,17 @@ public interface RepoIndex1D<
      * @return The repo path to the root of this repo index where we update the index information.
      */
     RepoPath getRootRepoPath();
+
+    /**
+     * The global map of items that we reference.
+     * This is the common map that gives us the index of the item, no matter what level of the grid we are in.
+     * @return The global map of items that we reference.
+     */
+    ItemGlobalMap<TItem> getItemGlobalMap();
+
+    /**
+     * Gets the content creator to use.
+     * @return The content creator to use.
+     */
+    ContentCreator<TItem, TContent> getContentCreator();
 }

@@ -42,8 +42,11 @@ public class RepoIndex1DImplementation<
         TRangeSplitter rangeSplitter, TRangeFinder rangeFinder,
         int maxItemThreshold, TDistance smallestSplittingDistance,
         SubGridSupplier<TItem, TDistance, TMeasurer, TDistanceComparator, TRangeSplitter, TRangeFinder, TContent, TArea, TCommit, TRepoHandler, TSubGrid> subGridSupplier,
-        TRepoHandler repoHandler, RepoPath rootRepoPath)
+        TRepoHandler repoHandler, RepoPath rootRepoPath,
+        ItemGlobalMap<TItem> itemGlobalMap,
+        ContentCreator<TItem, TContent> contentCreator
+    )
     {
-        super(minRange, maxRange, divisions, measurer, comparator, rangeSplitter, rangeFinder, maxItemThreshold, smallestSplittingDistance, subGridSupplier, repoHandler, rootRepoPath);
+        super(minRange, maxRange, divisions, measurer, comparator, rangeSplitter, rangeFinder, maxItemThreshold, smallestSplittingDistance, subGridSupplier, repoHandler, rootRepoPath, itemGlobalMap, contentCreator);
     }
 }

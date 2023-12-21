@@ -114,13 +114,31 @@ public abstract class RepoIndex1DBase<
      */
     private final Map<Integer, TSubGrid> subGrids;
 
+    /**
+     * The global map of items that we reference.
+     * This is the common map that gives us the index of the item, no matter what level of the grid we are in.
+     */
+    private final ItemGlobalMap<TItem> itemGlobalMap;
+
+    /**
+     * The content creator to use for getting content from the given item,
+     */
+    private final ContentCreator<TItem, TContent> contentCreator;
+
+    /**
+     * The current content area that we are adding content to.
+     */
+    private TArea currentContentArea;
+
     public RepoIndex1DBase(
         TItem minRange, TItem maxRange, int divisions,
         TMeasurer measurer, TDistanceComparator distanceComparator,
         TRangeSplitter rangeSplitter, TRangeFinder rangeFinder,
         int maxItemThreshold, TDistance smallestSplittingDistance,
         SubGridSupplier<TItem, TDistance, TMeasurer, TDistanceComparator, TRangeSplitter, TRangeFinder, TContent, TArea, TCommit, TRepoHandler, TSubGrid> subGridSupplier,
-        TRepoHandler repoHandler, RepoPath rootRepoPath
+        TRepoHandler repoHandler, RepoPath rootRepoPath,
+        ItemGlobalMap<TItem> itemGlobalMap,
+        ContentCreator<TItem, TContent> contentCreator
         )
     {
         this.minRange = minRange;
@@ -135,6 +153,8 @@ public abstract class RepoIndex1DBase<
         this.subGridSupplier = subGridSupplier;
         this.repoHandler = repoHandler;
         this.rootRepoPath = rootRepoPath;
+        this.itemGlobalMap = itemGlobalMap;
+        this.contentCreator = contentCreator;
 
         // Split the range:
         this.rangeSplits = new ArrayList<>(divisions);
@@ -145,6 +165,9 @@ public abstract class RepoIndex1DBase<
 
         // Initialise the sub-grids:
         this.subGrids = new HashMap<>();
+
+        // Create the content area that we are adding content to:
+        this.currentContentArea = this.repoHandler.createArea();
     }
 
     /**
@@ -232,8 +255,41 @@ public abstract class RepoIndex1DBase<
         // Get or create the list at the given division in the range:
         List<TItem> itemsAtDivision = getOrCreateItemsAtDivision(divisionIndex);
 
+        // Add the item to the global map:
+        var itemKey = this.getItemGlobalMap().add(item);
+
         // Add the item:
         itemsAtDivision.add(item);
+
+        // Get the repo path of the item:
+        RepoPath repoPath = getRepoPathForItem(divisionIndex, itemKey);
+
+        // Create the content for the given item:
+        TContent itemContent = createContentForItem(item);
+
+        // Write the content to the content area:
+        this.currentContentArea.putContent(repoPath, itemContent);
+    }
+
+    /**
+     * Gets the repo path for the given item details.
+     * @param divisionIndex The index of the division that the item is in.
+     * @param itemKey The global item key for the item.
+     * @return The repo path for the given item.
+     */
+    protected RepoPath getRepoPathForItem(int divisionIndex, int itemKey)
+    {
+        return this.getRootRepoPath().resolve(Integer.toString(divisionIndex)).resolve("items").resolve(Integer.toString(itemKey));
+    }
+
+    /**
+     * Creates the content for the given item.
+     * @param item The item that we need to create the content for.
+     * @return The content for the given item.
+     */
+    protected TContent createContentForItem(TItem item)
+    {
+        return this.getContentCreator().createContentForItem(item);
     }
 
     /**
@@ -339,6 +395,9 @@ public abstract class RepoIndex1DBase<
                 return null;
             }
 
+            // Get the root path for the sub-grid:
+            RepoPath subGridRootPath = this.getRootRepoPath().resolve(Integer.toString(divisionIndex));
+
             // Create a new sub-grid:
             subGrid = createSubGrid(
                 divisionMinRange, divisionMaxRange,
@@ -346,7 +405,9 @@ public abstract class RepoIndex1DBase<
                 this.getMeasurer(), this.getDistanceComparator(), getRangeSplitter(), getRangeFinder(),
                 this.getMaxItemThreshold(),
                 this.getSmallestSplittingDistance(),
-                this.getRepoHandler(), this.getRootRepoPath()
+                this.getRepoHandler(), subGridRootPath,
+                this.getItemGlobalMap(),
+                this.getContentCreator()
             );
 
             // Add the sub-grid:
@@ -418,6 +479,23 @@ public abstract class RepoIndex1DBase<
      */
     protected void clearItemsAtDivision(int divisionIndex)
     {
+        // Get all the items that are currently at the sub-division:
+        List<TItem> items = getItemsAtDivision(divisionIndex);
+
+        // Remove the paths of all the items in the sub-grid:
+        for (TItem item : items)
+        {
+            // Get the item key:
+            var itemKey = this.getItemGlobalMap().getKeyForItem(item);
+
+            // Get the repo path for the item:
+            var repoPath = getRepoPathForItem(divisionIndex, itemKey);
+
+            // Remove the content at the given path:
+            this.currentContentArea.removeContent(repoPath);
+        }
+
+        // Clear the list of items:
         this.items.put(divisionIndex, null);
     }
 
@@ -829,9 +907,9 @@ public abstract class RepoIndex1DBase<
      *
      * @return A new sub-grid for the given range.
      */
-    protected TSubGrid createSubGrid(TItem minRange, TItem maxRange, int divisions, TMeasurer measurer, TDistanceComparator distanceComparator, TRangeSplitter rangeSplitter, TRangeFinder rangeFinder, int maxItemThreshold, TDistance smallestSplittingDistance, TRepoHandler repoHandler, RepoPath rootRepoPath)
+    protected TSubGrid createSubGrid(TItem minRange, TItem maxRange, int divisions, TMeasurer measurer, TDistanceComparator distanceComparator, TRangeSplitter rangeSplitter, TRangeFinder rangeFinder, int maxItemThreshold, TDistance smallestSplittingDistance, TRepoHandler repoHandler, RepoPath rootRepoPath, ItemGlobalMap<TItem> itemGlobalMap, ContentCreator<TItem, TContent> contentCreator)
     {
-        return this.subGridSupplier.createSubGrid(minRange, maxRange, divisions, measurer, distanceComparator, rangeSplitter, rangeFinder, maxItemThreshold, smallestSplittingDistance, repoHandler, rootRepoPath);
+        return this.subGridSupplier.createSubGrid(minRange, maxRange, divisions, measurer, distanceComparator, rangeSplitter, rangeFinder, maxItemThreshold, smallestSplittingDistance, repoHandler, rootRepoPath, itemGlobalMap, contentCreator);
     }
 
     /**
@@ -949,5 +1027,26 @@ public abstract class RepoIndex1DBase<
     @Override public RepoPath getRootRepoPath()
     {
         return this.rootRepoPath;
+    }
+
+    /**
+     * The global map of items that we reference.
+     * This is the common map that gives us the index of the item, no matter what level of the grid we are in.
+     *
+     * @return The global map of items that we reference.
+     */
+    @Override public ItemGlobalMap<TItem> getItemGlobalMap()
+    {
+        return this.itemGlobalMap;
+    }
+
+    /**
+     * Gets the content creator to use.
+     *
+     * @return The content creator to use.
+     */
+    @Override public ContentCreator<TItem, TContent> getContentCreator()
+    {
+        return this.contentCreator;
     }
 }

@@ -22,6 +22,7 @@ import java.util.Comparator;
  * @param <TRepoHandler>        The specific type of repo handler to use for this index.
  * @param <TSubGrid>            The type of sub-grid item. Normally it refers back to itself.
  */
+@FunctionalInterface
 public interface SubGridSupplier
     <TItem,
         TDistance,
@@ -41,6 +42,6 @@ public interface SubGridSupplier
      *
      * @return A new sub-grid for the given range.
      */
-    TSubGrid createSubGrid(TItem minRange, TItem maxRange, int divisions, TMeasurer measurer, TDistanceComparator distanceComparator, TRangeSplitter rangeSplitter, TRangeFinder rangeFinder, int maxItemThreshold, TDistance smallestSplittingDistance, TRepoHandler repoHandler, RepoPath rootRepoPath);
+    TSubGrid createSubGrid(TItem minRange, TItem maxRange, int divisions, TMeasurer measurer, TDistanceComparator distanceComparator, TRangeSplitter rangeSplitter, TRangeFinder rangeFinder, int maxItemThreshold, TDistance smallestSplittingDistance, TRepoHandler repoHandler, RepoPath rootRepoPath, ItemGlobalMap<TItem> itemGlobalMap, ContentCreator<TItem, TContent> contentCreator);
 
 }

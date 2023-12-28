@@ -1000,8 +1000,8 @@ public abstract class XIndex1DTests
     public static void writePerformanceHistogramsToCSV(Path filePath, LocalDateTime timestamp, List<PerformanceData> groupedPerformanceData)
     {
         // Derive the file names for the add and search histograms:
-        var addHistogramPath = filePath.getParent().resolve(filePath.getFileName().toString().replace("stats.csv", ".add.histogram.csv"));
-        var searchHistogramPath = filePath.getParent().resolve(filePath.getFileName().toString().replace("stats.csv", ".search.histogram.csv"));
+        var addHistogramPath = filePath.getParent().resolve(filePath.getFileName().toString().replace(".stats.csv", ".add.histogram.csv"));
+        var searchHistogramPath = filePath.getParent().resolve(filePath.getFileName().toString().replace(".stats.csv", ".search.histogram.csv"));
 
         // Write out the histograms:
         writePerformanceHistogramToCSV(addHistogramPath, timestamp, groupedPerformanceData, pd -> pd.performanceStats().addHistogram() );

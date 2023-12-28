@@ -1,6 +1,7 @@
 package io.nanovc.indexing.examples.x;
 
 import io.nanovc.indexing.Index1D;
+import io.nanovc.indexing.TimeHistogram;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
 
@@ -840,6 +842,9 @@ public abstract class XIndex1DTests
 
                 // Write the performance data:
                 writePerformanceStatsToCSV(filePath, now, group);
+
+                // Write the histogram data:
+                writePerformanceHistogramsToCSV(filePath, now, group);
             }
         }
         catch (IOException e)
@@ -855,8 +860,10 @@ public abstract class XIndex1DTests
      * @param addDurationNanos    The total number of nanoseconds it took to add all the items.
      * @param queryCount          The total number of items that were searched for.
      * @param searchDurationNanos The total number of nanoseconds it took to add all the items.
+     * @param addHistogram        The histogram of the time taken to add entries.
+     * @param searchHistogram     The histogram of the time taken to search.
      */
-    public record PerformanceStats(long itemCount, long addDurationNanos, long queryCount, long searchDurationNanos)
+    public record PerformanceStats(long itemCount, long addDurationNanos, long queryCount, long searchDurationNanos, TimeHistogram addHistogram, TimeHistogram searchHistogram)
     {
         /**
          * Gets the performance stats as a string.
@@ -984,6 +991,131 @@ public abstract class XIndex1DTests
     }
 
     /**
+     * Writes the given performance histograms to a CSV file.
+     *
+     * @param filePath               The path to write the performance data to.
+     * @param timestamp              The timestamp when the data was written.
+     * @param groupedPerformanceData The group of performance data to write to the CSV file.
+     */
+    public static void writePerformanceHistogramsToCSV(Path filePath, LocalDateTime timestamp, List<PerformanceData> groupedPerformanceData)
+    {
+        // Derive the file names for the add and search histograms:
+        var addHistogramPath = filePath.getParent().resolve(filePath.getFileName().toString().replace("stats.csv", ".add.histogram.csv"));
+        var searchHistogramPath = filePath.getParent().resolve(filePath.getFileName().toString().replace("stats.csv", ".search.histogram.csv"));
+
+        // Write out the histograms:
+        writePerformanceHistogramToCSV(addHistogramPath, timestamp, groupedPerformanceData, pd -> pd.performanceStats().addHistogram() );
+        writePerformanceHistogramToCSV(searchHistogramPath, timestamp, groupedPerformanceData, pd -> pd.performanceStats().searchHistogram() );
+    }
+
+    /**
+     * Writes the given performance histograms to a CSV file.
+     *
+     * @param filePath               The path to write the performance data to.
+     * @param timestamp              The timestamp when the data was written.
+     * @param groupedPerformanceData The group of performance data to write to the CSV file.
+     * @param histogramExtractor     The logic to extract the specific histogram to extract.
+     */
+    public static void writePerformanceHistogramToCSV(Path filePath, LocalDateTime timestamp, List<PerformanceData> groupedPerformanceData, Function<PerformanceData, TimeHistogram> histogramExtractor)
+    {
+        // Get the unique column names based on the context:
+        LinkedHashSet<String> contextColumns = new LinkedHashSet<>();
+        for (PerformanceData performanceDatum : groupedPerformanceData)
+        {
+            // Add all the context columns:
+            contextColumns.addAll(performanceDatum.context().keySet());
+        }
+        // Now we have all the context column names.
+
+        // Derive
+
+        // Open the file:
+        try (
+            var fileWriter = Files.newBufferedWriter(
+                filePath,
+                StandardCharsets.UTF_8,
+                StandardOpenOption.WRITE,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING
+            );
+            var writer = new PrintWriter(fileWriter);
+        )
+        {
+            // Write the header:
+            writer.print("Class");
+            writer.print(",");
+            writer.print("Test");
+            writer.print(",");
+            writer.print("Display");
+            writer.print(",");
+            writer.print("Timestamp");
+            contextColumns.forEach(
+                column ->
+                {
+                    // Write the context header:
+                    writer.print(",");
+                    writer.print(column);
+                });
+            writer.print(",");
+            writer.print("Start Duration Inclusive");
+            writer.print(",");
+            writer.print("End Duration Exclusive");
+            writer.print(",");
+            writer.print("Count");
+            writer.println();
+
+            // Get the formatted timestamp:
+            String timestampString = timestamp.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+
+            // Write each line of performance data:
+            for (PerformanceData performanceDatum : groupedPerformanceData)
+            {
+                // Get the histogram that we are interested in:
+                TimeHistogram histogram = histogramExtractor.apply(performanceDatum);
+
+                // Write out each bin of the histogram:
+                histogram.forEach(
+                    (binRange, count) ->
+                    {
+                        writer.print(performanceDatum.testInfo().getTestClass().orElseThrow().getName());
+                        writer.print(",");
+                        writer.print(performanceDatum.testInfo().getTestMethod().orElseThrow().getName());
+                        writer.print(",");
+                        writer.print("\"");
+                        writer.print(performanceDatum.testInfo().getDisplayName());
+                        writer.print("\"");
+                        writer.print(",");
+                        writer.print(timestampString);
+                        contextColumns.forEach(
+                            column ->
+                            {
+                                // Get the value for this column:
+                                Object value = performanceDatum.context().getOrDefault(column, "");
+
+                                // Write the context:
+                                writer.print(",");
+                                writer.print(value == null ? "" : value);
+                            });
+                        writer.print(",");
+                        writer.print(binRange.startInclusive());
+                        writer.print(",");
+                        writer.print(binRange.endExclusive());
+                        writer.print(",");
+                        writer.print(count);
+                        writer.println();
+
+                    }
+                );
+
+            }
+        }
+        catch (IOException e)
+        {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * Gets the path to write performance stats to.
      *
      * @param rootPath        The root path where to write results to.
@@ -998,7 +1130,7 @@ public abstract class XIndex1DTests
 
         // Get the name of the file that we want to write:
         String fileName = String.format(
-            "%s_%s.csv",
+            "%s_%s.stats.csv",
             timestamp,
             methodName
         );
@@ -1032,6 +1164,8 @@ public abstract class XIndex1DTests
         long startNanos = System.nanoTime();
         long addDurationNanos = 0L;
         long searchDurationNanos = 0L;
+        TimeHistogram addHistogram = new TimeHistogram(10);
+        TimeHistogram searchHistogram = new TimeHistogram(10);
 
         // Generate random values to index:
         for (long i = 0; i < itemCount; i++)
@@ -1051,8 +1185,14 @@ public abstract class XIndex1DTests
             // Track the time after adding:
             long addEndNanos = System.nanoTime();
 
+            // Get the duration for this addition:
+            long addDelta = addEndNanos - addStartNanos;
+
+            // Histogram the time:
+            addHistogram.add(addDelta);
+
             // Accumulate the time:
-            addDurationNanos += addEndNanos - addStartNanos;
+            addDurationNanos += addDelta;
         }
 
         // Create a histogram of the distances:
@@ -1073,8 +1213,14 @@ public abstract class XIndex1DTests
             // Track the time after searching:
             long searchEndNanos = System.nanoTime();
 
+            // Get the duration for this search:
+            long searchDelta = searchEndNanos - searchStartNanos;
+
+            // Histogram the time:
+            searchHistogram.add(searchDelta);
+
             // Accumulate the search time:
-            searchDurationNanos += searchEndNanos - searchStartNanos;
+            searchDurationNanos += searchDelta;
 
             // Work out the distance to the item:
             int distance = X.measureDistance(item, nearest);
@@ -1090,7 +1236,7 @@ public abstract class XIndex1DTests
         // }
 
         // Return the performance stats:
-        return new PerformanceStats(itemCount, addDurationNanos, queries, searchDurationNanos);
+        return new PerformanceStats(itemCount, addDurationNanos, queries, searchDurationNanos, addHistogram, searchHistogram);
     }
 
 

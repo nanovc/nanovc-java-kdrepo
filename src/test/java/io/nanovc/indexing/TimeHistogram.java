@@ -57,7 +57,7 @@ public class TimeHistogram
         var log = Math.log(duration) / this.logOfBase;
 
         // Work out the index to store:
-        var index = Math.round(log * this.base * this.base);
+        var index = Math.round(log * this.base);
 
         // Get the counter:
         AtomicLong counter = this.histogram.computeIfAbsent(index, _unused -> new AtomicLong(0));
@@ -77,11 +77,11 @@ public class TimeHistogram
         for (Map.Entry<Long, AtomicLong> entry : this.histogram.entrySet())
         {
             // Get the start of the duration:
-            double logStartInclusive = ((double)entry.getKey()) / this.base / this.base;
+            double logStartInclusive = ((double)entry.getKey()) / this.base;
             double durationStartInclusive = Math.pow(this.base, logStartInclusive);
 
             // Get the end of the duration:
-            double logEndExclusive = (entry.getKey() + 1d) / this.base / this.base;
+            double logEndExclusive = (entry.getKey() + 1d) / this.base;
             double durationEndExclusive = Math.pow(this.base, logEndExclusive);
 
             // Create the bin range:

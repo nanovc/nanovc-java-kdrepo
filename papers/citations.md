@@ -57,3 +57,45 @@ Wickham, H. (2010). A layered grammar of graphics. Journal of Computational and 
 Wickham, Hadley. "A layered grammar of graphics." Journal of Computational and Graphical Statistics 19, no. 1 (2010): 3-28.
 Wickham, H., 2010. A layered grammar of graphics. Journal of Computational and Graphical Statistics, 19(1), pp.3-28.
 Wickham H. A layered grammar of graphics. Journal of Computational and Graphical Statistics. 2010 Jan 1;19(1):3-28.
+
+
+
+### ggplot2: Elegant Graphics for Data Analysis
+| Field         | Value                                                                                                                                        |
+|---------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| title         | ggplot2: Elegant Graphics for Data Analysis                                                                                                  |
+| type          | Book                                                                                                                                         |
+| authors       | Hadley Wickham                                                                                                                               |
+| publisher     | Springer-Verlag New York                                                                                                                     |
+| year          | 2016                                                                                                                                         |
+| isbn          | 978-3-319-24277-4                                                                                                                            |
+| doi           | http://dx.doi.org/10.1198/jcgs.2009.07098                                                                                                    |
+| url           | https://ggplot2.tidyverse.org                                                                                                                |
+| url           | https://link.springer.com/book/10.1007/978-3-319-24277-4                                                                                     |
+| pdf           | [978-3-319-24277-4-ggplot2-Elegant Graphics for Data Analysis.pdf](978-3-319-24277-4-ggplot2-Elegant%20Graphics%20for%20Data%20Analysis.pdf) |
+| last-accessed | 5 Jan 2024                                                                                                                                   |
+
+#### Citation:
+H. Wickham. ggplot2: Elegant Graphics for Data Analysis. Springer-Verlag New York, 2016.
+
+### Bibtex:
+@Book{,
+author = {Hadley Wickham},
+title = {ggplot2: Elegant Graphics for Data Analysis},
+publisher = {Springer-Verlag New York},
+year = {2016},
+isbn = {978-3-319-24277-4},
+url = {https://ggplot2.tidyverse.org},
+}
+
+bibentry(
+bibtype = "Book",
+textVersion = "H. Wickham. ggplot2: Elegant Graphics for Data Analysis. Springer-Verlag New York, 2016.",
+header = "To cite ggplot2 in publications, please use",
+author = "Hadley Wickham",
+title = "ggplot2: Elegant Graphics for Data Analysis",
+publisher = "Springer-Verlag New York",
+year = "2016",
+isbn = "978-3-319-24277-4",
+url = "https://ggplot2.tidyverse.org",
+)

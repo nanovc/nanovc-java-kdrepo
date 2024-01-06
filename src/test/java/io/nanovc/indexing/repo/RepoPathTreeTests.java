@@ -22,6 +22,10 @@ class RepoPathTreeTests
         RepoPathTree tree = new RepoPathTree();
         RepoPathNode rootNode = tree.addPath(RepoPath.atRoot());
         assertEquals("", rootNode.getName());
+
+        String expectedTree =
+            ".";
+        assertTree(expectedTree, tree);
     }
 
     @Test
@@ -31,10 +35,15 @@ class RepoPathTreeTests
         RepoPathNode rootNode = tree.addPath(RepoPath.atRoot().resolve("a"));
         assertEquals("a", rootNode.getName());
         assertEquals("/a", rootNode.getRepoPath().toString());
+
+        String expectedTree =
+            ".\n" +
+            "└───a";
+        assertTree(expectedTree, tree);
     }
 
     @Test
-    public void path_a1_b1()
+    public void path_a1_b11()
     {
         RepoPathTree tree = new RepoPathTree();
         RepoPathNode node;
@@ -43,29 +52,17 @@ class RepoPathTreeTests
         assertEquals("a1", node.getName());
         assertEquals("/a1", node.getRepoPath().toString());
 
-        node = tree.addPath(RepoPath.atRoot().resolve("a1").resolve("b1"));
-        assertEquals("b1", node.getName());
-        assertEquals("/a1/b1", node.getRepoPath().toString());
+        node = tree.addPath(RepoPath.atRoot().resolve("a1").resolve("b11"));
+        assertEquals("b11", node.getName());
+        assertEquals("/a1/b11", node.getRepoPath().toString());
+
+        String expectedTree =
+            ".\n" +
+            "└───a1\n" +
+            "    └───b11";
+        assertTree(expectedTree, tree);
     }
 
-    @Test
-    public void path_a1_b1_b2()
-    {
-        RepoPathTree tree = new RepoPathTree();
-        RepoPathNode node;
-
-        node = tree.addPath(RepoPath.atRoot().resolve("a1"));
-        assertEquals("a1", node.getName());
-        assertEquals("/a1", node.getRepoPath().toString());
-
-        node = tree.addPath(RepoPath.atRoot().resolve("a1").resolve("b1"));
-        assertEquals("b1", node.getName());
-        assertEquals("/a1/b1", node.getRepoPath().toString());
-
-        node = tree.addPath(RepoPath.atRoot().resolve("a1").resolve("b2"));
-        assertEquals("b2", node.getName());
-        assertEquals("/a1/b2", node.getRepoPath().toString());
-    }
 
     @Test
     public void path_a1_b1_straight()
@@ -73,8 +70,86 @@ class RepoPathTreeTests
         RepoPathTree tree = new RepoPathTree();
         RepoPathNode node;
 
-        node = tree.addPath(RepoPath.atRoot().resolve("a1").resolve("b1"));
-        assertEquals("b1", node.getName());
-        assertEquals("/a1/b1", node.getRepoPath().toString());
+        node = tree.addPath(RepoPath.atRoot().resolve("a1").resolve("b11"));
+        assertEquals("b11", node.getName());
+        assertEquals("/a1/b11", node.getRepoPath().toString());
+
+        String expectedTree =
+            ".\n" +
+            "└───a1\n" +
+            "    └───b11";
+        assertTree(expectedTree, tree);
+    }
+
+    @Test
+    public void path_a1_b11_b12()
+    {
+        RepoPathTree tree = new RepoPathTree();
+        RepoPathNode node;
+
+        node = tree.addPath(RepoPath.atRoot().resolve("a1"));
+        node = tree.addPath(RepoPath.atRoot().resolve("a1").resolve("b11"));
+        node = tree.addPath(RepoPath.atRoot().resolve("a1").resolve("b12"));
+
+        String expectedTree =
+            ".\n" +
+            "└───a1\n" +
+            "    ├───b11\n" +
+            "    └───b12";
+        assertTree(expectedTree, tree);
+    }
+
+    @Test
+    public void path_a1_b11_b12_a2_b21()
+    {
+        RepoPathTree tree = new RepoPathTree();
+        RepoPathNode node;
+
+        node = tree.addPath(RepoPath.atRoot().resolve("a1"));
+        node = tree.addPath(RepoPath.atRoot().resolve("a1").resolve("b11"));
+        node = tree.addPath(RepoPath.atRoot().resolve("a1").resolve("b12"));
+        node = tree.addPath(RepoPath.atRoot().resolve("a2").resolve("b21"));
+
+        String expectedTree =
+            ".\n" +
+            "├───a1\n" +
+            "│   ├───b11\n" +
+            "│   └───b12\n" +
+            "└───a2\n" +
+            "    └───b21";
+        assertTree(expectedTree, tree);
+    }
+
+    @Test
+    public void path_a1_b11_b12_c121_a2_b21()
+    {
+        RepoPathTree tree = new RepoPathTree();
+        RepoPathNode node;
+
+        node = tree.addPath(RepoPath.atRoot().resolve("a1"));
+        node = tree.addPath(RepoPath.atRoot().resolve("a1").resolve("b11"));
+        node = tree.addPath(RepoPath.atRoot().resolve("a1").resolve("b12"));
+        node = tree.addPath(RepoPath.atRoot().resolve("a1").resolve("b12").resolve("c121"));
+        node = tree.addPath(RepoPath.atRoot().resolve("a2").resolve("b21"));
+
+        String expectedTree =
+            ".\n" +
+            "├───a1\n" +
+            "│   ├───b11\n" +
+            "│   └───b12\n" +
+            "│       └───c121\n" +
+            "└───a2\n" +
+            "    └───b21";
+        assertTree(expectedTree, tree);
+    }
+
+    /**
+     * This makes sure that the given tree is as expected.
+     * @param expectedTree The expected structure of the tree.
+     * @param tree The tree that we want to assert.
+     */
+    public void assertTree(String expectedTree, RepoPathTree tree)
+    {
+        assertEquals(expectedTree, tree.toString());
     }
 }

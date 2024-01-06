@@ -39,6 +39,24 @@ public class RepoPathNode
     }
 
     /**
+     * Checks whether this node has children.
+     * @return True if this node has children. False it it doesn't.
+     */
+    public boolean hasChildren()
+    {
+        return this.childrenByName != null && this.childrenByName.size() > 0;
+    }
+
+    /**
+     * Gets whether this is a root node or not.
+     * @return True if this is the root node. False if it is a child node.
+     */
+    public boolean isRootNode()
+    {
+        return this.parent == null;
+    }
+
+    /**
      * Gets the name of this node.
      * @return The name of this node.
      */

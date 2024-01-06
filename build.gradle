@@ -20,7 +20,15 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
 }
 
+compileJava.options.encoding = 'UTF-8'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
 test {
     maxHeapSize = "2g" // maximum heap size
+    defaultCharacterEncoding = "UTF-8"
     useJUnitPlatform()
 }
+

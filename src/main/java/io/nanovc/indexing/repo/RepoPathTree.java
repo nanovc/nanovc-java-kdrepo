@@ -68,6 +68,32 @@ public class RepoPathTree
     }
 
     /**
+     * This either gets the existing child node or creates a new one if necessary.
+     * @param nodeToAddTo The node of the tree to add a child to.
+     * @param childName The name of the child to add to the node.
+     * @return The child node with the given name.
+     */
+    public RepoPathNode getOrCreateChildNode(RepoPathNode nodeToAddTo, String childName)
+    {
+        // Check whether the node already has a child with this name:
+        NavigableMap<String, RepoPathNode> childrenByName = nodeToAddTo.getChildrenByName();
+        RepoPathNode childNode = childrenByName.get(childName);
+        if (childNode == null)
+        {
+            // We do not have this child node yet.
+
+            // Create the child node:
+            childNode = new RepoPathNode(nodeToAddTo, childName);
+
+            // Index the child node:
+            childrenByName.put(childName, childNode);
+        }
+
+        // Return the child node:
+        return childNode;
+    }
+
+    /**
      * Gets the root of the repo path tree.
      *
      * @return The root of the repo path tree.

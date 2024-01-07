@@ -6,6 +6,7 @@ import io.nanovc.indexing.Measurer;
 import io.nanovc.indexing.RangeFinder;
 import io.nanovc.indexing.RangeSplitter;
 
+import java.nio.ByteBuffer;
 import java.util.*;
 
 /**
@@ -39,6 +40,12 @@ public abstract class RepoIndex1DBase<
     extends Index1DBase<TItem>
     implements RepoIndex1D<TItem, TDistance, TMeasurer, TDistanceComparator, TRangeSplitter, TRangeFinder, TContent, TArea, TCommit, TRepoHandler, TSubGrid>
 {
+    /**
+     * The path name for content.
+     * Yes, it's an emoji.
+     */
+    public final static String CONTENT_PATH_NAME = "📄🔑";
+
     /**
      * The minimum range of this index.
      */
@@ -129,6 +136,11 @@ public abstract class RepoIndex1DBase<
      * The current content area that we are adding content to.
      */
     private TArea currentContentArea;
+
+    /**
+     * The tree of repo paths that we have indexed.
+     */
+    private final RepoPathTree repoPathTree = new RepoPathTree();
 
     public RepoIndex1DBase(
         TItem minRange, TItem maxRange, int divisions,
@@ -222,11 +234,65 @@ public abstract class RepoIndex1DBase<
      */
     public void add(TItem item)
     {
-        // Find the index of the division in the range:
-        int index = findIndexInRange(this.minRange, this.maxRange, this.divisions, item);
+        // We use a trie based approach where the content byte representation is a path to the content
+        // similar to how the git hash of the content gives us the address of the content,
+        // thus making a content-addressable-file-system.
 
-        // Get the list at the index:
-        addItemToIndex(item, index);
+        // Get the content for the item:
+        TContent itemContent = createContentForItem(item);
+
+        // Get the byte representation of the content so that we can index it:
+        ByteBuffer itemContentByteBuffer = itemContent.asByteBuffer();
+
+        // Start walking the repo path until there are no entries:
+        RepoPathNode currentNode = this.repoPathTree.getRootNode();
+        RepoPath currentRepoPath = null;
+        RepoPathNode currentContentNode = null;
+        RepoPath currentContentRepoPath = null;
+        TContent currentContent = null;
+        while (itemContentByteBuffer.hasRemaining())
+        {
+            // Get the next byte from the item content:
+            byte b = itemContentByteBuffer.get();
+
+            // Get the next path name for the byte:
+            String nextPathName = Character.toString(b);
+
+            // Get the next path node for this value:
+            RepoPathNode childNode = this.repoPathTree.getOrCreateChildNode(currentNode, nextPathName);
+
+            // Get the repo path to the child node:
+            RepoPath childRepoPath = childNode.getRepoPath();
+
+            // Get the node to the child content:
+            RepoPathNode childContentNode = this.repoPathTree.getOrCreateChildNode(childNode, CONTENT_PATH_NAME);
+
+            // Get the repo path to the content for this child node:
+            RepoPath childContentRepoPath = childContentNode.getRepoPath();
+
+            // Check whether we have any content at this child node:
+            TContent childContent = this.currentContentArea.getContent(childContentRepoPath);
+
+            // Move to the child node:
+            currentNode = childNode;
+            currentRepoPath = childRepoPath;
+            currentContentNode = childContentNode;
+            currentContentRepoPath = childContentRepoPath;
+            currentContent = childContent;
+
+            // Check whether we can break out and index the content here:
+            if (currentContent == null)
+            {
+                // We don't have any child content at this path yet.
+
+                // Break out early because we can add the content here.
+                break;
+            }
+        }
+        // Now we have found a place where we can add the content.
+
+        // Add the content to the current location:
+        this.currentContentArea.putContent(currentContentRepoPath, itemContent);
     }
 
 

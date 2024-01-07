@@ -174,6 +174,24 @@ class RepoPathTreeTests
         assertTree(expectedTree, tree);
     }
 
+    @Test
+    public void getOrCreateChildNode_a1_b11_c111()
+    {
+        RepoPathTree tree = new RepoPathTree();
+        RepoPathNode node;
+
+        node = tree.addPath(RepoPath.atRoot().resolve("a1"));
+        node = tree.getOrCreateChildNode(node, "b11");
+        node = tree.getOrCreateChildNode(node, "c11");
+
+        String expectedTree =
+            ".\n" +
+            "└───a1\n" +
+            "    └───b11\n" +
+            "        └───c11";
+        assertTree(expectedTree, tree);
+    }
+
     /**
      * This makes sure that the given tree is as expected.
      * @param expectedTree The expected structure of the tree.

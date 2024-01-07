@@ -94,6 +94,20 @@ public class RepoPathTree
     }
 
     /**
+     * This gets the existing child node or returns null if one doesn't exist.
+     * @param nodeToQuery The node to check for a child node with the given name.
+     * @param childName The name of the child to add to the node.
+     * @return The child node with the given name. Null if it wasn't found.
+     */
+    public RepoPathNode getChildNode(RepoPathNode nodeToQuery, String childName)
+    {
+        // Check whether the node already has a child with this name:
+        NavigableMap<String, RepoPathNode> childrenByName = nodeToQuery.getChildrenByName();
+        RepoPathNode childNode = childrenByName.get(childName);
+        return childNode;
+    }
+
+    /**
      * Gets the root of the repo path tree.
      *
      * @return The root of the repo path tree.

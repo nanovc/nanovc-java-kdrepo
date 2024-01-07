@@ -44,7 +44,13 @@ public abstract class RepoIndex1DBase<
      * The path name for content.
      * Yes, it's an emoji.
      */
-    public final static String CONTENT_PATH_NAME = "📄🔑";
+    public final static String CONTENT_PATH_NAME = "📄";
+
+    /**
+     * The path name for content ID.
+     * Yes, it's an emoji.
+     */
+    public final static String ID_PATH_NAME = "🔑";
 
     /**
      * The minimum range of this index.
@@ -128,9 +134,19 @@ public abstract class RepoIndex1DBase<
     private final ItemGlobalMap<TItem> itemGlobalMap;
 
     /**
-     * The content creator to use for getting content from the given item,
+     * The content creator to use for getting content from the given item.
      */
     private final ContentCreator<TItem, TContent> contentCreator;
+
+    /**
+     * The content creator to use for getting content from the given item key.
+     */
+    private final ContentCreator<Integer, TContent> itemKeyContentCreator;
+
+    /**
+     * The content reader to use for getting an item key from the given content.
+     */
+    private final ContentReader<Integer, TContent> itemKeyContentReader;
 
     /**
      * The current content area that we are adding content to.
@@ -150,7 +166,8 @@ public abstract class RepoIndex1DBase<
         SubGridSupplier<TItem, TDistance, TMeasurer, TDistanceComparator, TRangeSplitter, TRangeFinder, TContent, TArea, TCommit, TRepoHandler, TSubGrid> subGridSupplier,
         TRepoHandler repoHandler, RepoPath rootRepoPath,
         ItemGlobalMap<TItem> itemGlobalMap,
-        ContentCreator<TItem, TContent> contentCreator
+        ContentCreator<TItem, TContent> contentCreator,
+        ContentCreator<Integer, TContent> itemKeyContentCreator, ContentReader<Integer, TContent> itemKeyContentReader
         )
     {
         this.minRange = minRange;
@@ -167,6 +184,8 @@ public abstract class RepoIndex1DBase<
         this.rootRepoPath = rootRepoPath;
         this.itemGlobalMap = itemGlobalMap;
         this.contentCreator = contentCreator;
+        this.itemKeyContentCreator = itemKeyContentCreator;
+        this.itemKeyContentReader = itemKeyContentReader;
 
         // Split the range:
         this.rangeSplits = new ArrayList<>(divisions);
@@ -291,8 +310,100 @@ public abstract class RepoIndex1DBase<
         }
         // Now we have found a place where we can add the content.
 
+        // Add the item to the global map:
+        int itemKey = this.getItemGlobalMap().add(item);
+
+        // Create the content for the item key:
+        TContent itemKeyContent = createContentForItemKey(itemKey);
+
+        // Get the path for the item key:
+        RepoPathNode itemKeyNode = this.repoPathTree.getOrCreateChildNode(currentContentNode, ID_PATH_NAME);
+        RepoPath itemKeyRepoPath = itemKeyNode.getRepoPath();
+
+        // Add the ID for the current item:
+        this.currentContentArea.putContent(itemKeyRepoPath, itemKeyContent);
+
         // Add the content to the current location:
         this.currentContentArea.putContent(currentContentRepoPath, itemContent);
+    }
+
+    /**
+     * This finds the nearest item in the index to the given item.
+     *
+     * @param item The item to search for.
+     * @return The nearest item to the given item.
+     */
+    public TItem searchNearest(TItem item)
+    {
+        // We use a trie based approach where the content byte representation is a path to the content
+        // similar to how the git hash of the content gives us the address of the content,
+        // thus making a content-addressable-file-system.
+
+        // Get the content for the item:
+        TContent itemContent = createContentForItem(item);
+
+        // Get the byte representation of the content so that we can index it:
+        ByteBuffer itemContentByteBuffer = itemContent.asByteBuffer();
+
+        // Start walking the repo path until there are no entries:
+        RepoPathNode currentNode = this.repoPathTree.getRootNode();
+        RepoPath currentRepoPath = null;
+        RepoPathNode currentContentNode = null;
+        RepoPath currentContentRepoPath = null;
+        TContent currentContent = null;
+        while (itemContentByteBuffer.hasRemaining())
+        {
+            // Get the next byte from the item content:
+            byte b = itemContentByteBuffer.get();
+
+            // Get the next path name for the byte:
+            String nextPathName = Character.toString(b);
+
+            // Get the next path node for this value:
+            RepoPathNode childNode = this.repoPathTree.getChildNode(currentNode, nextPathName);
+
+            // Check whether the child node exists:
+            if (childNode == null)
+            {
+                // There is no child node.
+                // Break out.
+                break;
+            }
+            // Now we know that we have the child node.
+
+            // Get the repo path to the child node:
+            RepoPath childRepoPath = childNode.getRepoPath();
+
+            // Get the node to the child content:
+            RepoPathNode childContentNode = this.repoPathTree.getChildNode(childNode, CONTENT_PATH_NAME);
+
+            // Check whether this child node has content:
+            if (childContentNode != null)
+            {
+                // We have content at this node.
+
+                // Get the repo path to the content for this child node:
+                RepoPath childContentRepoPath = childContentNode.getRepoPath();
+
+                // Get the path for the item key:
+                RepoPathNode itemKeyNode = this.repoPathTree.getChildNode(childContentNode, ID_PATH_NAME);
+                RepoPath itemKeyRepoPath = itemKeyNode.getRepoPath();
+
+                // Get the content for the item key:
+                TContent itemKeyContent = this.currentContentArea.getContent(itemKeyRepoPath);
+
+                // Get the item key for this content:
+                int itemKey = readItemKeyFromContent(itemKeyContent);
+
+                // Get the item from the global map:
+                TItem existingItem = this.getItemGlobalMap().getItem(itemKey);
+
+                // HACK:
+                return existingItem;
+            }
+        }
+        // Now we have searched the whole space and not found anything.
+        return null;
     }
 
 
@@ -356,6 +467,26 @@ public abstract class RepoIndex1DBase<
     protected TContent createContentForItem(TItem item)
     {
         return this.getContentCreator().createContentForItem(item);
+    }
+
+    /**
+     * Creates the content for the given item key.
+     * @param itemKey The key of the item that we want to create the content for.
+     * @return The content for the given item key.
+     */
+    protected TContent createContentForItemKey(int itemKey)
+    {
+        return this.getItemKeyContentCreator().createContentForItem(itemKey);
+    }
+
+    /**
+     * Reads the item key from the given content.
+     * @param content The content to read the item key out of.
+     * @return The item key for the given content.
+     */
+    protected int readItemKeyFromContent(TContent content)
+    {
+        return this.getItemKeyContentReader().readItemFromContent(content);
     }
 
     /**
@@ -563,279 +694,6 @@ public abstract class RepoIndex1DBase<
 
         // Clear the list of items:
         this.items.put(divisionIndex, null);
-    }
-
-    /**
-     * This finds the nearest item in the index to the given item.
-     *
-     * @param item The item to search for.
-     * @return The nearest item to the given item.
-     */
-    public TItem searchNearest(TItem item)
-    {
-        // Find the index of the item that we are interested in:
-        int index = this.findIndexInRange(this.minRange, this.maxRange, this.divisions, item);
-        int previousIndex = index - 1;
-        int nextIndex = index + 1;
-
-        // Get the list of items at that division:
-        MeasuredItem<TItem, TDistance> nearestItemAtIndex = searchNearestAtIndex(item, index);
-
-        // Check whether we had an exact match:
-        if (nearestItemAtIndex != null && nearestItemAtIndex.distance == null) return nearestItemAtIndex.item;
-        // Now we know that we didn't have an exact match at the index.
-
-        // Expand out the previous index until we find items (keep searching left until we find a list of adjacent items):
-        while (previousIndex > 0)
-        {
-            // Check whether we have a sub-grid at that index:
-            TSubGrid previousSubGrid = this.subGrids.get(previousIndex);
-            if (previousSubGrid != null)
-            {
-                // We found a sub-grid at this index.
-                // Stop searching:
-                break;
-            }
-            else
-            {
-                // There is no sub-grid at this index.
-                // Search for items at this index:
-                // Check whether we have items at that index:
-                List<TItem> itemsAtIndex = this.items.get(previousIndex);
-                if (itemsAtIndex != null)
-                {
-                    // We found items at this index.
-                    // Stop searching:
-                    break;
-                }
-                else
-                {
-                    // The items at this index were empty.
-                    // Move to the previous index:
-                    previousIndex--;
-                }
-            }
-        }
-        // Now we have the positions of the previous index that contain items (or we are outside the range).
-
-        // Check the previous index (there might be closer items near the edges of the division):
-        MeasuredItem<TItem, TDistance> nearestItemAtPreviousIndex;
-        if (previousIndex >= 0)
-        {
-            // We have a previous index.
-
-            // Find the nearest item in the previous index:
-            nearestItemAtPreviousIndex = searchNearestAtIndex(item, previousIndex);
-
-            // Check whether we found an exact match:
-            if (nearestItemAtPreviousIndex != null && nearestItemAtPreviousIndex.distance == null)
-                return nearestItemAtPreviousIndex.item;
-        }
-        else
-        {
-            // We are at the left edge, so we don't have a previous index that is in range.
-            nearestItemAtPreviousIndex = null;
-        }
-
-        // Expand out the next index until we find items (keep searching right until we find a list of adjacent items):
-        while (nextIndex < this.divisions)
-        {
-            // Check whether we have a sub-grid at that index:
-            TSubGrid nextSubGrid = this.subGrids.get(nextIndex);
-            if (nextSubGrid != null)
-            {
-                // We found a sub-grid at this index.
-                // Stop searching:
-                break;
-            }
-            else
-            {
-                // There is no sub-grid at this index.
-
-                // Check whether we have items at that index:
-                List<TItem> itemsAtIndex = this.items.get(nextIndex);
-                if (itemsAtIndex != null)
-                {
-                    // We found items at this index.
-                    // Stop searching:
-                    break;
-                }
-                else
-                {
-                    // The items at this index were empty.
-                    // Move to the next index:
-                    nextIndex++;
-                }
-            }
-        }
-        // Now we have the positions of the next index that contain items (or we are outside the range).
-
-        // Check the next index (there might be closer items near the edges of the division):
-        MeasuredItem<TItem, TDistance> nearestItemAtNextIndex;
-        if (nextIndex < this.divisions)
-        {
-            // We have a next index.
-
-            // Find the nearest item in the next index:
-            nearestItemAtNextIndex = searchNearestAtIndex(item, nextIndex);
-
-            // Check whether we found an exact match:
-            if (nearestItemAtNextIndex != null && nearestItemAtNextIndex.distance == null)
-                return nearestItemAtNextIndex.item;
-        }
-        else
-        {
-            // We are at the right edge, so we don't have a next index that is in range.
-            nearestItemAtNextIndex = null;
-        }
-
-        // If we get here then we know that neither match was an exact match.
-
-        // Determine which item is closest:
-        if (nearestItemAtIndex == null)
-        {
-            // We didn't find an item at the index.
-
-            if (nearestItemAtPreviousIndex == null)
-            {
-                // We didn't find an item at the previous index, nor at the index.
-
-                if (nearestItemAtNextIndex == null)
-                {
-                    // We didn't find an item at any index.
-                    // There is no item.
-                    return null;
-                }
-                else
-                {
-                    // We found an item in the next index, but not in the previous index, nor at the index.
-                    // Therefore, this is the closest match:
-                    return nearestItemAtNextIndex.item;
-                }
-            }
-            else
-            {
-                // We found an item at the previous index, but not at the index.
-
-                if (nearestItemAtNextIndex == null)
-                {
-                    // We found an item at the previous index, but not at the index, nor at the next index.
-                    // Therefore, this is the closest match:
-                    return nearestItemAtPreviousIndex.item;
-                }
-                else
-                {
-                    // We found an item in the next index, and we found an item at the previous index, but not at the index.
-
-                    // Determine whether the previous or next item is closest:
-                    if (distanceComparator.compare(nearestItemAtPreviousIndex.distance, nearestItemAtNextIndex.distance) < 0) // NOTE: If they are equal, choose the next index answer
-                    {
-                        // The item at the previous index is closest.
-                        return nearestItemAtPreviousIndex.item;
-                    }
-                    else
-                    {
-                        // The item at the next index is closest.
-                        return nearestItemAtNextIndex.item;
-                    }
-                }
-            }
-        }
-        else
-        {
-            // We did find an item at the index.
-
-            if (nearestItemAtPreviousIndex == null)
-            {
-                // We didn't find an item at the previous index, but we did find one at the index.
-
-                if (nearestItemAtNextIndex == null)
-                {
-                    // We didn't find an item at the next index, nor at the previous index, but we did find one at the index.
-
-                    // This means that the item at the index is the nearest one:
-                    return nearestItemAtIndex.item;
-                }
-                else
-                {
-                    // We found an item in the next index and at the index, but not at the previous index.
-
-                    // Determine whether the item at the index or next item is closest:
-                    if (distanceComparator.compare(nearestItemAtIndex.distance, nearestItemAtNextIndex.distance) <= 0)
-                    {
-                        // The item at the current index is closest.
-                        return nearestItemAtIndex.item;
-                    }
-                    else
-                    {
-                        // The item at the next index is closest.
-                        return nearestItemAtNextIndex.item;
-                    }
-                }
-            }
-            else
-            {
-                // We found an item at the previous index and at the index.
-
-                if (nearestItemAtNextIndex == null)
-                {
-                    // We didn't find an item at the next index, but we did find an item at the previous index and at the index.
-
-                    // Determine whether the item at the index or next item is closest:
-                    if (distanceComparator.compare(nearestItemAtIndex.distance, nearestItemAtPreviousIndex.distance) <= 0)
-                    {
-                        // The item at the current index is closest.
-                        return nearestItemAtIndex.item;
-                    }
-                    else
-                    {
-                        // The item at the previous index is closest.
-                        return nearestItemAtPreviousIndex.item;
-                    }
-                }
-                else
-                {
-                    // We found items in the previous, next and at the index (all three).
-
-                    // Determine whether the item at the index or next item is closest:
-                    if (distanceComparator.compare(nearestItemAtIndex.distance, nearestItemAtPreviousIndex.distance) <= 0)
-                    {
-                        // The item at the current index is closest.
-
-                        // Determine whether the item at the index or next item is closest:
-                        if (distanceComparator.compare(nearestItemAtIndex.distance, nearestItemAtNextIndex.distance) <= 0)
-                        {
-                            // The item at the current index is closest.
-                            return nearestItemAtIndex.item;
-                        }
-                        else
-                        {
-                            // The item at the next index is closest.
-                            return nearestItemAtNextIndex.item;
-                        }
-
-                    }
-                    else
-                    {
-                        // The item at the previous index is closest.
-
-                        // Determine whether the previous item or next item is closest:
-                        if (distanceComparator.compare(nearestItemAtPreviousIndex.distance, nearestItemAtNextIndex.distance) <= 0)
-                        {
-                            // The item at the previous index is closest.
-                            return nearestItemAtPreviousIndex.item;
-                        }
-                        else
-                        {
-                            // The item at the next index is closest.
-                            return nearestItemAtNextIndex.item;
-                        }
-
-                    }
-                }
-
-            }
-        }
     }
 
     /**
@@ -1114,5 +972,25 @@ public abstract class RepoIndex1DBase<
     @Override public ContentCreator<TItem, TContent> getContentCreator()
     {
         return this.contentCreator;
+    }
+
+    /**
+     * Gets the content creator to use for getting content from the given item key.
+     *
+     * @return The content creator to use for getting content from the given item key.
+     */
+    @Override public ContentCreator<Integer, TContent> getItemKeyContentCreator()
+    {
+        return this.itemKeyContentCreator;
+    }
+
+    /**
+     * Gets the content reader to use for getting an item key from the given content.
+     *
+     * @return The content reader to use for getting an item key from the given content.
+     */
+    @Override public ContentReader<Integer, TContent> getItemKeyContentReader()
+    {
+        return this.itemKeyContentReader;
     }
 }

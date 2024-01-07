@@ -11,7 +11,7 @@ import io.nanovc.ContentAPI;
 public interface ContentCreator<TItem, TContent extends ContentAPI>
 {
     /**
-     * Creates content for the given item,
+     * Creates content for the given item.
      * @param item The item to create the content for.
      * @return The content for the given item.
      */

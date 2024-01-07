@@ -7,6 +7,7 @@ import io.nanovc.indexing.Measurer;
 import io.nanovc.indexing.RangeFinder;
 import io.nanovc.indexing.RangeSplitter;
 import io.nanovc.indexing.repo.ContentCreator;
+import io.nanovc.indexing.repo.ContentReader;
 import io.nanovc.indexing.repo.ItemGlobalMap;
 import io.nanovc.indexing.repo.RepoIndex1DImplementation;
 import io.nanovc.memory.MemoryCommit;
@@ -32,7 +33,7 @@ public class XRepoIndex1D extends RepoIndex1DImplementation<
     >
 {
 
-    public XRepoIndex1D(X minRange, X maxRange, int divisions, int maxItemThreshold, int smallestSplittingDistance, StringMemoryRepoHandler repoHandler, RepoPath rootRepoPath, ItemGlobalMap<X> itemGlobalMap, ContentCreator<X, StringContent> contentCreator)
+    public XRepoIndex1D(X minRange, X maxRange, int divisions, int maxItemThreshold, int smallestSplittingDistance, StringMemoryRepoHandler repoHandler, RepoPath rootRepoPath, ItemGlobalMap<X> itemGlobalMap, ContentCreator<X, StringContent> contentCreator, ContentCreator<Integer, StringContent> itemKeyContentCreator, ContentReader<Integer, StringContent> itemKeyContentReader)
     {
         super(
             minRange, maxRange, divisions, X::measureDistance, Integer::compare, X::splitRange, X::findIndexInRange,
@@ -40,7 +41,8 @@ public class XRepoIndex1D extends RepoIndex1DImplementation<
             XRepoIndex1D::createXRepoIndex1DSubGrid,
             repoHandler, rootRepoPath,
             itemGlobalMap,
-            contentCreator
+            contentCreator,
+            itemKeyContentCreator, itemKeyContentReader
             );
     }
 
@@ -51,7 +53,8 @@ public class XRepoIndex1D extends RepoIndex1DImplementation<
             maxItemThreshold, smallestSplittingDistance,
             new StringMemoryRepoHandler(), RepoPath.atRoot(),
             new ItemGlobalMap<>(),
-            XRepoIndex1D::createXContent
+            XRepoIndex1D::createXContent,
+            XRepoIndex1D::createXItemKeyContent, XRepoIndex1D::readXItemKeyFromContent
         );
     }
 
@@ -70,7 +73,7 @@ public class XRepoIndex1D extends RepoIndex1DImplementation<
         ContentCreator<X, StringContent> contentCreator
         )
     {
-        return new XRepoIndex1D(minRange, maxRange, divisions, maxItemThreshold, smallestSplittingDistance, repoHandler, rootRepoPath, itemGlobalMap, contentCreator);
+        return new XRepoIndex1D(minRange, maxRange, divisions, maxItemThreshold, smallestSplittingDistance, repoHandler, rootRepoPath, itemGlobalMap, contentCreator, XRepoIndex1D::createXItemKeyContent, XRepoIndex1D::readXItemKeyFromContent);
     }
 
     /**
@@ -81,5 +84,25 @@ public class XRepoIndex1D extends RepoIndex1DImplementation<
     public static StringContent createXContent(X item)
     {
         return new StringContent(Integer.toString(item.x()));
+    }
+
+    /**
+     * Gets the content for the given item key.
+     * @param itemKey The item key to create as content.
+     * @return The content for the given item key.
+     */
+    public static StringContent createXItemKeyContent(Integer itemKey)
+    {
+        return new StringContent(Integer.toString(itemKey));
+    }
+
+    /**
+     * Gets the item key from the given content.
+     * @param content The content to read the item key from.
+     * @return The item key for the given content.
+     */
+    public static Integer readXItemKeyFromContent(StringContent content)
+    {
+        return Integer.parseInt(content.value);
     }
 }

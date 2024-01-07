@@ -66,4 +66,14 @@ public class ItemGlobalMap<TItem>
     {
         return this.itemToKeyMap.get(item);
     }
+
+    /**
+     * Gets the item with the given item key.
+     * @param itemKey The item key to get.
+     * @return The item with the given key.
+     */
+    public TItem getItem(int itemKey)
+    {
+        return this.keyToItemMap.get(itemKey);
+    }
 }

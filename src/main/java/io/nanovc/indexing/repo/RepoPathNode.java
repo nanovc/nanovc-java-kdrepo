@@ -124,4 +124,10 @@ public class RepoPathNode
         }
         return childrenByName;
     }
+
+    @Override
+    public String toString()
+    {
+        return this.getName();
+    }
 }

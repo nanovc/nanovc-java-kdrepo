@@ -33,7 +33,7 @@ public interface RepoIndex1D<
     TContent extends ContentAPI,
     TArea extends AreaAPI<TContent>,
     TCommit extends CommitAPI,
-    TRepoHandler extends RepoHandlerAPI<TContent, TArea, TCommit, ? extends SearchQueryAPI<TCommit>, ? extends SearchResultsAPI<?,?>, ? extends RepoAPI<TContent, TArea, TCommit>, ? extends RepoEngineAPI<TContent, TArea, TCommit, ?, ?, ?>>,
+    TRepoHandler extends RepoHandlerAPI<TContent, TArea, TCommit, ? extends SearchQueryAPI<TCommit>, ? extends SearchResultsAPI<?, ?>, ? extends RepoAPI<TContent, TArea, TCommit>, ? extends RepoEngineAPI<TContent, TArea, TCommit, ?, ?, ?>>,
     TSubGrid extends RepoIndex1D<TItem, TDistance, TMeasurer, TDistanceComparator, TRangeSplitter, TRangeFinder, TContent, TArea, TCommit, TRepoHandler, TSubGrid>
     >
     extends Index1D<TItem>
@@ -41,60 +41,70 @@ public interface RepoIndex1D<
 
     /**
      * Gets the minimum range of this index.
+     *
      * @return The minimum range of this index.
      */
     TItem getMinRange();
 
     /**
      * Gets the maximum range of this index.
+     *
      * @return The maximum range of this index.
      */
     TItem getMaxRange();
 
     /**
      * Gets the number of divisions to use for this grid index.
+     *
      * @return The number of divisions to use for this grid index.
      */
     int getDivisions();
 
     /**
      * Gets the measurer that measures distances between items.
+     *
      * @return The measurer that measures distances between items.
      */
     TMeasurer getMeasurer();
 
     /**
      * Gets the comparator to use for comparing distances of items.
+     *
      * @return The comparator to use for comparing distances of items.
      */
     TDistanceComparator getDistanceComparator();
 
     /**
      * Gets the range splitter that divides the range into a set of divisions.
+     *
      * @return The range splitter that divides the range into a set of divisions.
      */
     TRangeSplitter getRangeSplitter();
 
     /**
      * Gets the range finder that gets the index of an item in the divisions of a range.
+     *
      * @return The range finder that gets the index of an item in the divisions of a range.
      */
     TRangeFinder getRangeFinder();
 
     /**
      * Gets the maximum number of items to keep in the grid before it splits the cell into a subgrid.
+     *
      * @return The maximum number of items to keep in the grid before it splits the cell into a subgrid.
      */
     int getMaxItemThreshold();
 
     /**
      * Gets the smallest distance that we do not split beyond.
+     *
      * @return The smallest distance that we do not split beyond.
      */
     TDistance getSmallestSplittingDistance();
 
     /**
      * Gets the repo handler to use for this repo index.
+     *
      * @return The repo handler to use for this repo index.
      */
     TRepoHandler getRepoHandler();
@@ -109,13 +119,29 @@ public interface RepoIndex1D<
     /**
      * The global map of items that we reference.
      * This is the common map that gives us the index of the item, no matter what level of the grid we are in.
+     *
      * @return The global map of items that we reference.
      */
     ItemGlobalMap<TItem> getItemGlobalMap();
 
     /**
      * Gets the content creator to use.
+     *
      * @return The content creator to use.
      */
     ContentCreator<TItem, TContent> getContentCreator();
+
+    /**
+     * Gets the content creator to use for getting content from the given item key.
+     *
+     * @return The content creator to use for getting content from the given item key.
+     */
+    ContentCreator<Integer, TContent> getItemKeyContentCreator();
+
+    /**
+     * Gets the content reader to use for getting an item key from the given content.
+     *
+     * @return The content reader to use for getting an item key from the given content.
+     */
+    ContentReader<Integer, TContent> getItemKeyContentReader();
 }

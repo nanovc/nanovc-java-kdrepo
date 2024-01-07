@@ -345,12 +345,15 @@ public abstract class RepoIndex1DBase<
         // Get the byte representation of the content so that we can index it:
         ByteBuffer itemContentByteBuffer = itemContent.asByteBuffer();
 
+        // Create a list of additional nodes to search if we don't get an exact match:
+        Deque<RepoPathNode> additionalNodesToSearch = null;
+
+        // Keep track of the best result so far:
+        TItem bestItemSoFar = null;
+        TDistance bestDistanceSoFar = null;
+
         // Start walking the repo path until there are no entries:
         RepoPathNode currentNode = this.repoPathTree.getRootNode();
-        RepoPath currentRepoPath = null;
-        RepoPathNode currentContentNode = null;
-        RepoPath currentContentRepoPath = null;
-        TContent currentContent = null;
         while (itemContentByteBuffer.hasRemaining())
         {
             // Get the next byte from the item content:
@@ -366,13 +369,35 @@ public abstract class RepoIndex1DBase<
             if (childNode == null)
             {
                 // There is no child node.
+
+                // Flag that we have additional nodes to search:
+                if (additionalNodesToSearch == null) additionalNodesToSearch = new LinkedList<>();
+
+                // Get the child nodes so we can explore them:
+                NavigableMap<String, RepoPathNode> childrenByName = currentNode.getChildrenByName();
+
+                // Try to find the entry smaller than the given one:
+                Map.Entry<String, RepoPathNode> lowerEntry = childrenByName.lowerEntry(nextPathName);
+                if (lowerEntry != null)
+                {
+                    // We found the lower entry.
+                    // Add this as a node to search:
+                    additionalNodesToSearch.addFirst(lowerEntry.getValue());
+                }
+
+                // Try to find the entry larger than the given one:
+                Map.Entry<String, RepoPathNode> higherEntry = childrenByName.higherEntry(nextPathName);
+                if (higherEntry != null)
+                {
+                    // We found the higher entry.
+                    // Add this as a node to search:
+                    additionalNodesToSearch.addFirst(higherEntry.getValue());
+                }
+
                 // Break out.
                 break;
             }
             // Now we know that we have the child node.
-
-            // Get the repo path to the child node:
-            RepoPath childRepoPath = childNode.getRepoPath();
 
             // Get the node to the child content:
             RepoPathNode childContentNode = this.repoPathTree.getChildNode(childNode, CONTENT_PATH_NAME);
@@ -381,9 +406,6 @@ public abstract class RepoIndex1DBase<
             if (childContentNode != null)
             {
                 // We have content at this node.
-
-                // Get the repo path to the content for this child node:
-                RepoPath childContentRepoPath = childContentNode.getRepoPath();
 
                 // Get the path for the item key:
                 RepoPathNode itemKeyNode = this.repoPathTree.getChildNode(childContentNode, ID_PATH_NAME);
@@ -396,14 +418,106 @@ public abstract class RepoIndex1DBase<
                 int itemKey = readItemKeyFromContent(itemKeyContent);
 
                 // Get the item from the global map:
-                TItem existingItem = this.getItemGlobalMap().getItem(itemKey);
+                TItem indexedItem = this.getItemGlobalMap().getItem(itemKey);
 
-                // HACK:
-                return existingItem;
+                // Check whether the existing item is equal to the item:
+                if (item.equals(indexedItem))
+                {
+                    // This item is equal.
+                    return indexedItem;
+                }
+                // Now we know that the items are not equal.
+
+                // Get the distance to the item:
+                TDistance distance = measureDistanceBetween(item, indexedItem);
+
+                // Check whether this distance is the best so far:
+                if (bestDistanceSoFar == null || this.distanceComparator.compare(distance, bestDistanceSoFar) < 0)
+                {
+                    // This item is closer.
+
+                    // Flag this as the best item so far:
+                    bestItemSoFar = indexedItem;
+                    bestDistanceSoFar = distance;
+                }
+            }
+
+            // Move to the child node:
+            currentNode = childNode;
+        }
+        // Now we have searched the whole space and not found an exact match.
+
+        // Check if we have additional nodes to search:
+        if (additionalNodesToSearch != null)
+        {
+            // We have additional nodes to search.
+
+            // Get the next node to search:
+            RepoPathNode nodeToSearch = additionalNodesToSearch.pollFirst();
+
+            // Traverse the additional nodes to search:
+            while (nodeToSearch != null)
+            {
+                // Get the node to the content:
+                RepoPathNode contentNode = this.repoPathTree.getChildNode(nodeToSearch, CONTENT_PATH_NAME);
+
+                // Check whether this node has content:
+                if (contentNode != null)
+                {
+                    // We have content at this node.
+
+                    // Get the path for the item key:
+                    RepoPathNode itemKeyNode = this.repoPathTree.getChildNode(contentNode, ID_PATH_NAME);
+                    RepoPath itemKeyRepoPath = itemKeyNode.getRepoPath();
+
+                    // Get the content for the item key:
+                    TContent itemKeyContent = this.currentContentArea.getContent(itemKeyRepoPath);
+
+                    // Get the item key for this content:
+                    int itemKey = readItemKeyFromContent(itemKeyContent);
+
+                    // Get the item from the global map:
+                    TItem indexedItem = this.getItemGlobalMap().getItem(itemKey);
+
+                    // Check whether the existing item is equal to the item:
+                    if (item.equals(indexedItem))
+                    {
+                        // This item is equal.
+                        return indexedItem;
+                    }
+                    // Now we know that the items are not equal.
+
+                    // Get the distance to the item:
+                    TDistance distance = measureDistanceBetween(item, indexedItem);
+
+                    // Check whether this distance is the best so far:
+                    if (bestDistanceSoFar == null || this.distanceComparator.compare(distance, bestDistanceSoFar) < 0)
+                    {
+                        // This item is closer.
+
+                        // Flag this as the best item so far:
+                        bestItemSoFar = indexedItem;
+                        bestDistanceSoFar = distance;
+                    }
+
+                    // Add all the children to be searched:
+                    for (RepoPathNode childToSearch : nodeToSearch.getChildrenByName().values())
+                    {
+                        // Check whether this is the content node:
+                        if (childToSearch.getName().equals(CONTENT_PATH_NAME)) continue;
+                        // Now we know that this is not the content path.
+
+                        // Add the child to search:
+                        additionalNodesToSearch.addLast(childToSearch);
+                    }
+                }
+
+                // Get the next node to search:
+                nodeToSearch = additionalNodesToSearch.pollFirst();
             }
         }
-        // Now we have searched the whole space and not found anything.
-        return null;
+        // Now we have the best item that is closest to the given item.
+        return bestItemSoFar;
     }
 
 

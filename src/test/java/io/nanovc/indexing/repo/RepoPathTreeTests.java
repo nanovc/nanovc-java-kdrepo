@@ -143,6 +143,37 @@ class RepoPathTreeTests
         assertTree(expectedTree, tree);
     }
 
+    @Test
+    public void path_a1_b11_b12_c121_a2_b21_c211_c212_b22_a3()
+    {
+        RepoPathTree tree = new RepoPathTree();
+        RepoPathNode node;
+
+        node = tree.addPath(RepoPath.atRoot().resolve("a1"));
+        node = tree.addPath(RepoPath.atRoot().resolve("a1").resolve("b11"));
+        node = tree.addPath(RepoPath.atRoot().resolve("a1").resolve("b12"));
+        node = tree.addPath(RepoPath.atRoot().resolve("a1").resolve("b12").resolve("c121"));
+        node = tree.addPath(RepoPath.atRoot().resolve("a2").resolve("b21"));
+        node = tree.addPath(RepoPath.atRoot().resolve("a2").resolve("b21").resolve("c211"));
+        node = tree.addPath(RepoPath.atRoot().resolve("a2").resolve("b21").resolve("c212"));
+        node = tree.addPath(RepoPath.atRoot().resolve("a2").resolve("b22"));
+        node = tree.addPath(RepoPath.atRoot().resolve("a3"));
+
+        String expectedTree =
+            ".\n" +
+            "├───a1\n" +
+            "│   ├───b11\n" +
+            "│   └───b12\n" +
+            "│       └───c121\n" +
+            "├───a2\n" +
+            "│   ├───b21\n" +
+            "│   │   ├───c211\n" +
+            "│   │   └───c212\n" +
+            "│   └───b22\n" +
+            "└───a3";
+        assertTree(expectedTree, tree);
+    }
+
     /**
      * This makes sure that the given tree is as expected.
      * @param expectedTree The expected structure of the tree.

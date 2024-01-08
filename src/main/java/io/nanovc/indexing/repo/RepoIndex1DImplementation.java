@@ -39,11 +39,9 @@ public class RepoIndex1DImplementation<
         TMeasurer measurer, TDistanceComparator comparator,
         TRangeSplitter rangeSplitter, TRangeFinder rangeFinder,
         TRepoHandler repoHandler, RepoPath rootRepoPath,
-        ItemGlobalMap<TItem> itemGlobalMap,
-        ContentCreator<TItem, TContent> contentCreator,
-        ContentCreator<Integer, TContent> itemKeyContentCreator, ContentReader<Integer, TContent> itemKeyContentReader
+        ContentCreator<TItem, TContent> contentCreator, ContentReader<TItem, TContent> contentReader
     )
     {
-        super(minRange, maxRange, divisions, measurer, comparator, rangeSplitter, rangeFinder, repoHandler, rootRepoPath, itemGlobalMap, contentCreator, itemKeyContentCreator, itemKeyContentReader);
+        super(minRange, maxRange, divisions, measurer, comparator, rangeSplitter, rangeFinder, repoHandler, rootRepoPath, contentCreator, contentReader);
     }
 }

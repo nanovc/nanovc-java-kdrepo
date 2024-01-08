@@ -175,6 +175,24 @@ class RepoPathTreeTests
     }
 
     @Test
+    public void path_emojis_first()
+    {
+        RepoPathTree tree = new RepoPathTree();
+        RepoPathNode node;
+
+        node = tree.addPath(RepoPath.atRoot().resolve("a"));
+        node = tree.addPath(RepoPath.atRoot().resolve("a").resolve("b"));
+        node = tree.addPath(RepoPath.atRoot().resolve("a").resolve("🔑"));
+
+        String expectedTree =
+            ".\n" +
+            "└───a\n" +
+            "    ├───🔑\n" +
+            "    └───b";
+        assertTree(expectedTree, tree);
+    }
+
+    @Test
     public void getOrCreateChildNode_a1_b11_c111()
     {
         RepoPathTree tree = new RepoPathTree();

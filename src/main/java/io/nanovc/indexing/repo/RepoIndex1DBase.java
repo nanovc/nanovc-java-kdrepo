@@ -45,12 +45,6 @@ public abstract class RepoIndex1DBase<
     public final static String CONTENT_PATH_NAME = "📄";
 
     /**
-     * The path name for content ID.
-     * Yes, it's an emoji. This ensures that we don't get clashes with the trie-byte splitting for the keys. And it looks cool.
-     */
-    public final static String ID_PATH_NAME = "🔑";
-
-    /**
      * The minimum range of this index.
      */
     private final TItem minRange;
@@ -107,34 +101,21 @@ public abstract class RepoIndex1DBase<
     private final RepoPath rootRepoPath;
 
     /**
-     * The global map of items that we reference.
-     * This is the common map that gives us the index of the item, no matter what level of the grid we are in.
-     */
-    private final ItemGlobalMap<TItem> itemGlobalMap;
-
-    /**
      * The content creator to use for getting content from the given item.
      */
     private final ContentCreator<TItem, TContent> contentCreator;
 
     /**
-     * The content creator to use for getting content from the given item key.
+     * The content reader to use for getting an item from the given content.
      */
-    private final ContentCreator<Integer, TContent> itemKeyContentCreator;
-
-    /**
-     * The content reader to use for getting an item key from the given content.
-     */
-    private final ContentReader<Integer, TContent> itemKeyContentReader;
+    private final ContentReader<TItem, TContent> contentReader;
 
     public RepoIndex1DBase(
         TItem minRange, TItem maxRange, int divisions,
         TMeasurer measurer, TDistanceComparator distanceComparator,
         TRangeSplitter rangeSplitter, TRangeFinder rangeFinder,
         TRepoHandler repoHandler, RepoPath rootRepoPath,
-        ItemGlobalMap<TItem> itemGlobalMap,
-        ContentCreator<TItem, TContent> contentCreator,
-        ContentCreator<Integer, TContent> itemKeyContentCreator, ContentReader<Integer, TContent> itemKeyContentReader
+        ContentCreator<TItem, TContent> contentCreator, ContentReader<TItem, TContent> contentReader
     )
     {
         this.minRange = minRange;
@@ -146,10 +127,8 @@ public abstract class RepoIndex1DBase<
         this.rangeFinder = rangeFinder;
         this.repoHandler = repoHandler;
         this.rootRepoPath = rootRepoPath;
-        this.itemGlobalMap = itemGlobalMap;
         this.contentCreator = contentCreator;
-        this.itemKeyContentCreator = itemKeyContentCreator;
-        this.itemKeyContentReader = itemKeyContentReader;
+        this.contentReader = contentReader;
 
         // Split the range:
         this.rangeSplits = new ArrayList<>(divisions);
@@ -301,19 +280,6 @@ public abstract class RepoIndex1DBase<
         if (currentContent == null)
         {
             // We are adding new content.
-
-            // Add the item to the global map:
-            int itemKey = this.getItemGlobalMap().add(item);
-
-            // Create the content for the item key:
-            TContent itemKeyContent = createContentForItemKey(itemKey);
-
-            // Get the path for the item key:
-            RepoPathNode itemKeyNode = division.repoPathTree.getOrCreateChildNode(currentContentNode, ID_PATH_NAME);
-            RepoPath itemKeyRepoPath = itemKeyNode.getRepoPath();
-
-            // Add the ID for the current item:
-            division.contentArea.putContent(itemKeyRepoPath, itemKeyContent);
 
             // Add the content to the current location:
             division.contentArea.putContent(currentContentRepoPath, itemContent);
@@ -485,18 +451,14 @@ public abstract class RepoIndex1DBase<
             {
                 // We have content at this node.
 
-                // Get the path for the item key:
-                RepoPathNode itemKeyNode = division.repoPathTree.getChildNode(childContentNode, ID_PATH_NAME);
-                RepoPath itemKeyRepoPath = itemKeyNode.getRepoPath();
+                // Get the path to the child content:
+                RepoPath childContentRepoPath = childContentNode.getRepoPath();
 
-                // Get the content for the item key:
-                TContent itemKeyContent = division.contentArea.getContent(itemKeyRepoPath);
+                // Get the content for the child item:
+                TContent childContent = division.contentArea.getContent(childContentRepoPath);
 
-                // Get the item key for this content:
-                int itemKey = readItemKeyFromContent(itemKeyContent);
-
-                // Get the item from the global map:
-                TItem indexedItem = this.getItemGlobalMap().getItem(itemKey);
+                // Get the item from the content:
+                TItem indexedItem = readItemFromContent(childContent);
 
                 // Check whether the existing item is equal to the item:
                 if (item.equals(indexedItem))
@@ -562,28 +524,47 @@ public abstract class RepoIndex1DBase<
         TItem bestItemSoFar = null;
         TDistance bestDistanceSoFar = null;
 
-        // Search through each item in the global map:
-        for (TItem item : this.itemGlobalMap)
+        // Search through each division:
+        for (Division<TItem, TContent, TArea> division : this.divisionsByIndex.values())
         {
-            // Check whether the existing item is equal to the item:
-            if (item.equals(itemToSearchFor))
+            // Go through all content in this division:
+            for (AreaEntry<TContent> entry : division.contentArea)
             {
-                // This item is equal.
-                return item;
-            }
-            // Now we know that the items are not equal.
+                // Get the path for the entry:
+                RepoPath repoPath = entry.getPath();
 
-            // Get the distance to the item:
-            TDistance distance = measureDistanceBetween(item, itemToSearchFor);
+                // Check whether this is content for items:
+                if (repoPath.path.endsWith(CONTENT_PATH_NAME))
+                {
+                    // This is content for an item.
 
-            // Check whether this distance is the best so far:
-            if (bestDistanceSoFar == null || this.distanceComparator.compare(distance, bestDistanceSoFar) < 0)
-            {
-                // This item is closer.
+                    // Get the content for this item:
+                    TContent itemContent = entry.getContent();
 
-                // Flag this as the best item so far:
-                bestItemSoFar = item;
-                bestDistanceSoFar = distance;
+                    // Get the item from this content:
+                    TItem item = readItemFromContent(itemContent);
+
+                    // Check whether the existing item is equal to the item:
+                    if (item.equals(itemToSearchFor))
+                    {
+                        // This item is equal.
+                        return item;
+                    }
+                    // Now we know that the items are not equal.
+
+                    // Get the distance to the item:
+                    TDistance distance = measureDistanceBetween(item, itemToSearchFor);
+
+                    // Check whether this distance is the best so far:
+                    if (bestDistanceSoFar == null || this.distanceComparator.compare(distance, bestDistanceSoFar) < 0)
+                    {
+                        // This item is closer.
+
+                        // Flag this as the best item so far:
+                        bestItemSoFar = item;
+                        bestDistanceSoFar = distance;
+                    }
+                }
             }
         }
 
@@ -628,25 +609,14 @@ public abstract class RepoIndex1DBase<
     }
 
     /**
-     * Creates the content for the given item key.
-     *
-     * @param itemKey The key of the item that we want to create the content for.
-     * @return The content for the given item key.
-     */
-    protected TContent createContentForItemKey(int itemKey)
-    {
-        return this.getItemKeyContentCreator().createContentForItem(itemKey);
-    }
-
-    /**
      * Reads the item key from the given content.
      *
      * @param content The content to read the item key out of.
      * @return The item key for the given content.
      */
-    protected int readItemKeyFromContent(TContent content)
+    protected TItem readItemFromContent(TContent content)
     {
-        return this.getItemKeyContentReader().readItemFromContent(content);
+        return this.getContentReader().readItemFromContent(content);
     }
 
     /**
@@ -846,43 +816,24 @@ public abstract class RepoIndex1DBase<
     }
 
     /**
-     * The global map of items that we reference.
-     * This is the common map that gives us the index of the item, no matter what level of the grid we are in.
-     *
-     * @return The global map of items that we reference.
-     */
-    @Override public ItemGlobalMap<TItem> getItemGlobalMap()
-    {
-        return this.itemGlobalMap;
-    }
-
-    /**
      * Gets the content creator to use.
      *
      * @return The content creator to use.
      */
-    @Override public ContentCreator<TItem, TContent> getContentCreator()
+    @Override
+    public ContentCreator<TItem, TContent> getContentCreator()
     {
         return this.contentCreator;
     }
 
     /**
-     * Gets the content creator to use for getting content from the given item key.
+     * Gets the content reader to use for getting an item from the given content.
      *
-     * @return The content creator to use for getting content from the given item key.
+     * @return The content reader to use for getting an item from the given content.
      */
-    @Override public ContentCreator<Integer, TContent> getItemKeyContentCreator()
+    @Override
+    public ContentReader<TItem, TContent> getContentReader()
     {
-        return this.itemKeyContentCreator;
-    }
-
-    /**
-     * Gets the content reader to use for getting an item key from the given content.
-     *
-     * @return The content reader to use for getting an item key from the given content.
-     */
-    @Override public ContentReader<Integer, TContent> getItemKeyContentReader()
-    {
-        return this.itemKeyContentReader;
+        return this.contentReader;
     }
 }

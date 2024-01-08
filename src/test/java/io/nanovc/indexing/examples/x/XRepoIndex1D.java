@@ -8,7 +8,6 @@ import io.nanovc.indexing.RangeFinder;
 import io.nanovc.indexing.RangeSplitter;
 import io.nanovc.indexing.repo.ContentCreator;
 import io.nanovc.indexing.repo.ContentReader;
-import io.nanovc.indexing.repo.ItemGlobalMap;
 import io.nanovc.indexing.repo.RepoIndex1DImplementation;
 import io.nanovc.memory.MemoryCommit;
 import io.nanovc.memory.strings.StringMemoryRepoHandler;
@@ -32,14 +31,12 @@ public class XRepoIndex1D extends RepoIndex1DImplementation<
     >
 {
 
-    public XRepoIndex1D(X minRange, X maxRange, int divisions, StringMemoryRepoHandler repoHandler, RepoPath rootRepoPath, ItemGlobalMap<X> itemGlobalMap, ContentCreator<X, StringContent> contentCreator, ContentCreator<Integer, StringContent> itemKeyContentCreator, ContentReader<Integer, StringContent> itemKeyContentReader)
+    public XRepoIndex1D(X minRange, X maxRange, int divisions, StringMemoryRepoHandler repoHandler, RepoPath rootRepoPath, ContentCreator<X, StringContent> contentCreator, ContentReader<X, StringContent> contentReader)
     {
         super(
             minRange, maxRange, divisions, X::measureDistance, Integer::compare, X::splitRange, X::findIndexInRange,
             repoHandler, rootRepoPath,
-            itemGlobalMap,
-            contentCreator,
-            itemKeyContentCreator, itemKeyContentReader
+            contentCreator, contentReader
             );
     }
 
@@ -48,9 +45,7 @@ public class XRepoIndex1D extends RepoIndex1DImplementation<
         this(
             minRange, maxRange, divisions,
             new StringMemoryRepoHandler(), RepoPath.atRoot(),
-            new ItemGlobalMap<>(),
-            XRepoIndex1D::createXContent,
-            XRepoIndex1D::createXItemKeyContent, XRepoIndex1D::readXItemKeyFromContent
+            XRepoIndex1D::createXContent, XRepoIndex1D::readXFromContent
         );
     }
 
@@ -65,22 +60,12 @@ public class XRepoIndex1D extends RepoIndex1DImplementation<
     }
 
     /**
-     * Gets the content for the given item key.
-     * @param itemKey The item key to create as content.
-     * @return The content for the given item key.
+     * Gets the item from the given content.
+     * @param content The content to read the item from.
+     * @return The item for the given content.
      */
-    public static StringContent createXItemKeyContent(Integer itemKey)
+    public static X readXFromContent(StringContent content)
     {
-        return new StringContent(Integer.toString(itemKey));
-    }
-
-    /**
-     * Gets the item key from the given content.
-     * @param content The content to read the item key from.
-     * @return The item key for the given content.
-     */
-    public static Integer readXItemKeyFromContent(StringContent content)
-    {
-        return Integer.parseInt(content.value);
+        return new X(Integer.parseInt(content.value));
     }
 }

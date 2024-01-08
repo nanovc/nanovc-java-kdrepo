@@ -101,14 +101,6 @@ public interface RepoIndex1D<
     RepoPath getRootRepoPath();
 
     /**
-     * The global map of items that we reference.
-     * This is the common map that gives us the index of the item, no matter what level of the grid we are in.
-     *
-     * @return The global map of items that we reference.
-     */
-    ItemGlobalMap<TItem> getItemGlobalMap();
-
-    /**
      * Gets the content creator to use.
      *
      * @return The content creator to use.
@@ -116,16 +108,9 @@ public interface RepoIndex1D<
     ContentCreator<TItem, TContent> getContentCreator();
 
     /**
-     * Gets the content creator to use for getting content from the given item key.
+     * Gets the content reader to use for getting an item from the given content.
      *
-     * @return The content creator to use for getting content from the given item key.
+     * @return The content reader to use for getting an item from the given content.
      */
-    ContentCreator<Integer, TContent> getItemKeyContentCreator();
-
-    /**
-     * Gets the content reader to use for getting an item key from the given content.
-     *
-     * @return The content reader to use for getting an item key from the given content.
-     */
-    ContentReader<Integer, TContent> getItemKeyContentReader();
+    ContentReader<TItem, TContent> getContentReader();
 }

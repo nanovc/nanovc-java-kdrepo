@@ -79,6 +79,7 @@ public class Division<
             // Write out the content for this division:
             printNodeToStringRecursively(this.repoPathTree.getRootNode(), false, stringBuilder, "", this.contentArea);
         }
+        stringBuilder.append("\n");
     }
 
     /**

@@ -2,6 +2,8 @@ package io.nanovc.indexing.examples.x;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Random;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -130,6 +132,672 @@ public class XRepoIndex1DTests
                     └───🔑'0'\
             """;
         assertRepoIndex(expectedIndex, index);
+    }
+
+    @Test
+    public void test_NearMisses_0()
+    {
+        // Create the index:
+        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10, 10, 1);
+
+        // Define the items of interest:
+        int[] itemsOfInterest = {
+            0
+        };
+
+        // Add the items to the index:
+        for (int itemOfInterest : itemsOfInterest)
+        {
+            index.add(new X(itemOfInterest));
+        }
+
+        // Make sure the index is as expected:
+        var expectedIndex =
+            """
+            .
+            └───0
+                └───📄'0'
+                    └───🔑'0'\
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Query the items:
+        X nearest;
+
+        nearest = index.searchNearest(new X(-1));
+        assertEquals(new X(0), nearest);
+
+        nearest = index.searchNearest(new X(0));
+        assertEquals(new X(0), nearest);
+
+        nearest = index.searchNearest(new X(1));
+        assertEquals(new X(0), nearest);
+    }
+
+    @Test
+    public void test_NearMisses_1()
+    {
+        // Create the index:
+        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10, 10, 1);
+
+        // Define the items of interest:
+        int[] itemsOfInterest = {
+            1
+        };
+
+        // Add the items to the index:
+        for (int itemOfInterest : itemsOfInterest)
+        {
+            index.add(new X(itemOfInterest));
+        }
+
+        // Make sure the index is as expected:
+        var expectedIndex =
+            """
+            .
+            └───1
+                └───📄'1'
+                    └───🔑'0'\
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Query the items:
+        X nearest;
+
+        nearest = index.searchNearest(new X(-10));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(-1));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(0));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(1));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(2));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(10));
+        assertEquals(new X(1), nearest);
+    }
+
+    @Test
+    public void test_NearMisses_1_10()
+    {
+        // Create the index:
+        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10, 10, 1);
+
+        // Define the items of interest:
+        int[] itemsOfInterest = {
+            1, 10
+        };
+
+        // Add the items to the index:
+        for (int itemOfInterest : itemsOfInterest)
+        {
+            index.add(new X(itemOfInterest));
+        }
+
+        // Make sure the index is as expected:
+        var expectedIndex =
+            """
+            .
+            └───1
+                ├───0
+                │   └───📄'10'
+                │       └───🔑'1'
+                └───📄'1'
+                    └───🔑'0'\
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Query the items:
+        X nearest;
+
+        nearest = index.searchNearest(new X(-111));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(-110));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(-11));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(-10));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(-1));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(0));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(1));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(2));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(3));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(4));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(5));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(6));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(7));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(8));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(9));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(10));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(11));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(100));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(110));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(111));
+        assertEquals(new X(10), nearest);
+    }
+
+    @Test
+    public void test_NearMisses_1_9_10()
+    {
+        // Create the index:
+        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10, 10, 1);
+
+        // Define the items of interest:
+        int[] itemsOfInterest = {
+            1, 9, 10
+        };
+
+        // Add the items to the index:
+        for (int itemOfInterest : itemsOfInterest)
+        {
+            index.add(new X(itemOfInterest));
+        }
+
+        // Make sure the index is as expected:
+        var expectedIndex =
+            """
+            .
+            ├───1
+            │   ├───0
+            │   │   └───📄'10'
+            │   │       └───🔑'2'
+            │   └───📄'1'
+            │       └───🔑'0'
+            └───9
+                └───📄'9'
+                    └───🔑'1'\
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Query the items:
+        X nearest;
+
+        nearest = index.searchNearest(new X(-111));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(-110));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(-11));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(-10));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(-1));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(0));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(1));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(2));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(3));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(4));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(5));
+        assertEquals(new X(9), nearest);
+
+        nearest = index.searchNearest(new X(6));
+        assertEquals(new X(9), nearest);
+
+        nearest = index.searchNearest(new X(7));
+        assertEquals(new X(9), nearest);
+
+        nearest = index.searchNearest(new X(8));
+        assertEquals(new X(9), nearest);
+
+        nearest = index.searchNearest(new X(9));
+        assertEquals(new X(9), nearest);
+
+        nearest = index.searchNearest(new X(10));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(11));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(100));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(110));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(111));
+        assertEquals(new X(10), nearest);
+    }
+
+    @Test
+    public void test_NearMisses_1_2_9_10()
+    {
+        // Create the index:
+        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10, 10, 1);
+
+        // Define the items of interest:
+        int[] itemsOfInterest = {
+            1, 2, 9, 10
+        };
+
+        // Add the items to the index:
+        for (int itemOfInterest : itemsOfInterest)
+        {
+            index.add(new X(itemOfInterest));
+        }
+
+        // Make sure the index is as expected:
+        var expectedIndex =
+            """
+            .
+            ├───1
+            │   ├───0
+            │   │   └───📄'10'
+            │   │       └───🔑'3'
+            │   └───📄'1'
+            │       └───🔑'0'
+            ├───2
+            │   └───📄'2'
+            │       └───🔑'1'
+            └───9
+                └───📄'9'
+                    └───🔑'2'\
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Query the items:
+        X nearest;
+
+        nearest = index.searchNearest(new X(-111));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(-110));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(-11));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(-10));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(-1));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(0));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(1));
+        assertEquals(new X(1), nearest);
+
+        nearest = index.searchNearest(new X(2));
+        assertEquals(new X(2), nearest);
+
+        nearest = index.searchNearest(new X(3));
+        assertEquals(new X(2), nearest);
+
+        nearest = index.searchNearest(new X(4));
+        assertEquals(new X(2), nearest);
+
+        nearest = index.searchNearest(new X(5));
+        assertEquals(new X(2), nearest);
+
+        nearest = index.searchNearest(new X(6));
+        assertEquals(new X(9), nearest);
+
+        nearest = index.searchNearest(new X(7));
+        assertEquals(new X(9), nearest);
+
+        nearest = index.searchNearest(new X(8));
+        assertEquals(new X(9), nearest);
+
+        nearest = index.searchNearest(new X(9));
+        assertEquals(new X(9), nearest);
+
+        nearest = index.searchNearest(new X(10));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(11));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(100));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(110));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(111));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(90));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(91));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(92));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(93));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(94));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(95));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(96));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(97));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(98));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(99));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(100));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(101));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(102));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(109));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(110));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(111));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(112));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(119));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(120));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(121));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(122));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(129));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(190));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(191));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(192));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(199));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(200));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(201));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(202));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(209));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(210));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(211));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(212));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(219));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(220));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(221));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(222));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(229));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(290));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(291));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(292));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(299));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(900));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(901));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(902));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(909));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(910));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(911));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(912));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(919));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(920));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(921));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(922));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(929));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(990));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(991));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(992));
+        assertEquals(new X(10), nearest);
+
+        nearest = index.searchNearest(new X(999));
+        assertEquals(new X(10), nearest);
+    }
+
+    @Test
+    public void test_Index_Random_1234()
+    {
+        // Create the index:
+        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10, 10, 1);
+
+        // Add the items to the index:
+        Random random = new Random(1234);
+        final int COUNT = 10;
+        final int RANGE = 1000;
+        for (int i = 0; i < COUNT; i++)
+        {
+            index.add(new X(random.nextInt(RANGE)));
+        }
+
+        var expectedIndex =
+            """
+            .
+            ├───1
+            │   └───📄'133'
+            │       └───🔑'2'
+            ├───2
+            │   ├───1
+            │   │   └───📄'210'
+            │   │       └───🔑'4'
+            │   ├───9
+            │   │   └───📄'297'
+            │   │       └───🔑'8'
+            │   └───📄'220'
+            │       └───🔑'3'
+            ├───3
+            │   ├───7
+            │   │   └───📄'37'
+            │   │       └───🔑'9'
+            │   └───📄'393'
+            │       └───🔑'5'
+            ├───4
+            │   └───📄'449'
+            │       └───🔑'7'
+            ├───5
+            │   └───📄'529'
+            │       └───🔑'6'
+            └───6
+                ├───3
+                │   └───📄'633'
+                │       └───🔑'1'
+                └───📄'628'
+                    └───🔑'0'\
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Query the items:
+        X nearest;
+
+        nearest = index.searchNearest(new X(0));
+        assertEquals(new X(37), nearest);
+
+        nearest = index.searchNearest(new X(1));
+        assertEquals(new X(37), nearest);
+
+        nearest = index.searchNearest(new X(2));
+        assertEquals(new X(37), nearest);
+
+        nearest = index.searchNearest(new X(36));
+        assertEquals(new X(37), nearest);
+
+        nearest = index.searchNearest(new X(37));
+        assertEquals(new X(37), nearest);
+
+        nearest = index.searchNearest(new X(38));
+        assertEquals(new X(37), nearest);
+
+        nearest = index.searchNearest(new X(84));
+        assertEquals(new X(37), nearest);
+
+        nearest = index.searchNearest(new X(85));
+        assertEquals(new X(37), nearest);
+
+        nearest = index.searchNearest(new X(86));
+        assertEquals(new X(133), nearest);
+
+        nearest = index.searchNearest(new X(132));
+        assertEquals(new X(133), nearest);
+
+        nearest = index.searchNearest(new X(133));
+        assertEquals(new X(133), nearest);
+
+        nearest = index.searchNearest(new X(134));
+        assertEquals(new X(133), nearest);
+
+        nearest = index.searchNearest(new X(200));
+        assertEquals(new X(210), nearest);
+
+        nearest = index.searchNearest(new X(211));
+        assertEquals(new X(210), nearest);
+
+        nearest = index.searchNearest(new X(214));
+        assertEquals(new X(210), nearest);
+
+        nearest = index.searchNearest(new X(215));
+        assertEquals(new X(220), nearest); // 210 is the same distance as 220 but 220 was added first so it wins.
+
+        nearest = index.searchNearest(new X(216));
+        assertEquals(new X(220), nearest);
+
+        nearest = index.searchNearest(new X(220));
+        assertEquals(new X(220), nearest);
+
+        nearest = index.searchNearest(new X(221));
+        assertEquals(new X(210), nearest);
     }
 
     public void assertRepoIndex(String expectedIndex, XRepoIndex1D index)

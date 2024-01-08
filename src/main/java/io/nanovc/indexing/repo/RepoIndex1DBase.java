@@ -346,7 +346,7 @@ public abstract class RepoIndex1DBase<
         ByteBuffer itemContentByteBuffer = itemContent.asByteBuffer();
 
         // Create a list of additional nodes to search if we don't get an exact match:
-        Deque<RepoPathNode> additionalNodesToSearch = null;
+        Deque<RepoPathNode> additionalNodesToSearch = new LinkedList<>();
 
         // Keep track of the best result so far:
         TItem bestItemSoFar = null;
@@ -362,39 +362,36 @@ public abstract class RepoIndex1DBase<
             // Get the next path name for the byte:
             String nextPathName = Character.toString(b);
 
+            // Get the child nodes so we can explore them:
+            NavigableMap<String, RepoPathNode> childrenByName = currentNode.getChildrenByName();
+
+            // Try to find the entry smaller than the given one so that we can save additional nodes to explore later if we don't find an exact match:
+            Map.Entry<String, RepoPathNode> lowerEntry = childrenByName.lowerEntry(nextPathName);
+            if (lowerEntry != null)
+            {
+                // We found the lower entry.
+                // Add this as a node to search:
+                additionalNodesToSearch.addFirst(lowerEntry.getValue());
+            }
+
+            // Try to find the entry larger than the given one:
+            Map.Entry<String, RepoPathNode> higherEntry = childrenByName.higherEntry(nextPathName);
+            if (higherEntry != null)
+            {
+                // We found the higher entry.
+                // Add this as a node to search:
+                additionalNodesToSearch.addFirst(higherEntry.getValue());
+            }
+
             // Get the next path node for this value:
-            RepoPathNode childNode = this.repoPathTree.getChildNode(currentNode, nextPathName);
+            RepoPathNode childNode = childrenByName.get(nextPathName);
 
             // Check whether the child node exists:
             if (childNode == null)
             {
-                // There is no child node.
+                // There is no child node. This means that we have exhausted the indexed search space for this specific item.
 
-                // Flag that we have additional nodes to search:
-                if (additionalNodesToSearch == null) additionalNodesToSearch = new LinkedList<>();
-
-                // Get the child nodes so we can explore them:
-                NavigableMap<String, RepoPathNode> childrenByName = currentNode.getChildrenByName();
-
-                // Try to find the entry smaller than the given one:
-                Map.Entry<String, RepoPathNode> lowerEntry = childrenByName.lowerEntry(nextPathName);
-                if (lowerEntry != null)
-                {
-                    // We found the lower entry.
-                    // Add this as a node to search:
-                    additionalNodesToSearch.addFirst(lowerEntry.getValue());
-                }
-
-                // Try to find the entry larger than the given one:
-                Map.Entry<String, RepoPathNode> higherEntry = childrenByName.higherEntry(nextPathName);
-                if (higherEntry != null)
-                {
-                    // We found the higher entry.
-                    // Add this as a node to search:
-                    additionalNodesToSearch.addFirst(higherEntry.getValue());
-                }
-
-                // Break out.
+                // Break out because there is nothing more to search down this path.
                 break;
             }
             // Now we know that we have the child node.

@@ -441,31 +441,19 @@ public abstract class RepoIndex1DBase<
                         return measuredItem.item;
                     }
 
-                    // Get the distance to the item:
-                    TDistance distance = measureDistanceBetween(item, measuredItem.item);
-
                     // Check whether this distance is the best so far:
-                    if (bestDistanceSoFar == null || this.distanceComparator.compare(distance, bestDistanceSoFar) < 0)
+                    if (bestDistanceSoFar == null || this.distanceComparator.compare(measuredItem.distance, bestDistanceSoFar) < 0)
                     {
                         // This item is closer.
 
                         // Flag this as the best item so far:
                         bestItemSoFar = measuredItem.item;
-                        bestDistanceSoFar = distance;
+                        bestDistanceSoFar = measuredItem.distance;
                     }
                 }
             }
             // Now we have searched through each division that we need to inspect.
         }
-
-        // else
-        // {
-        //     // The query is outside our range.
-        //
-        //     // Fall back to a full index scan:
-        //     // TODO: Find a more efficient scan for queries outside of the range.
-        //     return searchWithFullScan(item);
-        // }
 
         return bestItemSoFar;
     }
@@ -474,7 +462,7 @@ public abstract class RepoIndex1DBase<
      * Searches for the nearest item in the given division.
      * @param item The item to search for.
      * @param division The division to search in.
-     * @return The nearest item in that division.
+     * @return The nearest item in that division. Null if there is no item in this division.
      */
     protected MeasuredItem<TItem, TDistance> searchNearestInDivision(TItem item, Division<TItem, TContent, TArea> division)
     {
@@ -487,10 +475,6 @@ public abstract class RepoIndex1DBase<
 
         // Get the byte representation of the content so that we can index it:
         ByteBuffer itemContentByteBuffer = itemContent.asByteBuffer();
-
-        // Keep track of the best result so far:
-        TItem bestItemSoFar = null;
-        TDistance bestDistanceSoFar = null;
 
         // Start walking the repo path until there are no entries:
         RepoPathNode currentNode = division.repoPathTree.getRootNode();
@@ -547,19 +531,6 @@ public abstract class RepoIndex1DBase<
                     return measuredItem;
                 }
                 // Now we know that the items are not equal.
-
-                // Get the distance to the item:
-                TDistance distance = measureDistanceBetween(item, indexedItem);
-
-                // Check whether this distance is the best so far:
-                if (bestDistanceSoFar == null || this.distanceComparator.compare(distance, bestDistanceSoFar) < 0)
-                {
-                    // This item is closer.
-
-                    // Flag this as the best item so far:
-                    bestItemSoFar = indexedItem;
-                    bestDistanceSoFar = distance;
-                }
             }
 
             // Move to the child node:
@@ -567,33 +538,95 @@ public abstract class RepoIndex1DBase<
         }
         // Now we have searched the whole space and not found an exact match.
 
-        // Check whether we searched the full input value or just the partial value:
-        if (itemContentByteBuffer.hasRemaining())
-        {
-            // We only did a partial search of the item, and we didn't find a match.
-            // This means that we will need to broaden our search to all items in this division.
-        }
-        else
-        {
-            // We did a full search of the item, and we didn't find a match.
-            // This means that we definitely
-        }
+        // We only did a partial search of the item, and we didn't find a match.
+        // This means that we will need to broaden our search to all items in this division.
 
-        // Create the measured item:
-        MeasuredItem<TItem, TDistance> measuredItem = new MeasuredItem<>();
-        measuredItem.item = bestItemSoFar;
-        measuredItem.distance = bestDistanceSoFar;
-
-        return measuredItem;
+        // Scan all the items:
+        return searchDivisionWithFullScan(item, division);
     }
 
     /**
      * Searches for the nearest item by doing a full scan of the global item map.
      * WARNING: Slow performance.
      * @param itemToSearchFor The item to search for.
-     * @return The nearest item.
+     * @param division        The division to search through.
+     * @return The nearest item. Null if there are no items in this division.
      */
-    protected TItem searchWithFullScan(TItem itemToSearchFor)
+    protected MeasuredItem<TItem, TDistance> searchDivisionWithFullScan(TItem itemToSearchFor, Division<TItem, TContent, TArea> division)
+    {
+        // Keep track of the best result so far:
+        TItem bestItemSoFar = null;
+        TDistance bestDistanceSoFar = null;
+
+        // Go through all content in this division:
+        for (AreaEntry<TContent> entry : division.contentArea)
+        {
+            // Get the path for the entry:
+            RepoPath repoPath = entry.getPath();
+
+            // Check whether this is content for items:
+            if (repoPath.path.endsWith(CONTENT_PATH_NAME))
+            {
+                // This is content for an item.
+
+                // Get the content for this item:
+                TContent itemContent = entry.getContent();
+
+                // Get the item from this content:
+                TItem item = readItemFromContent(itemContent);
+
+                // Check whether the existing item is equal to the item:
+                if (item.equals(itemToSearchFor))
+                {
+                    // This item is equal.
+
+                    // Create the measured item:
+                    MeasuredItem<TItem, TDistance> measuredItem = new MeasuredItem<>();
+                    measuredItem.item = item;
+
+                    return measuredItem;
+                }
+                // Now we know that the items are not equal.
+
+                // Get the distance to the item:
+                TDistance distance = measureDistanceBetween(item, itemToSearchFor);
+
+                // Check whether this distance is the best so far:
+                if (bestDistanceSoFar == null || this.distanceComparator.compare(distance, bestDistanceSoFar) < 0)
+                {
+                    // This item is closer.
+
+                    // Flag this as the best item so far:
+                    bestItemSoFar = item;
+                    bestDistanceSoFar = distance;
+                }
+            }
+        }
+
+        // Check whether we found an item:
+        if (bestItemSoFar != null)
+        {
+            // Create the measured item:
+            MeasuredItem<TItem, TDistance> measuredItem = new MeasuredItem<>();
+            measuredItem.item = bestItemSoFar;
+            measuredItem.distance = bestDistanceSoFar;
+
+            return measuredItem;
+        }
+        else
+        {
+            // We didn't find an item.
+            return null;
+        }
+    }
+
+    /**
+     * Searches for the nearest item by doing a full scan of the global item map.
+     * WARNING: Slow performance.
+     * @param itemToSearchFor The item to search for.
+     * @return The nearest item. Null if there are no items in this division.
+     */
+    protected MeasuredItem<TItem, TDistance> searchIndexWithFullScan(TItem itemToSearchFor)
     {
         // Keep track of the best result so far:
         TItem bestItemSoFar = null;
@@ -623,7 +656,12 @@ public abstract class RepoIndex1DBase<
                     if (item.equals(itemToSearchFor))
                     {
                         // This item is equal.
-                        return item;
+
+                        // Create the measured item:
+                        MeasuredItem<TItem, TDistance> measuredItem = new MeasuredItem<>();
+                        measuredItem.item = item;
+
+                        return measuredItem;
                     }
                     // Now we know that the items are not equal.
 
@@ -643,7 +681,21 @@ public abstract class RepoIndex1DBase<
             }
         }
 
-        return bestItemSoFar;
+        // Check whether we found an item:
+        if (bestItemSoFar != null)
+        {
+            // Create the measured item:
+            MeasuredItem<TItem, TDistance> measuredItem = new MeasuredItem<>();
+            measuredItem.item = bestItemSoFar;
+            measuredItem.distance = bestDistanceSoFar;
+
+            return measuredItem;
+        }
+        else
+        {
+            // We didn't find an item.
+            return null;
+        }
     }
 
     /**

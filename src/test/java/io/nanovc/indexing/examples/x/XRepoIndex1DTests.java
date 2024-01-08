@@ -769,7 +769,7 @@ public class XRepoIndex1DTests
         assertEquals(new X(37), nearest);
 
         nearest = index.searchNearest(new X(85));
-        assertEquals(new X(133), nearest);
+        assertEquals(new X(37), nearest);
 
         nearest = index.searchNearest(new X(86));
         assertEquals(new X(133), nearest);
@@ -889,9 +889,9 @@ public class XRepoIndex1DTests
             Division: 0 from X[x=0] to X[x=1000]:
             .
             └───1
-                ├───📄'111'
+                ├───📄'11'
                 └───1
-                    └───📄'11'
+                    └───📄'111'
             """;
         assertRepoIndex(expectedIndex, index);
 

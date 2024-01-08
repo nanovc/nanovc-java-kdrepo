@@ -270,6 +270,45 @@ public abstract class RepoIndex1DBase<
                 // Break out early because we can add the content here.
                 break;
             }
+
+            // Get the bytes for the current content:
+            ByteBuffer currentContentByteBuffer = currentContent.asByteBuffer();
+
+            // Check whether the item is the same as the current content:
+            if (itemContentByteBuffer.limit() == currentContentByteBuffer.limit())
+            {
+                // The content length is the same.
+
+                // There is a chance that the content is the same.
+
+                // Save the current buffer offset, so we can set it back later:
+                int previousPosition = itemContentByteBuffer.position();
+
+                // Reset the position for us to check for equality:
+                itemContentByteBuffer.position(0);
+
+                // Check if the buffers are the same:
+                if (itemContentByteBuffer.equals(currentContentByteBuffer))
+                {
+                    // The content is the same.
+                    // Don't do anything further because this item is already indexed.
+                    return;
+                }
+
+                // Set the current buffer position back:
+                itemContentByteBuffer.position(previousPosition);
+            }
+            // Now we know that the item content is different to the current content.
+
+            // Check whether the items content is shorter than the currently indexed content:
+            if (itemContentByteBuffer.limit() < currentContentByteBuffer.limit())
+            {
+                // This item has smaller content than the current content.
+                // This is a sign that we need to re-index.
+
+                // Break out so that we can re-index.
+                break;
+            }
         }
         // Now we have found a place where we can add the content.
 
@@ -289,30 +328,52 @@ public abstract class RepoIndex1DBase<
             // We are about to replace content.
 
             // Check whether we need to re-index sub content (if this item is shorter than the existing content):
-            if (hasEntireValueBeenScannedForItem)
+
+            // We have content in the current location, and we have searched through the whole value for the index.
+            // This means that we need to re-index this part of the tree because we want the shorter sub-sequence first.
+            // We also know that all sub-content will strictly be longer or the same as the current content (because of our re-indexing criteria).
+
+            // Create a list of all the nested child items that we need to re-index:
+            List<TItem> itemsToReIndex = new ArrayList<>();
+
+            // Start walking from the current node all the way down through the children so that we can re-index the descendants:
+            division.repoPathTree.iterateAndRemoveEachDescendant(
+                currentNode,
+                (node)-> {
+                    // Check whether this is a content node:
+                    if (node.getName().equals(CONTENT_PATH_NAME))
+                    {
+                        // This is a content node.
+
+                        // Get the path of the item to re-index:
+                        RepoPath reIndexRepoPath = node.getRepoPath();
+
+                        // Get the content for this node:
+                        TContent reIndexItemContent = division.contentArea.getContent(reIndexRepoPath);
+
+                        // Get the item that we need to re-index:
+                        TItem itemToReIndex = readItemFromContent(reIndexItemContent);
+
+                        // Add this to the list of items that need re-indexing:
+                        itemsToReIndex.add(itemToReIndex);
+
+                        // Remove the content for this item to make space for re-indexing:
+                        division.contentArea.removeContent(reIndexRepoPath);
+                    }
+                }
+            );
+            // Now we have all the items that we need to re-index.
+
+            // Replace the content for this path with the shorter item:
+            currentContentNode = division.repoPathTree.addPath(currentContentRepoPath);
+            currentNode = currentContentNode.getParent();
+            division.contentArea.putContent(currentContentRepoPath, itemContent);
+
+            // Recursively call this method with the item that needs re-indexing:
+            for (TItem itemToReIndex : itemsToReIndex)
             {
-                // We have content in the current location, and we have searched through the whole value for the index.
-                // This means that we need to re-index this part of the tree because we want the shorter sub-sequence first.
-                // We also know that all sub-content will strictly be longer or the same as the current content (because of our re-indexing criteria).
-
-                // Create a list of all the nested child items that we need to re-index:
-                List<TItem> itemsToReIndex = new ArrayList<>();
-
-                // Start walking from the current node all the way down through the children so that we can re-index the descendants:
-
-                // Get the item that we need to re-index:
-                TItem itemToReIndex = readItemFromContent(currentContent);
-
-                // Replace the content for this path with the shorter item:
-                division.contentArea.putContent(currentContentRepoPath, itemContent);
-
-                // Recursively call this method with the item that needs re-indexing:
+                // Re-Index the item:
                 addItemToDivision(itemToReIndex, division);
-            }
-            else
-            {
-                // TODO: Investigate this Strange case.
-                throw new RuntimeException("Strange Case");
             }
         }
     }

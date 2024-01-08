@@ -2,9 +2,11 @@ package io.nanovc.indexing.repo;
 
 import io.nanovc.RepoPath;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Scanner;
+import java.util.function.Consumer;
 
 /**
  * A tree of {@link io.nanovc.RepoPath repo paths}.
@@ -105,6 +107,43 @@ public class RepoPathTree
         NavigableMap<String, RepoPathNode> childrenByName = nodeToQuery.getChildrenByName();
         RepoPathNode childNode = childrenByName.get(childName);
         return childNode;
+    }
+
+    /**
+     * This iterates through the given node and ALL descendants.
+     * It then calls the nodeConsumer to process the node.
+     * It then deletes the node immediately after it has been processed.
+     * It does a depth first traversal.
+     * @param node The node to start iterating at. It includes this node in the iteration.
+     * @param nodeConsumer The logic to process each node that is iterated.
+     */
+    public void iterateAndRemoveEachDescendant(RepoPathNode node, Consumer<RepoPathNode> nodeConsumer)
+    {
+        // Check whether we are at a leaf node:
+        if (node.hasChildren())
+        {
+            // This node is not a leaf and it has children.
+
+            // Create a copy of the child nodes at this point (because children will remove from the actual collection as it iterates):
+            ArrayList<RepoPathNode> childrenSnapshot = new ArrayList<>(node.getChildrenByName().values());
+
+            // Go through the snapshot of children:
+            for (RepoPathNode childNode : childrenSnapshot)
+            {
+                // Walk each child recursively:
+                iterateAndRemoveEachDescendant(childNode, nodeConsumer);
+            }
+        }
+        else
+        {
+            // There are no children. This is a leaf node.
+
+            // Process the node:
+            nodeConsumer.accept(node);
+        }
+
+        // Delete the node from the parent:
+        node.getParent().getChildrenByName().remove(node.getName());
     }
 
     /**

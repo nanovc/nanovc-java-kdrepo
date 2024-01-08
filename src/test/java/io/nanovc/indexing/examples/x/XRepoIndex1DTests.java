@@ -106,6 +106,23 @@ public class XRepoIndex1DTests
         index.add(item10);
         index.add(item11);
 
+        var expectedIndex =
+            """
+            Index:  from X[x=-1] to X[x=1] with 10 divisions:
+            Division: 2 from X[x=1] to X[x=1]:
+            .
+            └───1
+                └───📄'1'
+
+            Division: 9 from X[x=1] to X[x=1]:
+            .
+            └───1
+                ├───📄'10'
+                └───1
+                    └───📄'11'
+            """;
+        assertRepoIndex(expectedIndex, index);
+
         // Query the items:
         X nearest;
 
@@ -117,25 +134,6 @@ public class XRepoIndex1DTests
 
         nearest = index.searchNearest(item12);
         assertEquals(item11, nearest);
-
-        var expectedIndex =
-            """
-            Index:  from X[x=-1] to X[x=1] with 10 divisions:
-            Division: 2 from X[x=1] to X[x=1]:
-            .
-            └───1
-                └───📄'1'
-                    └───🔑'0'
-            Division: 9 from X[x=1] to X[x=1]:
-            .
-            └───1
-                ├───1
-                │   └───📄'11'
-                │       └───🔑'2'
-                └───📄'10'
-                    └───🔑'1'\
-            """;
-        assertRepoIndex(expectedIndex, index);
     }
 
     @Test
@@ -732,9 +730,9 @@ public class XRepoIndex1DTests
             │   └───9
             │       └───📄'297'
             ├───3
-            │   ├───📄'393'
-            │   └───7
-            │       └───📄'37'
+            │   ├───📄'37'
+            │   └───9
+            │       └───📄'393'
             ├───4
             │   └───📄'449'
             ├───5
@@ -1034,7 +1032,9 @@ public class XRepoIndex1DTests
             Division: 0 from X[x=0] to X[x=10]:
             .
             └───1
-                ├───📄'10'
+                ├───📄'1'
+                ├───0
+                │   └───📄'10'
                 └───1
                     └───📄'11'
             """;
@@ -1107,16 +1107,79 @@ public class XRepoIndex1DTests
             Division: 0 from X[x=0] to X[x=10000]:
             .
             └───1
-                ├───📄'111'
+                ├───📄'11'
                 └───1
-                    ├───📄'11'
+                    ├───📄'111'
                     └───1
                         └───📄'1111'
             """;
         assertRepoIndex(expectedIndex, index);
 
         // Add the fourth item:
-        index.add(item11); // NOTE: 1 is specifically after 11 to make sure we re-index it correctly.
+        index.add(item1); // NOTE: 1 is specifically after 11 to make sure we re-index it correctly.
+
+        // Make sure the index is as expected:
+        expectedIndex =
+            """
+            Index:  from X[x=0] to X[x=10000] with 1 division:
+            Division: 0 from X[x=0] to X[x=10000]:
+            .
+            └───1
+                ├───📄'1'
+                └───1
+                    ├───📄'11'
+                    └───1
+                        ├───📄'111'
+                        └───1
+                            └───📄'1111'
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Query the items:
+        X nearest;
+
+        nearest = index.searchNearest(item1);
+        assertEquals(item1, nearest);
+
+        nearest = index.searchNearest(item11);
+        assertEquals(item11, nearest);
+
+        nearest = index.searchNearest(item111);
+        assertEquals(item111, nearest);
+
+        nearest = index.searchNearest(item1111);
+        assertEquals(item1111, nearest);
+    }
+
+    @Test
+    public void Reindex_111_1111_11_11_Query_11_111_1111()
+    {
+        // Create the index:
+        XRepoIndex1D index = new XRepoIndex1D(new X(0), new X(10_000), 1);
+
+        // Define the items of interest:
+        X item111 = new X(111);
+        X item1111 = new X(1111);
+        X item11 = new X(11);
+
+        // Add the first item:
+        index.add(item111);
+
+        String expectedIndex;
+
+        // Make sure the index is as expected:
+        expectedIndex =
+            """
+            Index:  from X[x=0] to X[x=10000] with 1 division:
+            Division: 0 from X[x=0] to X[x=10000]:
+            .
+            └───1
+                └───📄'111'
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Add the second item:
+        index.add(item1111);
 
         // Make sure the index is as expected:
         expectedIndex =
@@ -1131,11 +1194,44 @@ public class XRepoIndex1DTests
             """;
         assertRepoIndex(expectedIndex, index);
 
+        // Add the third item:
+        index.add(item11); // NOTE: 1 is specifically after 1111 to make sure we re-index it correctly.
+
+        // Make sure the index is as expected:
+        expectedIndex =
+            """
+            Index:  from X[x=0] to X[x=10000] with 1 division:
+            Division: 0 from X[x=0] to X[x=10000]:
+            .
+            └───1
+                ├───📄'11'
+                └───1
+                    ├───📄'111'
+                    └───1
+                        └───📄'1111'
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Add the fourth item:
+        index.add(item11); // NOTE: 11 is specifically a duplicate of the previous one to make sure we keep the items the same.
+
+        // Make sure the index is as expected:
+        expectedIndex =
+            """
+            Index:  from X[x=0] to X[x=10000] with 1 division:
+            Division: 0 from X[x=0] to X[x=10000]:
+            .
+            └───1
+                ├───📄'11'
+                └───1
+                    ├───📄'111'
+                    └───1
+                        └───📄'1111'
+            """;
+        assertRepoIndex(expectedIndex, index);
+
         // Query the items:
         X nearest;
-
-        nearest = index.searchNearest(item1);
-        assertEquals(item1, nearest);
 
         nearest = index.searchNearest(item11);
         assertEquals(item11, nearest);

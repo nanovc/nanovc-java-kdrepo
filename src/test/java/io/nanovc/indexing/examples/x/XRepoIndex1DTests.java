@@ -14,14 +14,14 @@ public class XRepoIndex1DTests
     @Test
     public void creationTest()
     {
-        new XRepoIndex1D(new X(-1), new X(1), 10, 10, 1);
+        new XRepoIndex1D(new X(-1), new X(1), 10);
     }
 
     @Test
     public void test_Index_0_Query_0()
     {
         // Create the index:
-        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10, 10, 1);
+        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10);
 
         // Add an item to the index:
         X itemZero = new X(0);
@@ -38,7 +38,7 @@ public class XRepoIndex1DTests
     public void test_Index_0_Query_0_1()
     {
         // Create the index:
-        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10, 10, 1);
+        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10);
 
         // Add an item to the index:
         X itemZero = new X(0);
@@ -62,7 +62,7 @@ public class XRepoIndex1DTests
     public void test_Index_1_10_11_Query_1_10_11()
     {
         // Create the index:
-        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10, 10, 1);
+        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10);
 
         // Define the items of interest:
         X item1 = new X(1);
@@ -91,7 +91,7 @@ public class XRepoIndex1DTests
     public void test_Index_1_10_11_Query_0_9_12()
     {
         // Create the index:
-        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10, 10, 1);
+        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10);
 
         // Define the items of interest:
         X item0 = new X(0);
@@ -138,7 +138,7 @@ public class XRepoIndex1DTests
     public void test_NearMisses_0()
     {
         // Create the index:
-        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10, 10, 1);
+        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10);
 
         // Define the items of interest:
         int[] itemsOfInterest = {
@@ -178,7 +178,7 @@ public class XRepoIndex1DTests
     public void test_NearMisses_1()
     {
         // Create the index:
-        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10, 10, 1);
+        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10);
 
         // Define the items of interest:
         int[] itemsOfInterest = {
@@ -227,7 +227,7 @@ public class XRepoIndex1DTests
     public void test_NearMisses_1_10()
     {
         // Create the index:
-        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10, 10, 1);
+        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10);
 
         // Define the items of interest:
         int[] itemsOfInterest = {
@@ -321,7 +321,7 @@ public class XRepoIndex1DTests
     public void test_NearMisses_1_9_10()
     {
         // Create the index:
-        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10, 10, 1);
+        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10);
 
         // Define the items of interest:
         int[] itemsOfInterest = {
@@ -418,7 +418,7 @@ public class XRepoIndex1DTests
     public void test_NearMisses_1_2_9_10()
     {
         // Create the index:
-        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10, 10, 1);
+        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10);
 
         // Define the items of interest:
         int[] itemsOfInterest = {
@@ -692,7 +692,7 @@ public class XRepoIndex1DTests
     public void test_Index_Random_1234()
     {
         // Create the index:
-        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10, 10, 1);
+        XRepoIndex1D index = new XRepoIndex1D(new X(-1), new X(1), 10);
 
         // Add the items to the index:
         Random random = new Random(1234);

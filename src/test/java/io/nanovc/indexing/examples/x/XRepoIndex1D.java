@@ -28,17 +28,14 @@ public class XRepoIndex1D extends RepoIndex1DImplementation<
     StringContent,
     StringHashMapArea,
     MemoryCommit,
-    StringMemoryRepoHandler,
-    XRepoIndex1D
+    StringMemoryRepoHandler
     >
 {
 
-    public XRepoIndex1D(X minRange, X maxRange, int divisions, int maxItemThreshold, int smallestSplittingDistance, StringMemoryRepoHandler repoHandler, RepoPath rootRepoPath, ItemGlobalMap<X> itemGlobalMap, ContentCreator<X, StringContent> contentCreator, ContentCreator<Integer, StringContent> itemKeyContentCreator, ContentReader<Integer, StringContent> itemKeyContentReader)
+    public XRepoIndex1D(X minRange, X maxRange, int divisions, StringMemoryRepoHandler repoHandler, RepoPath rootRepoPath, ItemGlobalMap<X> itemGlobalMap, ContentCreator<X, StringContent> contentCreator, ContentCreator<Integer, StringContent> itemKeyContentCreator, ContentReader<Integer, StringContent> itemKeyContentReader)
     {
         super(
             minRange, maxRange, divisions, X::measureDistance, Integer::compare, X::splitRange, X::findIndexInRange,
-            maxItemThreshold, smallestSplittingDistance,
-            XRepoIndex1D::createXRepoIndex1DSubGrid,
             repoHandler, rootRepoPath,
             itemGlobalMap,
             contentCreator,
@@ -46,34 +43,15 @@ public class XRepoIndex1D extends RepoIndex1DImplementation<
             );
     }
 
-    public XRepoIndex1D(X minRange, X maxRange, int divisions, int maxItemThreshold, int smallestSplittingDistance)
+    public XRepoIndex1D(X minRange, X maxRange, int divisions)
     {
         this(
             minRange, maxRange, divisions,
-            maxItemThreshold, smallestSplittingDistance,
             new StringMemoryRepoHandler(), RepoPath.atRoot(),
             new ItemGlobalMap<>(),
             XRepoIndex1D::createXContent,
             XRepoIndex1D::createXItemKeyContent, XRepoIndex1D::readXItemKeyFromContent
         );
-    }
-
-    /**
-     * A factory method to create a new sub-grid for the given range.
-     *
-     * @return A new sub-grid for the given range.
-     */
-    public static XRepoIndex1D createXRepoIndex1DSubGrid(
-        X minRange, X maxRange, int divisions,
-        Measurer<X, Integer> measurer, Comparator<Integer> comparator,
-        RangeSplitter<X> rangeSplitter, RangeFinder<X> rangeFinder,
-        int maxItemThreshold, int smallestSplittingDistance,
-        StringMemoryRepoHandler repoHandler, RepoPath rootRepoPath,
-        ItemGlobalMap<X> itemGlobalMap,
-        ContentCreator<X, StringContent> contentCreator
-        )
-    {
-        return new XRepoIndex1D(minRange, maxRange, divisions, maxItemThreshold, smallestSplittingDistance, repoHandler, rootRepoPath, itemGlobalMap, contentCreator, XRepoIndex1D::createXItemKeyContent, XRepoIndex1D::readXItemKeyFromContent);
     }
 
     /**

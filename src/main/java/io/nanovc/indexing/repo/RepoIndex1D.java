@@ -21,7 +21,6 @@ import java.util.Comparator;
  * @param <TArea>               The specific type of content area that the repo commits.
  * @param <TCommit>             The specific type of commit that the repo creates.
  * @param <TRepoHandler>        The specific type of repo handler to use for this index.
- * @param <TSubGrid>            The type of sub-grid item. Normally it refers back to itself.
  */
 public interface RepoIndex1D<
     TItem,
@@ -33,8 +32,7 @@ public interface RepoIndex1D<
     TContent extends ContentAPI,
     TArea extends AreaAPI<TContent>,
     TCommit extends CommitAPI,
-    TRepoHandler extends RepoHandlerAPI<TContent, TArea, TCommit, ? extends SearchQueryAPI<TCommit>, ? extends SearchResultsAPI<?, ?>, ? extends RepoAPI<TContent, TArea, TCommit>, ? extends RepoEngineAPI<TContent, TArea, TCommit, ?, ?, ?>>,
-    TSubGrid extends RepoIndex1D<TItem, TDistance, TMeasurer, TDistanceComparator, TRangeSplitter, TRangeFinder, TContent, TArea, TCommit, TRepoHandler, TSubGrid>
+    TRepoHandler extends RepoHandlerAPI<TContent, TArea, TCommit, ? extends SearchQueryAPI<TCommit>, ? extends SearchResultsAPI<?, ?>, ? extends RepoAPI<TContent, TArea, TCommit>, ? extends RepoEngineAPI<TContent, TArea, TCommit, ?, ?, ?>>
     >
     extends Index1D<TItem>
 {
@@ -87,20 +85,6 @@ public interface RepoIndex1D<
      * @return The range finder that gets the index of an item in the divisions of a range.
      */
     TRangeFinder getRangeFinder();
-
-    /**
-     * Gets the maximum number of items to keep in the grid before it splits the cell into a subgrid.
-     *
-     * @return The maximum number of items to keep in the grid before it splits the cell into a subgrid.
-     */
-    int getMaxItemThreshold();
-
-    /**
-     * Gets the smallest distance that we do not split beyond.
-     *
-     * @return The smallest distance that we do not split beyond.
-     */
-    TDistance getSmallestSplittingDistance();
 
     /**
      * Gets the repo handler to use for this repo index.

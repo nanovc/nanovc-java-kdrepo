@@ -20,7 +20,6 @@ import java.util.Comparator;
  * @param <TArea>               The specific type of content area that the repo commits.
  * @param <TCommit>             The specific type of commit that the repo creates.
  * @param <TRepoHandler>        The specific type of repo handler to use for this index.
- * @param <TSubGrid>            The type of sub-grid item. Normally it refers back to itself.
  */
 public class RepoIndex1DImplementation<
     TItem,
@@ -32,22 +31,19 @@ public class RepoIndex1DImplementation<
     TContent extends ContentAPI,
     TArea extends AreaAPI<TContent>,
     TCommit extends CommitAPI,
-    TRepoHandler extends RepoHandlerAPI<TContent, TArea, TCommit, ? extends SearchQueryAPI<TCommit>, ? extends SearchResultsAPI<?, ?>, ? extends RepoAPI<TContent, TArea, TCommit>, ? extends RepoEngineAPI<TContent, TArea, TCommit, ?, ?, ?>>,
-    TSubGrid extends RepoIndex1D<TItem, TDistance, TMeasurer, TDistanceComparator, TRangeSplitter, TRangeFinder, TContent, TArea, TCommit, TRepoHandler, TSubGrid>
-    > extends RepoIndex1DBase<TItem, TDistance, TMeasurer, TDistanceComparator, TRangeSplitter, TRangeFinder, TContent, TArea, TCommit, TRepoHandler, TSubGrid>
+    TRepoHandler extends RepoHandlerAPI<TContent, TArea, TCommit, ? extends SearchQueryAPI<TCommit>, ? extends SearchResultsAPI<?, ?>, ? extends RepoAPI<TContent, TArea, TCommit>, ? extends RepoEngineAPI<TContent, TArea, TCommit, ?, ?, ?>>
+    > extends RepoIndex1DBase<TItem, TDistance, TMeasurer, TDistanceComparator, TRangeSplitter, TRangeFinder, TContent, TArea, TCommit, TRepoHandler>
 {
     public RepoIndex1DImplementation(
         TItem minRange, TItem maxRange, int divisions,
         TMeasurer measurer, TDistanceComparator comparator,
         TRangeSplitter rangeSplitter, TRangeFinder rangeFinder,
-        int maxItemThreshold, TDistance smallestSplittingDistance,
-        SubGridSupplier<TItem, TDistance, TMeasurer, TDistanceComparator, TRangeSplitter, TRangeFinder, TContent, TArea, TCommit, TRepoHandler, TSubGrid> subGridSupplier,
         TRepoHandler repoHandler, RepoPath rootRepoPath,
         ItemGlobalMap<TItem> itemGlobalMap,
         ContentCreator<TItem, TContent> contentCreator,
         ContentCreator<Integer, TContent> itemKeyContentCreator, ContentReader<Integer, TContent> itemKeyContentReader
     )
     {
-        super(minRange, maxRange, divisions, measurer, comparator, rangeSplitter, rangeFinder, maxItemThreshold, smallestSplittingDistance, subGridSupplier, repoHandler, rootRepoPath, itemGlobalMap, contentCreator, itemKeyContentCreator, itemKeyContentReader);
+        super(minRange, maxRange, divisions, measurer, comparator, rangeSplitter, rangeFinder, repoHandler, rootRepoPath, itemGlobalMap, contentCreator, itemKeyContentCreator, itemKeyContentReader);
     }
 }

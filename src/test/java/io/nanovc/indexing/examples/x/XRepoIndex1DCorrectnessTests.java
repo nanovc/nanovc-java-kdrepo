@@ -14,33 +14,34 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class XRepoIndex1DCorrectnessTests
 {
     /**
-     * A factory to generate the parameters for the correctness test against the linear implementation in {@link #compareCorrectnessAgainstLinearIndex(int, int, int, int, int, int, int, int, String, String)}}.
+     * A factory to generate the parameters for the correctness test against the linear implementation in {@link #compareCorrectnessAgainstLinearIndex(int, int, int, int, int, int, int, int, int, String, String)}}.
      * @return The stream of parameters for the correctness test.
      */
     public static Stream<Object[]> compareCorrectnessAgainstLinearIndex_Factory()
     {
         return Stream.<Object[]>builder()
-            //                  addCount , addMin, addMax , addSeed , searchCount , searchMin , searchMax , searchSeed , scenario                , comment
-            .add(new Object[] { 1        , 0     , 10     , 1       , 1           , 0         , 10        , 1          , "Single In Range"       , "Should query the same as what was added." })
-            .add(new Object[] { 1        , 0     , 10     , 1       , 1_000       , -10       , 20        , 10         , "Single Out of Range"   , "Checks both sides of the added range." })
-            .add(new Object[] { 2        , 0     , 10     , 1       , 2           , 0         , 10        , 1          , "Two In Range"          , "Should query the same as what was added." })
-            .add(new Object[] { 2        , 0     , 10     , 1       , 1_000       , -10       , 20        , 10         , "Two Out of Range"      , "Checks both sides of the added range." })
-            .add(new Object[] { 100      , 0     , 10     , 1       , 100         , 0         , 10        , 1          , "100 In Range"          , "Should query the same as what was added." })
-            .add(new Object[] { 100      , 0     , 10     , 1       , 1_000       , -10       , 20        , 10         , "100 Out of Range"      , "Checks both sides of the added range." })
-            .add(new Object[] { 100      , 0     , 10_000 , 1       , 100         , 0         , 10_000    , 1          , "Sparse In Range"       , "Should query the same as what was added." })
-            .add(new Object[] { 100      , 0     , 10_000 , 1       , 1_000       , -10_000   , 20_000    , 10         , "Sparse Out of Range"   , "Checks both sides of the added range." })
-            .add(new Object[] { 100      , -10   , 10     , 1       , 100         , 0         , 10        , 1          , "Negative In Range"     , "Should query the same as what was added." })
-            .add(new Object[] { 100      , -10   , 10     , 1       , 1_000       , -30       , 30        , 10         , "Negative Out of Range" , "Checks both sides of the added range." })
+            //                  divisions  , addCount , addMin, addMax , addSeed , searchCount , searchMin , searchMax , searchSeed , scenario                , comment
+            .add(new Object[] { 10         , 1        , 0     , 10     , 1       , 1           , 0         , 10        , 1          , "Single In Range"       , "Should query the same as what was added." })
+            .add(new Object[] { 10         , 1        , 0     , 10     , 1       , 1_000       , -10       , 20        , 10         , "Single Out of Range"   , "Checks both sides of the added range." })
+            .add(new Object[] { 10         , 2        , 0     , 10     , 1       , 2           , 0         , 10        , 1          , "Two In Range"          , "Should query the same as what was added." })
+            .add(new Object[] { 10         , 2        , 0     , 10     , 1       , 1_000       , -10       , 20        , 10         , "Two Out of Range"      , "Checks both sides of the added range." })
+            .add(new Object[] { 10         , 100      , 0     , 10     , 1       , 100         , 0         , 10        , 1          , "100 In Range"          , "Should query the same as what was added." })
+            .add(new Object[] { 10         , 100      , 0     , 10     , 1       , 1_000       , -10       , 20        , 10         , "100 Out of Range"      , "Checks both sides of the added range." })
+            .add(new Object[] { 10         , 100      , 0     , 10_000 , 1       , 100         , 0         , 10_000    , 1          , "Sparse In Range"       , "Should query the same as what was added." })
+            .add(new Object[] { 10         , 100      , 0     , 10_000 , 1       , 1_000       , -10_000   , 20_000    , 10         , "Sparse Out of Range"   , "Checks both sides of the added range." })
+            .add(new Object[] { 10         , 100      , -10   , 10     , 1       , 100         , 0         , 10        , 1          , "Negative In Range"     , "Should query the same as what was added." })
+            .add(new Object[] { 10         , 100      , -10   , 10     , 1       , 1_000       , -30       , 30        , 10         , "Negative Out of Range" , "Checks both sides of the added range." })
+            .add(new Object[] { 100        , 100_000  , -1_000, 1_000  , 1       , 1_000       , -3_000    , 3_000     , 10         , "Large Set"             , "Checks both sides of the added range." })
             .build();
     }
 
-    @ParameterizedTest(name = "[{index}] {8} - Added: {0}:[{1},{2}), seed: {3} Searched: {4}:[{5},{6}), seed: {7}")
+    @ParameterizedTest(name = "[{index}] {9} - Divisions: {0} Added: {1}:[{2},{3}), seed: {4} Searched: {5}:[{6},{7}), seed: {8}")
     @MethodSource("compareCorrectnessAgainstLinearIndex_Factory")
-    public void compareCorrectnessAgainstLinearIndex(int addCount , int addMin, int addMax , int addSeed , int searchCount , int searchMin , int searchMax , int searchSeed , String scenario , String comment)
+    public void compareCorrectnessAgainstLinearIndex(int divisions, int addCount , int addMin, int addMax , int addSeed , int searchCount , int searchMin , int searchMax , int searchSeed , String scenario , String comment)
     {
         // Create the indexes:
         XLinearIndex1D linearIndex = new XLinearIndex1D();
-        XRepoIndex1D repoIndex = new XRepoIndex1D(new X(addMin), new X(addMax), 10);
+        XRepoIndex1D repoIndex = new XRepoIndex1D(new X(addMin), new X(addMax), divisions);
 
         // Create the random number generators:
         Random addRandom = new Random(addSeed);

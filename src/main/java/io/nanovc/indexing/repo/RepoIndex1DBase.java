@@ -294,6 +294,20 @@ public abstract class RepoIndex1DBase<
                 // We have content in the current location, and we have searched through the whole value for the index.
                 // This means that we need to re-index this part of the tree because we want the shorter sub-sequence first.
                 // We also know that all sub-content will strictly be longer or the same as the current content (because of our re-indexing criteria).
+
+                // Create a list of all the nested child items that we need to re-index:
+                List<TItem> itemsToReIndex = new ArrayList<>();
+
+                // Start walking from the current node all the way down through the children so that we can re-index the descendants:
+
+                // Get the item that we need to re-index:
+                TItem itemToReIndex = readItemFromContent(currentContent);
+
+                // Replace the content for this path with the shorter item:
+                division.contentArea.putContent(currentContentRepoPath, itemContent);
+
+                // Recursively call this method with the item that needs re-indexing:
+                addItemToDivision(itemToReIndex, division);
             }
             else
             {

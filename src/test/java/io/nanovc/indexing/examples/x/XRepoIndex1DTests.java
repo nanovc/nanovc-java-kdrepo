@@ -115,5 +115,29 @@ public class XRepoIndex1DTests
 
         nearest = index.searchNearest(item12);
         assertEquals(item11, nearest);
+
+        var expectedIndex =
+            """
+            .
+            └───1
+                ├───0
+                │   └───📄'10'
+                │       └───🔑'1'
+                ├───1
+                │   └───📄'11'
+                │       └───🔑'2'
+                └───📄'1'
+                    └───🔑'0'\
+            """;
+        assertRepoIndex(expectedIndex, index);
+    }
+
+    public void assertRepoIndex(String expectedIndex, XRepoIndex1D index)
+    {
+        // Get the representation of the index:
+        var actualIndex = index.toString();
+
+        // Make sure it is as expected:
+        assertEquals(expectedIndex, actualIndex);
     }
 }

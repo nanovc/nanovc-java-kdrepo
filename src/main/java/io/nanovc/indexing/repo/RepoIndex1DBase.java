@@ -42,13 +42,13 @@ public abstract class RepoIndex1DBase<
 {
     /**
      * The path name for content.
-     * Yes, it's an emoji.
+     * Yes, it's an emoji. This ensures that we don't get clashes with the trie-byte splitting for the keys. And it looks cool.
      */
     public final static String CONTENT_PATH_NAME = "📄";
 
     /**
      * The path name for content ID.
-     * Yes, it's an emoji.
+     * Yes, it's an emoji. This ensures that we don't get clashes with the trie-byte splitting for the keys. And it looks cool.
      */
     public final static String ID_PATH_NAME = "🔑";
 
@@ -948,6 +948,106 @@ public abstract class RepoIndex1DBase<
     protected TSubGrid createSubGrid(TItem minRange, TItem maxRange, int divisions, TMeasurer measurer, TDistanceComparator distanceComparator, TRangeSplitter rangeSplitter, TRangeFinder rangeFinder, int maxItemThreshold, TDistance smallestSplittingDistance, TRepoHandler repoHandler, RepoPath rootRepoPath, ItemGlobalMap<TItem> itemGlobalMap, ContentCreator<TItem, TContent> contentCreator)
     {
         return this.subGridSupplier.createSubGrid(minRange, maxRange, divisions, measurer, distanceComparator, rangeSplitter, rangeFinder, maxItemThreshold, smallestSplittingDistance, repoHandler, rootRepoPath, itemGlobalMap, contentCreator);
+    }
+
+    @Override public String toString()
+    {
+        // Check whether there is too much content to render:
+        if (this.currentContentArea.getContentStream().count() > 1_000) return "Too Large to Render";
+        // Now we know that we have small enough content to render.
+
+        // Print out the content tree:
+        StringBuilder sb = new StringBuilder();
+        printNodeToStringRecursively(this.repoPathTree.getRootNode(), false, sb, "");
+        return sb.toString();
+    }
+
+    /**
+     * Prints out the current node recursively.
+     *
+     * @param node          The node to process.
+     * @param hasSibling    True to flag that this node has a sibling that comes next. False to say that this node doesn't have a sibling that comes next.
+     * @param stringBuilder The string builder to add to.
+     * @param indent        The indent to prefix with.
+     */
+    private void printNodeToStringRecursively(RepoPathNode node, boolean hasSibling, StringBuilder stringBuilder, String indent)
+    {
+        // Check whether this is the root node:
+        boolean isRootNode = node.isRootNode();
+        if (isRootNode)
+        {
+            // This is the root node.
+            stringBuilder.append(".");
+        }
+        else
+        {
+            // This is not a root node.
+
+            // Add the indent:
+            stringBuilder.append(indent);
+
+            // Check whether this node has a sibling so that we can render the lines correctly:
+            if (hasSibling)
+            {
+                // This node has another sibling that follows.
+
+                // Flag that there are more siblings to come:
+                stringBuilder.append("├─");
+            }
+            else
+            {
+                // This node does not have any more siblings to come.
+
+                // Flag that this is the last node:
+                stringBuilder.append("└─");
+            }
+
+            // Write the node name:
+            stringBuilder.append("──");
+            stringBuilder.append(node.getName());
+
+            // Get the content for the node:
+            TContent nodeContent = this.currentContentArea.getContent(node.getRepoPath());
+
+            // Check whether we actually have content at this path:
+            if (nodeContent != null)
+            {
+                // Write the node content:
+                stringBuilder.append(nodeContent.toString());
+            }
+        }
+
+        // Render the children correctly:
+        if (node.hasChildren())
+        {
+            // The node has children.
+
+            // Write each child:
+            NavigableMap<String, RepoPathNode> childrenByName = node.getChildrenByName();
+            for (Map.Entry<String, RepoPathNode> entry : childrenByName.entrySet())
+            {
+                // Get the values:
+                String childName = entry.getKey();
+                RepoPathNode childNode = entry.getValue();
+
+                // Create a new line:
+                stringBuilder.append("\n");
+
+                // Check whether the child has another sibling:
+                String childSiblingName = childrenByName.higherKey(childName);
+                boolean hasChildSibling = childSiblingName != null;
+
+                // Create the new indent for this child:
+                String nextIndent = indent + (hasSibling ? "│   " : (isRootNode ? "" : "    "));
+
+                // Print out the child recursively:
+                printNodeToStringRecursively(childNode, hasChildSibling, stringBuilder, nextIndent);
+            }
+        }
+        else
+        {
+            // This node is a leaf node.
+        }
     }
 
     /**

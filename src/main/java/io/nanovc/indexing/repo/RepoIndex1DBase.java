@@ -253,6 +253,30 @@ public abstract class RepoIndex1DBase<
      */
     public void add(TItem item)
     {
+        // We divide the search space into divisions so that we can perform range searches in them.
+        // We use branches in the repo for each division.
+        // This allows us to get grid-like decomposition of the search space when we don't find an exact match.
+
+        // Inside each branch region of the search space (branch),
+        // we use a trie based approach where the content byte representation is a path to the content
+        // similar to how the git hash of the content gives us the address of the content,
+        // thus making a content-addressable-file-system.
+
+        // Find the index of the division in the range:
+        int divisionIndex = findIndexInRange(this.minRange, this.maxRange, this.divisions, item);
+
+        // Add the item in this division:
+        addItemToIndex(item, divisionIndex);
+    }
+
+    /**
+     * Adds the given item to the specific division index.
+     *
+     * @param item          The item to add.
+     * @param divisionIndex The specific division index to add the item to.
+     */
+    protected void addItemToIndex(TItem item, int divisionIndex)
+    {
         // We use a trie based approach where the content byte representation is a path to the content
         // similar to how the git hash of the content gives us the address of the content,
         // thus making a content-addressable-file-system.
@@ -533,33 +557,6 @@ public abstract class RepoIndex1DBase<
     }
 
     /**
-     * Adds the given item to the specific division index in the local index.
-     *
-     * @param item          The item to add.
-     * @param divisionIndex The specific division index to add the item to.
-     */
-    protected void addItemToIndexLocal(TItem item, int divisionIndex)
-    {
-        // Get or create the list at the given division in the range:
-        List<TItem> itemsAtDivision = getOrCreateItemsAtDivision(divisionIndex);
-
-        // Add the item to the global map:
-        var itemKey = this.getItemGlobalMap().add(item);
-
-        // Add the item:
-        itemsAtDivision.add(item);
-
-        // Get the repo path of the item:
-        RepoPath repoPath = getRepoPathForItem(divisionIndex, itemKey);
-
-        // Create the content for the given item:
-        TContent itemContent = createContentForItem(item);
-
-        // Write the content to the content area:
-        this.currentContentArea.putContent(repoPath, itemContent);
-    }
-
-    /**
      * Gets the repo path for the given item details.
      * @param divisionIndex The index of the division that the item is in.
      * @param itemKey The global item key for the item.
@@ -598,64 +595,6 @@ public abstract class RepoIndex1DBase<
     protected int readItemKeyFromContent(TContent content)
     {
         return this.getItemKeyContentReader().readItemFromContent(content);
-    }
-
-    /**
-     * Adds the given item to the specific division index.
-     *
-     * @param item          The item to add.
-     * @param divisionIndex The specific division index to add the item to.
-     */
-    protected void addItemToIndex(TItem item, int divisionIndex)
-    {
-        /// Check whether we have a sub-grid at this index:
-        TSubGrid existingSubGrid = this.getSubGridAtDivision(divisionIndex);
-        if (existingSubGrid != null)
-        {
-            // We already have an existing sub-grid.
-
-            // Delegate the call to the sub-grid:
-            existingSubGrid.add(item);
-        }
-        else
-        {
-            // We don't have an existing sub-grid yet.
-
-            // Get the list at the given division in the range:
-            List<TItem> itemsAtDivision = getItemsAtDivision(divisionIndex);
-
-            // Check whether we have too many items:
-            if (itemsAtDivision == null || itemsAtDivision.size() < this.getMaxItemThreshold())
-            {
-                // We are still below the item threshold.
-
-                // Allow the base class to handle this:
-                addItemToIndexLocal(item, divisionIndex);
-            }
-            else
-            {
-                // We are above the threshold of items.
-
-                // Get or create the sub-grid for this division:
-                TSubGrid subGrid = this.getOrCreateSubGridAtDivision(divisionIndex);
-
-                // Check whether we got a sub-grid (NOTE: if we can't make the sub-grid smaller, we get null):
-                if (subGrid != null)
-                {
-                    // We got a sub-grid.
-
-                    // Add the item to the sub-grid:
-                    subGrid.add(item);
-                }
-                else
-                {
-                    // We couldn't get a sub-grid, probably because we are at the smallest size allowable.
-
-                    // Just add the item:
-                    addItemToIndexLocal(item, divisionIndex);
-                }
-            }
-        }
     }
 
     /**

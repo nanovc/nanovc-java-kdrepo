@@ -40,7 +40,7 @@ public class XRepoIndex1DCorrectnessTests
     {
         // Create the indexes:
         XLinearIndex1D linearIndex = new XLinearIndex1D();
-        XRepoIndex1D repoIndex = new XRepoIndex1D(new X(-1), new X(1), 10, 10, 1);
+        XRepoIndex1D repoIndex = new XRepoIndex1D(new X(addMin), new X(addMax), 10, 10, 1);
 
         // Create the random number generators:
         Random addRandom = new Random(addSeed);

@@ -68,6 +68,12 @@ public class XRepoIndex1DCorrectnessTests
             X nearestLinear = linearIndex.searchNearest(item);
             X nearestRepo = repoIndex.searchNearest(item);
 
+            // For debugging when the values are different, put a breakpoint in the next line:
+            if (!nearestLinear.equals(nearestRepo))
+            {
+                repoIndex.searchNearest(item);
+            }
+
             // Make sure that the results are the same:
             assertEquals(
                 nearestLinear, nearestRepo,

@@ -120,16 +120,20 @@ public class XRepoIndex1DTests
 
         var expectedIndex =
             """
+            Index:  from X[x=-1] to X[x=1] with 10 divisions:
+            Division: 2 from X[x=1] to X[x=1]:
             .
             └───1
-                ├───0
-                │   └───📄'10'
-                │       └───🔑'1'
+                └───📄'1'
+                    └───🔑'0'
+            Division: 9 from X[x=1] to X[x=1]:
+            .
+            └───1
                 ├───1
                 │   └───📄'11'
                 │       └───🔑'2'
-                └───📄'1'
-                    └───🔑'0'\
+                └───📄'10'
+                    └───🔑'1'\
             """;
         assertRepoIndex(expectedIndex, index);
     }
@@ -154,6 +158,8 @@ public class XRepoIndex1DTests
         // Make sure the index is as expected:
         var expectedIndex =
             """
+            Index:  from X[x=-1] to X[x=1] with 10 divisions:
+            Division: 1 from X[x=0] to X[x=1]:
             .
             └───0
                 └───📄'0'
@@ -194,6 +200,8 @@ public class XRepoIndex1DTests
         // Make sure the index is as expected:
         var expectedIndex =
             """
+            Index:  from X[x=-1] to X[x=1] with 10 divisions:
+            Division: 2 from X[x=1] to X[x=1]:
             .
             └───1
                 └───📄'1'
@@ -243,13 +251,17 @@ public class XRepoIndex1DTests
         // Make sure the index is as expected:
         var expectedIndex =
             """
+            Index:  from X[x=-1] to X[x=1] with 10 divisions:
+            Division: 2 from X[x=1] to X[x=1]:
             .
             └───1
-                ├───0
-                │   └───📄'10'
-                │       └───🔑'1'
                 └───📄'1'
-                    └───🔑'0'\
+                    └───🔑'0'
+            Division: 9 from X[x=1] to X[x=1]:
+            .
+            └───1
+                └───📄'10'
+                    └───🔑'1'\
             """;
         assertRepoIndex(expectedIndex, index);
 
@@ -337,13 +349,17 @@ public class XRepoIndex1DTests
         // Make sure the index is as expected:
         var expectedIndex =
             """
+            Index:  from X[x=-1] to X[x=1] with 10 divisions:
+            Division: 2 from X[x=1] to X[x=1]:
+            .
+            └───1
+                └───📄'1'
+                    └───🔑'0'
+            Division: 9 from X[x=1] to X[x=1]:
             .
             ├───1
-            │   ├───0
-            │   │   └───📄'10'
-            │   │       └───🔑'2'
-            │   └───📄'1'
-            │       └───🔑'0'
+            │   └───📄'10'
+            │       └───🔑'2'
             └───9
                 └───📄'9'
                     └───🔑'1'\
@@ -384,7 +400,7 @@ public class XRepoIndex1DTests
         assertEquals(new X(1), nearest);
 
         nearest = index.searchNearest(new X(5));
-        assertEquals(new X(9), nearest);
+        assertEquals(new X(1), nearest);
 
         nearest = index.searchNearest(new X(6));
         assertEquals(new X(9), nearest);
@@ -434,16 +450,22 @@ public class XRepoIndex1DTests
         // Make sure the index is as expected:
         var expectedIndex =
             """
+            Index:  from X[x=-1] to X[x=1] with 10 divisions:
+            Division: 2 from X[x=1] to X[x=1]:
+            .
+            └───1
+                └───📄'1'
+                    └───🔑'0'
+            Division: 3 from X[x=1] to X[x=1]:
+            .
+            └───2
+                └───📄'2'
+                    └───🔑'1'
+            Division: 9 from X[x=1] to X[x=1]:
             .
             ├───1
-            │   ├───0
-            │   │   └───📄'10'
-            │   │       └───🔑'3'
-            │   └───📄'1'
-            │       └───🔑'0'
-            ├───2
-            │   └───📄'2'
-            │       └───🔑'1'
+            │   └───📄'10'
+            │       └───🔑'3'
             └───9
                 └───📄'9'
                     └───🔑'2'\
@@ -705,6 +727,8 @@ public class XRepoIndex1DTests
 
         var expectedIndex =
             """
+            Index:  from X[x=-1] to X[x=1] with 10 divisions:
+            Division: 9 from X[x=1] to X[x=1]:
             .
             ├───1
             │   └───📄'133'
@@ -764,7 +788,7 @@ public class XRepoIndex1DTests
         assertEquals(new X(37), nearest);
 
         nearest = index.searchNearest(new X(85));
-        assertEquals(new X(37), nearest);
+        assertEquals(new X(133), nearest);
 
         nearest = index.searchNearest(new X(86));
         assertEquals(new X(133), nearest);
@@ -797,7 +821,7 @@ public class XRepoIndex1DTests
         assertEquals(new X(220), nearest);
 
         nearest = index.searchNearest(new X(221));
-        assertEquals(new X(210), nearest);
+        assertEquals(new X(220), nearest);
     }
 
     public void assertRepoIndex(String expectedIndex, XRepoIndex1D index)

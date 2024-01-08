@@ -1,7 +1,9 @@
 package io.nanovc.indexing.repo;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 
 /**
  * This is a global map of items.
@@ -9,6 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @param <TItem> The specific type of item that we store in this map.
  */
 public class ItemGlobalMap<TItem>
+    implements Iterable<TItem>
 {
     /**
      * The map that associates the item key to the item.
@@ -75,5 +78,24 @@ public class ItemGlobalMap<TItem>
     public TItem getItem(int itemKey)
     {
         return this.keyToItemMap.get(itemKey);
+    }
+
+    /**
+     * Loops through each item in the item global map.
+     * @param itemConsumer The logic that consumes each item. The first parameter is the global item key. The second parameter is the item itself.
+     */
+    public void forEach(BiConsumer<Integer, TItem> itemConsumer)
+    {
+        this.keyToItemMap.forEach(itemConsumer);
+    }
+
+    /**
+     * Returns an iterator over elements of type {@code T}.
+     *
+     * @return an Iterator.
+     */
+    @Override public Iterator<TItem> iterator()
+    {
+        return this.keyToItemMap.values().iterator();
     }
 }

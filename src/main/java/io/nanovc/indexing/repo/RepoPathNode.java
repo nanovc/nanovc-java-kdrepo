@@ -40,11 +40,11 @@ public class RepoPathNode
 
     /**
      * Checks whether this node has children.
-     * @return True if this node has children. False it it doesn't.
+     * @return True if this node has children. False if it doesn't.
      */
     public boolean hasChildren()
     {
-        return this.childrenByName != null && this.childrenByName.size() > 0;
+        return this.childrenByName != null && !this.childrenByName.isEmpty();
     }
 
     /**
@@ -120,7 +120,8 @@ public class RepoPathNode
         {
             // We do not have the children yet.
             // Create the map of children:
-            this.childrenByName = new TreeMap<>(String::compareTo);
+            // NOTE: We want emoji's sorted at the top of the list of children.
+            this.childrenByName = new TreeMap<>(EmojiFirstComparator::compareTo);
         }
         return childrenByName;
     }

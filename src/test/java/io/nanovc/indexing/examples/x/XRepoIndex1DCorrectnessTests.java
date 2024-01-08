@@ -17,7 +17,7 @@ public class XRepoIndex1DCorrectnessTests
      * A factory to generate the parameters for the correctness test against the linear implementation in {@link #compareCorrectnessAgainstLinearIndex(int, int, int, int, int, int, int, int, String, String)}}.
      * @return The stream of parameters for the correctness test.
      */
-    public static Stream<Object[]> compareCorrectnessAgainstLinearIndexFactory()
+    public static Stream<Object[]> compareCorrectnessAgainstLinearIndex_Factory()
     {
         return Stream.<Object[]>builder()
             //                  addCount , addMin, addMax , addSeed , searchCount , searchMin , searchMax , searchSeed , scenario              , comment
@@ -28,12 +28,12 @@ public class XRepoIndex1DCorrectnessTests
             .add(new Object[] { 100      , 0     , 10     , 1       , 100         , 0         , 10        , 1          , "100 In Range"        , "Should query the same as what was added." })
             .add(new Object[] { 100      , 0     , 10     , 1       , 1_000       , -10       , 20        , 1          , "100 Out of Range"    , "Checks both sides of the added range." })
             .add(new Object[] { 100      , 0     , 10_000 , 1       , 100         , 0         , 10_000    , 1          , "Sparse In Range"     , "Should query the same as what was added." })
-            .add(new Object[] { 100      , 0     , 10_000 , 1       , 1_000       , -10       , 20_000    , 1          , "Sparse Out of Range" , "Checks both sides of the added range." })
+            .add(new Object[] { 100      , 0     , 10_000 , 1       , 1_000       , -10_000   , 20_000    , 1          , "Sparse Out of Range" , "Checks both sides of the added range." })
             .build();
     }
 
     @ParameterizedTest(name = "[{index}] {8} - Added: {0}:[{1},{2}), seed: {3} Searched: {4}:[{5},{6}), seed: {7}")
-    @MethodSource("compareCorrectnessAgainstLinearIndexFactory")
+    @MethodSource("compareCorrectnessAgainstLinearIndex_Factory")
     public void compareCorrectnessAgainstLinearIndex(int addCount , int addMin, int addMax , int addSeed , int searchCount , int searchMin , int searchMax , int searchSeed , String scenario , String comment)
     {
         // Create the indexes:

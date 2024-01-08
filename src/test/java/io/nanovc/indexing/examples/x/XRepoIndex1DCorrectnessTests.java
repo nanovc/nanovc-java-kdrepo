@@ -20,15 +20,17 @@ public class XRepoIndex1DCorrectnessTests
     public static Stream<Object[]> compareCorrectnessAgainstLinearIndex_Factory()
     {
         return Stream.<Object[]>builder()
-            //                  addCount , addMin, addMax , addSeed , searchCount , searchMin , searchMax , searchSeed , scenario              , comment
-            .add(new Object[] { 1        , 0     , 10     , 1       , 1           , 0         , 10        , 1          , "Single In Range"     , "Should query the same as what was added." })
-            .add(new Object[] { 1        , 0     , 10     , 1       , 1_000       , -10       , 20        , 1          , "Single Out of Range" , "Checks both sides of the added range." })
-            .add(new Object[] { 2        , 0     , 10     , 1       , 2           , 0         , 10        , 1          , "Two In Range"        , "Should query the same as what was added." })
-            .add(new Object[] { 2        , 0     , 10     , 1       , 1_000       , -10       , 20        , 1          , "Two Out of Range"    , "Checks both sides of the added range." })
-            .add(new Object[] { 100      , 0     , 10     , 1       , 100         , 0         , 10        , 1          , "100 In Range"        , "Should query the same as what was added." })
-            .add(new Object[] { 100      , 0     , 10     , 1       , 1_000       , -10       , 20        , 1          , "100 Out of Range"    , "Checks both sides of the added range." })
-            .add(new Object[] { 100      , 0     , 10_000 , 1       , 100         , 0         , 10_000    , 1          , "Sparse In Range"     , "Should query the same as what was added." })
-            .add(new Object[] { 100      , 0     , 10_000 , 1       , 1_000       , -10_000   , 20_000    , 1          , "Sparse Out of Range" , "Checks both sides of the added range." })
+            //                  addCount , addMin, addMax , addSeed , searchCount , searchMin , searchMax , searchSeed , scenario                , comment
+            .add(new Object[] { 1        , 0     , 10     , 1       , 1           , 0         , 10        , 1          , "Single In Range"       , "Should query the same as what was added." })
+            .add(new Object[] { 1        , 0     , 10     , 1       , 1_000       , -10       , 20        , 10         , "Single Out of Range"   , "Checks both sides of the added range." })
+            .add(new Object[] { 2        , 0     , 10     , 1       , 2           , 0         , 10        , 1          , "Two In Range"          , "Should query the same as what was added." })
+            .add(new Object[] { 2        , 0     , 10     , 1       , 1_000       , -10       , 20        , 10         , "Two Out of Range"      , "Checks both sides of the added range." })
+            .add(new Object[] { 100      , 0     , 10     , 1       , 100         , 0         , 10        , 1          , "100 In Range"          , "Should query the same as what was added." })
+            .add(new Object[] { 100      , 0     , 10     , 1       , 1_000       , -10       , 20        , 10         , "100 Out of Range"      , "Checks both sides of the added range." })
+            .add(new Object[] { 100      , 0     , 10_000 , 1       , 100         , 0         , 10_000    , 1          , "Sparse In Range"       , "Should query the same as what was added." })
+            .add(new Object[] { 100      , 0     , 10_000 , 1       , 1_000       , -10_000   , 20_000    , 10         , "Sparse Out of Range"   , "Checks both sides of the added range." })
+            .add(new Object[] { 100      , -10   , 10     , 1       , 100         , 0         , 10        , 1          , "Negative In Range"     , "Should query the same as what was added." })
+            .add(new Object[] { 100      , -10   , 10     , 1       , 1_000       , -30       , 30        , 10         , "Negative Out of Range" , "Checks both sides of the added range." })
             .build();
     }
 

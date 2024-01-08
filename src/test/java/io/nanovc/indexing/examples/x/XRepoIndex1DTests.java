@@ -58,6 +58,57 @@ public class XRepoIndex1DTests
         assertEquals(itemZero, nearest);
     }
 
+
+    @Test
+    public void test_Index_10_1_Query_1()
+    {
+        // Create the index:
+        XRepoIndex1D index = new XRepoIndex1D(new X(0), new X(10), 1);
+
+        // Define the items of interest:
+        X item1 = new X(1);
+        X item10 = new X(10);
+
+        // Add the first item:
+        index.add(item10);
+
+        // Make sure the index is as expected:
+        var expectedIndex =
+            """
+            Index:  from X[x=0] to X[x=10] with 1 division:
+            Division: 0 from X[x=0] to X[x=10]:
+            .
+            └───1
+                └───📄'10'
+                    └───🔑'0'\
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Add the second item:
+        index.add(item1); // NOTE: 1 is specifically after 10 to make sure we index it correctly.
+
+        // Make sure the index is as expected:
+        expectedIndex =
+            """
+            Index:  from X[x=0] to X[x=10] with 1 division:
+            Division: 0 from X[x=0] to X[x=10]:
+            .
+            └───1
+                └───📄'1'
+                    └───🔑'1'\
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Query the items:
+        X nearest;
+
+        nearest = index.searchNearest(item1);
+        assertEquals(item1, nearest);
+
+        nearest = index.searchNearest(item10);
+        assertEquals(item10, nearest);
+    }
+
     @Test
     public void test_Index_1_10_11_Query_1_10_11()
     {

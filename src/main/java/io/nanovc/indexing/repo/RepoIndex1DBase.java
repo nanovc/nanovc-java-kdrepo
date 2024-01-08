@@ -319,27 +319,88 @@ public abstract class RepoIndex1DBase<
      */
     public TItem searchNearest(TItem item)
     {
+        // We search through the division where the queried item is found,
+        // along with the neighbouring divisions around it.
+
+        // Keep track of the best result so far:
+        TItem bestItemSoFar = null;
+        TDistance bestDistanceSoFar = null;
+
         // Find the index of the division in the range:
         int divisionIndex = findIndexInRange(this.minRange, this.maxRange, this.divisions, item);
 
-        // Get the division to search:
-        var division = getDivision(divisionIndex);
-        if (division != null)
+        // Get the divisions to search (including neighbours):
+        List<Division<TItem, TContent, TArea>> divisionsToSearch = new ArrayList<>(3);
         {
-            // The query is within range.
+            // Search for the specific division:
+            var division = getDivision(divisionIndex);
+            if (division != null) divisionsToSearch.add(division);
 
-            // Search for the item in this division:
-            // TODO: Make sure we search neighbouring divisions.
-            return searchNearestInDivision(item, division);
+            // Search for the lower neighbour:
+            division = getNearestLowerDivision(divisionIndex);
+            if (division != null) divisionsToSearch.add(division);
+
+            // Search for the higher neighbour:
+            division = getNearestHigherDivision(divisionIndex);
+            if (division != null) divisionsToSearch.add(division);
+        }
+        // Now we have identified all the divisions we want to search through.
+
+        // Check if we have any items:
+        if (divisionsToSearch.size() == 0)
+        {
+            // There is nothing to search through.
+            return null;
         }
         else
         {
-            // The query is outside our range.
+            // We have divisions to search through.
 
-            // Fall back to a full index scan:
-            // TODO: Find a more efficient scan for queries outside of the range.
-            return searchWithFullScan(item);
+            // Search through the division:
+            for (Division<TItem, TContent, TArea> division : divisionsToSearch)
+            {
+                // Search for the item in this division:
+                MeasuredItem<TItem, TDistance> measuredItem = searchNearestInDivision(item, division);
+
+                // Check whether we found an item in this division:
+                if (measuredItem != null)
+                {
+                    // We found an item in this division.
+
+                    // Check for an exact match (no distance):
+                    if (measuredItem.distance == null)
+                    {
+                        // We got an exact match.
+                        return measuredItem.item;
+                    }
+
+                    // Get the distance to the item:
+                    TDistance distance = measureDistanceBetween(item, measuredItem.item);
+
+                    // Check whether this distance is the best so far:
+                    if (bestDistanceSoFar == null || this.distanceComparator.compare(distance, bestDistanceSoFar) < 0)
+                    {
+                        // This item is closer.
+
+                        // Flag this as the best item so far:
+                        bestItemSoFar = measuredItem.item;
+                        bestDistanceSoFar = distance;
+                    }
+                }
+            }
+            // Now we have searched through each division that we need to inspect.
         }
+
+        // else
+        // {
+        //     // The query is outside our range.
+        //
+        //     // Fall back to a full index scan:
+        //     // TODO: Find a more efficient scan for queries outside of the range.
+        //     return searchWithFullScan(item);
+        // }
+
+        return bestItemSoFar;
     }
 
     /**
@@ -348,7 +409,7 @@ public abstract class RepoIndex1DBase<
      * @param division The division to search in.
      * @return The nearest item in that division.
      */
-    protected TItem searchNearestInDivision(TItem item, Division<TItem, TContent, TArea> division)
+    protected MeasuredItem<TItem, TDistance> searchNearestInDivision(TItem item, Division<TItem, TContent, TArea> division)
     {
         // We use a trie based approach where the content byte representation is a path to the content
         // similar to how the git hash of the content gives us the address of the content,
@@ -359,9 +420,6 @@ public abstract class RepoIndex1DBase<
 
         // Get the byte representation of the content so that we can index it:
         ByteBuffer itemContentByteBuffer = itemContent.asByteBuffer();
-
-        // Create a list of additional nodes to search if we don't get an exact match:
-        Deque<RepoPathNode> additionalNodesToSearch = new LinkedList<>();
 
         // Keep track of the best result so far:
         TItem bestItemSoFar = null;
@@ -379,24 +437,6 @@ public abstract class RepoIndex1DBase<
 
             // Get the child nodes so we can explore them:
             NavigableMap<String, RepoPathNode> childrenByName = currentNode.getChildrenByName();
-
-            // Try to find the entry smaller than the given one so that we can save additional nodes to explore later if we don't find an exact match:
-            Map.Entry<String, RepoPathNode> lowerEntry = childrenByName.lowerEntry(nextPathName);
-            if (lowerEntry != null)
-            {
-                // We found the lower entry.
-                // Add this as a node to search:
-                additionalNodesToSearch.addFirst(lowerEntry.getValue());
-            }
-
-            // Try to find the entry larger than the given one:
-            Map.Entry<String, RepoPathNode> higherEntry = childrenByName.higherEntry(nextPathName);
-            if (higherEntry != null)
-            {
-                // We found the higher entry.
-                // Add this as a node to search:
-                additionalNodesToSearch.addFirst(higherEntry.getValue());
-            }
 
             // Get the next path node for this value:
             RepoPathNode childNode = childrenByName.get(nextPathName);
@@ -436,7 +476,12 @@ public abstract class RepoIndex1DBase<
                 if (item.equals(indexedItem))
                 {
                     // This item is equal.
-                    return indexedItem;
+
+                    // Create the measured item:
+                    MeasuredItem<TItem, TDistance> measuredItem = new MeasuredItem<>();
+                    measuredItem.item = indexedItem;
+
+                    return measuredItem;
                 }
                 // Now we know that the items are not equal.
 
@@ -459,77 +504,24 @@ public abstract class RepoIndex1DBase<
         }
         // Now we have searched the whole space and not found an exact match.
 
-        // Check if we have additional nodes to search:
-        if (additionalNodesToSearch != null)
+        // Check whether we searched the full input value or just the partial value:
+        if (itemContentByteBuffer.hasRemaining())
         {
-            // We have additional nodes to search.
-
-            // Get the next node to search:
-            RepoPathNode nodeToSearch = additionalNodesToSearch.pollFirst();
-
-            // Traverse the additional nodes to search:
-            while (nodeToSearch != null)
-            {
-                // Get the node to the content:
-                RepoPathNode contentNode = division.repoPathTree.getChildNode(nodeToSearch, CONTENT_PATH_NAME);
-
-                // Check whether this node has content:
-                if (contentNode != null)
-                {
-                    // We have content at this node.
-
-                    // Get the path for the item key:
-                    RepoPathNode itemKeyNode = division.repoPathTree.getChildNode(contentNode, ID_PATH_NAME);
-                    RepoPath itemKeyRepoPath = itemKeyNode.getRepoPath();
-
-                    // Get the content for the item key:
-                    TContent itemKeyContent = division.contentArea.getContent(itemKeyRepoPath);
-
-                    // Get the item key for this content:
-                    int itemKey = readItemKeyFromContent(itemKeyContent);
-
-                    // Get the item from the global map:
-                    TItem indexedItem = this.getItemGlobalMap().getItem(itemKey);
-
-                    // Check whether the existing item is equal to the item:
-                    if (item.equals(indexedItem))
-                    {
-                        // This item is equal.
-                        return indexedItem;
-                    }
-                    // Now we know that the items are not equal.
-
-                    // Get the distance to the item:
-                    TDistance distance = measureDistanceBetween(item, indexedItem);
-
-                    // Check whether this distance is the best so far:
-                    if (bestDistanceSoFar == null || this.distanceComparator.compare(distance, bestDistanceSoFar) < 0)
-                    {
-                        // This item is closer.
-
-                        // Flag this as the best item so far:
-                        bestItemSoFar = indexedItem;
-                        bestDistanceSoFar = distance;
-                    }
-
-                    // Add all the children to be searched:
-                    for (RepoPathNode childToSearch : nodeToSearch.getChildrenByName().values())
-                    {
-                        // Check whether this is the content node:
-                        if (childToSearch.getName().equals(CONTENT_PATH_NAME)) continue;
-                        // Now we know that this is not the content path.
-
-                        // Add the child to search:
-                        additionalNodesToSearch.addLast(childToSearch);
-                    }
-                }
-
-                // Get the next node to search:
-                nodeToSearch = additionalNodesToSearch.pollFirst();
-            }
+            // We only did a partial search of the item, and we didn't find a match.
+            // This means that we will need to broaden our search to all items in this division.
         }
-        // Now we have the best item that is closest to the given item.
-        return bestItemSoFar;
+        else
+        {
+            // We did a full search of the item, and we didn't find a match.
+            // This means that we definitely
+        }
+
+        // Create the measured item:
+        MeasuredItem<TItem, TDistance> measuredItem = new MeasuredItem<>();
+        measuredItem.item = bestItemSoFar;
+        measuredItem.distance = bestDistanceSoFar;
+
+        return measuredItem;
     }
 
     /**
@@ -676,141 +668,58 @@ public abstract class RepoIndex1DBase<
         );
     }
 
+
+    /**
+     * Gets the next nearest division that is lower than the given index.
+     *
+     * @param index The index of the division that we want to get the division for.
+     * @return The nearest division that is lower than the specific index. Null if there is no division lower than that index.
+     */
+    protected Division<TItem, TContent, TArea> getNearestLowerDivision(int index)
+    {
+        // Find the next lower entry:
+        Map.Entry<Integer, Division<TItem, TContent, TArea>> entry = this.divisionsByIndex.lowerEntry(index);
+        return entry == null ? null : entry.getValue();
+    }
+
+    /**
+     * Gets the next nearest division that is higher than the given index.
+     *
+     * @param index The index of the division that we want to get the division for.
+     * @return The nearest division that is higher than the specific index. Null if there is no division higher than that index.
+     */
+    protected Division<TItem, TContent, TArea> getNearestHigherDivision(int index)
+    {
+        // Find the next higher entry:
+        Map.Entry<Integer, Division<TItem, TContent, TArea>> entry = this.divisionsByIndex.higherEntry(index);
+        return entry == null ? null : entry.getValue();
+    }
+
     @Override public String toString()
     {
         // Print out the content tree:
-        StringBuilder sb = new StringBuilder();
+        StringBuilder stringBuilder = new StringBuilder();
 
         // Print out details of the index:
-        sb.append("Index: ");
-        sb.append(" from ");
-        sb.append(this.getMinRange());
-        sb.append(" to ");
-        sb.append(this.getMaxRange());
-        sb.append(" with ");
-        sb.append(this.getDivisions());
-        sb.append(" division");
-        if (this.getDivisions() != 1) sb.append("s");
-        sb.append(":");
+        stringBuilder.append("Index: ");
+        stringBuilder.append(" from ");
+        stringBuilder.append(this.getMinRange());
+        stringBuilder.append(" to ");
+        stringBuilder.append(this.getMaxRange());
+        stringBuilder.append(" with ");
+        stringBuilder.append(this.getDivisions());
+        stringBuilder.append(" division");
+        if (this.getDivisions() != 1) stringBuilder.append("s");
+        stringBuilder.append(":");
 
         // Go through each division:
         for (Division<TItem, TContent, TArea> division : this.divisionsByIndex.values())
         {
             // Write the division details:
-            sb.append("\n");
-            sb.append("Division: ");
-            sb.append(division.divisionIndex);
-            sb.append(" from ");
-            sb.append(division.minRange);
-            sb.append(" to ");
-            sb.append(division.maxRange);
-            sb.append(":\n");
-
-            // Check whether there is too much content to render:
-            if (division.contentArea.getContentStream().count() > 1_000)
-            {
-                // There is too much content.
-                sb.append("Too Large to Render");
-            }
-            else
-            {
-                // Now we know that we have small enough content to render.
-
-                // Write out the content for this division:
-                printNodeToStringRecursively(division.repoPathTree.getRootNode(), false, sb, "", division.contentArea);
-            }
+            division.toString(stringBuilder);
         }
 
-        return sb.toString();
-    }
-
-    /**
-     * Prints out the current node recursively.
-     *
-     * @param node          The node to process.
-     * @param hasSibling    True to flag that this node has a sibling that comes next. False to say that this node doesn't have a sibling that comes next.
-     * @param stringBuilder The string builder to add to.
-     * @param indent        The indent to prefix with.
-     * @param contentArea   The content area to query.
-     */
-    private void printNodeToStringRecursively(RepoPathNode node, boolean hasSibling, StringBuilder stringBuilder, String indent, TArea contentArea)
-    {
-        // Check whether this is the root node:
-        boolean isRootNode = node.isRootNode();
-        if (isRootNode)
-        {
-            // This is the root node.
-            stringBuilder.append(".");
-        }
-        else
-        {
-            // This is not a root node.
-
-            // Add the indent:
-            stringBuilder.append(indent);
-
-            // Check whether this node has a sibling so that we can render the lines correctly:
-            if (hasSibling)
-            {
-                // This node has another sibling that follows.
-
-                // Flag that there are more siblings to come:
-                stringBuilder.append("├─");
-            }
-            else
-            {
-                // This node does not have any more siblings to come.
-
-                // Flag that this is the last node:
-                stringBuilder.append("└─");
-            }
-
-            // Write the node name:
-            stringBuilder.append("──");
-            stringBuilder.append(node.getName());
-
-            // Get the content for the node:
-            TContent nodeContent = contentArea.getContent(node.getRepoPath());
-
-            // Check whether we actually have content at this path:
-            if (nodeContent != null)
-            {
-                // Write the node content:
-                stringBuilder.append(nodeContent.toString());
-            }
-        }
-
-        // Render the children correctly:
-        if (node.hasChildren())
-        {
-            // The node has children.
-
-            // Write each child:
-            NavigableMap<String, RepoPathNode> childrenByName = node.getChildrenByName();
-            for (Map.Entry<String, RepoPathNode> entry : childrenByName.entrySet())
-            {
-                // Get the values:
-                String childName = entry.getKey();
-                RepoPathNode childNode = entry.getValue();
-
-                // Create a new line:
-                stringBuilder.append("\n");
-
-                // Check whether the child has another sibling:
-                String childSiblingName = childrenByName.higherKey(childName);
-                boolean hasChildSibling = childSiblingName != null;
-
-                // Create the new indent for this child:
-                String nextIndent = indent + (hasSibling ? "│   " : (isRootNode ? "" : "    "));
-
-                // Print out the child recursively:
-                printNodeToStringRecursively(childNode, hasChildSibling, stringBuilder, nextIndent, contentArea);
-            }
-        }
-        else
-        {
-            // This node is a leaf node.
-        }
+        return stringBuilder.toString();
     }
 
     /**

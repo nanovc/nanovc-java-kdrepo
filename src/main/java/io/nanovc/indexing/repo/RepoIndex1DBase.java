@@ -294,21 +294,47 @@ public abstract class RepoIndex1DBase<
         }
         // Now we have found a place where we can add the content.
 
-        // Add the item to the global map:
-        int itemKey = this.getItemGlobalMap().add(item);
+        // Flag whether the entire value for the item has been scanned:
+        boolean hasEntireValueBeenScannedForItem = !itemContentByteBuffer.hasRemaining();
 
-        // Create the content for the item key:
-        TContent itemKeyContent = createContentForItemKey(itemKey);
+        // Check whether we can add new content or whether we are about to replace content:
+        if (currentContent == null)
+        {
+            // We are adding new content.
 
-        // Get the path for the item key:
-        RepoPathNode itemKeyNode = division.repoPathTree.getOrCreateChildNode(currentContentNode, ID_PATH_NAME);
-        RepoPath itemKeyRepoPath = itemKeyNode.getRepoPath();
+            // Add the item to the global map:
+            int itemKey = this.getItemGlobalMap().add(item);
 
-        // Add the ID for the current item:
-        division.contentArea.putContent(itemKeyRepoPath, itemKeyContent);
+            // Create the content for the item key:
+            TContent itemKeyContent = createContentForItemKey(itemKey);
 
-        // Add the content to the current location:
-        division.contentArea.putContent(currentContentRepoPath, itemContent);
+            // Get the path for the item key:
+            RepoPathNode itemKeyNode = division.repoPathTree.getOrCreateChildNode(currentContentNode, ID_PATH_NAME);
+            RepoPath itemKeyRepoPath = itemKeyNode.getRepoPath();
+
+            // Add the ID for the current item:
+            division.contentArea.putContent(itemKeyRepoPath, itemKeyContent);
+
+            // Add the content to the current location:
+            division.contentArea.putContent(currentContentRepoPath, itemContent);
+        }
+        else
+        {
+            // We are about to replace content.
+
+            // Check whether we need to re-index sub content (if this item is shorter than the existing content):
+            if (hasEntireValueBeenScannedForItem)
+            {
+                // We have content in the current location, and we have searched through the whole value for the index.
+                // This means that we need to re-index this part of the tree because we want the shorter sub-sequence first.
+                // We also know that all sub-content will strictly be longer or the same as the current content (because of our re-indexing criteria).
+            }
+            else
+            {
+                // TODO: Investigate this Strange case.
+                throw new RuntimeException("Strange Case");
+            }
+        }
     }
 
     /**

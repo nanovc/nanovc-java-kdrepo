@@ -58,57 +58,6 @@ public class XRepoIndex1DTests
         assertEquals(itemZero, nearest);
     }
 
-
-    @Test
-    public void test_Index_10_1_Query_1()
-    {
-        // Create the index:
-        XRepoIndex1D index = new XRepoIndex1D(new X(0), new X(10), 1);
-
-        // Define the items of interest:
-        X item1 = new X(1);
-        X item10 = new X(10);
-
-        // Add the first item:
-        index.add(item10);
-
-        // Make sure the index is as expected:
-        var expectedIndex =
-            """
-            Index:  from X[x=0] to X[x=10] with 1 division:
-            Division: 0 from X[x=0] to X[x=10]:
-            .
-            └───1
-                └───📄'10'
-                    └───🔑'0'\
-            """;
-        assertRepoIndex(expectedIndex, index);
-
-        // Add the second item:
-        index.add(item1); // NOTE: 1 is specifically after 10 to make sure we index it correctly.
-
-        // Make sure the index is as expected:
-        expectedIndex =
-            """
-            Index:  from X[x=0] to X[x=10] with 1 division:
-            Division: 0 from X[x=0] to X[x=10]:
-            .
-            └───1
-                └───📄'1'
-                    └───🔑'1'\
-            """;
-        assertRepoIndex(expectedIndex, index);
-
-        // Query the items:
-        X nearest;
-
-        nearest = index.searchNearest(item1);
-        assertEquals(item1, nearest);
-
-        nearest = index.searchNearest(item10);
-        assertEquals(item10, nearest);
-    }
-
     @Test
     public void test_Index_1_10_11_Query_1_10_11()
     {
@@ -873,6 +822,365 @@ public class XRepoIndex1DTests
 
         nearest = index.searchNearest(new X(221));
         assertEquals(new X(220), nearest);
+    }
+
+    @Test
+    public void Reindex_10_1_Query_1()
+    {
+        // Create the index:
+        XRepoIndex1D index = new XRepoIndex1D(new X(0), new X(10), 1);
+
+        // Define the items of interest:
+        X item10 = new X(10);
+        X item1 = new X(1);
+
+        // Add the first item:
+        index.add(item10);
+
+        // Make sure the index is as expected:
+        var expectedIndex =
+            """
+            Index:  from X[x=0] to X[x=10] with 1 division:
+            Division: 0 from X[x=0] to X[x=10]:
+            .
+            └───1
+                └───📄'10'
+                    └───🔑'0'\
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Add the second item:
+        index.add(item1); // NOTE: 1 is specifically after 10 to make sure we re-index it correctly.
+
+        // Make sure the index is as expected:
+        expectedIndex =
+            """
+            Index:  from X[x=0] to X[x=10] with 1 division:
+            Division: 0 from X[x=0] to X[x=10]:
+            .
+            └───1
+                ├───0
+                │   └───📄'10'
+                │       └───🔑'0'
+                └───📄'1'
+                    └───🔑'1'\
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Query the items:
+        X nearest;
+
+        nearest = index.searchNearest(item1);
+        assertEquals(item1, nearest);
+
+        nearest = index.searchNearest(item10);
+        assertEquals(item10, nearest);
+    }
+
+    @Test
+    public void Reindex_111_11_Query_111_11()
+    {
+        // Create the index:
+        XRepoIndex1D index = new XRepoIndex1D(new X(0), new X(1000), 1);
+
+        // Define the items of interest:
+        X item111 = new X(111);
+        X item11 = new X(11);
+
+        // Add the first item:
+        index.add(item111);
+
+        // Make sure the index is as expected:
+        var expectedIndex =
+            """
+            Index:  from X[x=0] to X[x=1000] with 1 division:
+            Division: 0 from X[x=0] to X[x=1000]:
+            .
+            └───1
+                └───📄'111'
+                    └───🔑'0'\
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Add the second item:
+        index.add(item11); // NOTE: 1 is specifically after 111 to make sure we re-index it correctly.
+
+        // Make sure the index is as expected:
+        expectedIndex =
+            """
+            Index:  from X[x=0] to X[x=1000] with 1 division:
+            Division: 0 from X[x=0] to X[x=1000]:
+            .
+            └───1
+                ├───1
+                │   └───📄'11'
+                │       └───🔑'1'
+                └───📄'111'
+                    └───🔑'0'\
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Query the items:
+        X nearest;
+
+        nearest = index.searchNearest(item111);
+        assertEquals(item111, nearest);
+
+        nearest = index.searchNearest(item11);
+        assertEquals(item11, nearest);
+    }
+
+    @Test
+    public void Reindex_10_11_1_Query_1()
+    {
+        // Create the index:
+        XRepoIndex1D index = new XRepoIndex1D(new X(0), new X(10), 1);
+
+        // Define the items of interest:
+        X item10 = new X(10);
+        X item11 = new X(11);
+        X item1 = new X(1);
+
+        // Add the first item:
+        index.add(item10);
+
+        String expectedIndex;
+
+        // Make sure the index is as expected:
+        expectedIndex =
+            """
+            Index:  from X[x=0] to X[x=10] with 1 division:
+            Division: 0 from X[x=0] to X[x=10]:
+            .
+            └───1
+                └───📄'10'
+                    └───🔑'0'\
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Add the second item:
+        index.add(item11);
+
+        // Make sure the index is as expected:
+        expectedIndex =
+            """
+            Index:  from X[x=0] to X[x=10] with 1 division:
+            Division: 0 from X[x=0] to X[x=10]:
+            .
+            └───1
+                ├───1
+                │   └───📄'11'
+                │       └───🔑'1'
+                └───📄'10'
+                    └───🔑'0'\
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Add the third item:
+        index.add(item1); // NOTE: 1 is specifically after 10 and 11 to make sure we re-index it correctly.
+
+        // Make sure the index is as expected:
+        expectedIndex =
+            """
+            Index:  from X[x=0] to X[x=10] with 1 division:
+            Division: 0 from X[x=0] to X[x=10]:
+            .
+            └───1
+                ├───1
+                │   └───📄'11'
+                │       └───🔑'1'
+                └───📄'1'
+                    └───🔑'2'\
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Query the items:
+        X nearest;
+
+        nearest = index.searchNearest(item1);
+        assertEquals(item1, nearest);
+
+        nearest = index.searchNearest(item10);
+        assertEquals(item10, nearest);
+
+        nearest = index.searchNearest(item11);
+        assertEquals(item11, nearest);
+    }
+
+    @Test
+    public void Reindex_111_11_1_Query_1()
+    {
+        // Create the index:
+        XRepoIndex1D index = new XRepoIndex1D(new X(0), new X(10), 1);
+
+        // Define the items of interest:
+        X item10 = new X(10);
+        X item11 = new X(11);
+        X item1 = new X(1);
+
+        // Add the first item:
+        index.add(item10);
+
+        String expectedIndex;
+
+        // Make sure the index is as expected:
+        expectedIndex =
+            """
+            Index:  from X[x=0] to X[x=10] with 1 division:
+            Division: 0 from X[x=0] to X[x=10]:
+            .
+            └───1
+                └───📄'10'
+                    └───🔑'0'\
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Add the second item:
+        index.add(item11);
+
+        // Make sure the index is as expected:
+        expectedIndex =
+            """
+            Index:  from X[x=0] to X[x=10] with 1 division:
+            Division: 0 from X[x=0] to X[x=10]:
+            .
+            └───1
+                ├───1
+                │   └───📄'11'
+                │       └───🔑'1'
+                └───📄'10'
+                    └───🔑'0'\
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Add the third item:
+        index.add(item1); // NOTE: 1 is specifically after 10 and 11 to make sure we re-index it correctly.
+
+        // Make sure the index is as expected:
+        expectedIndex =
+            """
+            Index:  from X[x=0] to X[x=10] with 1 division:
+            Division: 0 from X[x=0] to X[x=10]:
+            .
+            └───1
+                ├───1
+                │   └───📄'11'
+                │       └───🔑'1'
+                └───📄'1'
+                    └───🔑'2'\
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Query the items:
+        X nearest;
+
+        nearest = index.searchNearest(item1);
+        assertEquals(item1, nearest);
+
+        nearest = index.searchNearest(item10);
+        assertEquals(item10, nearest);
+
+        nearest = index.searchNearest(item11);
+        assertEquals(item11, nearest);
+    }
+
+    @Test
+    public void Reindex_111_1111_11_1_Query_1_11_111_1111()
+    {
+        // Create the index:
+        XRepoIndex1D index = new XRepoIndex1D(new X(0), new X(10_000), 1);
+
+        // Define the items of interest:
+        X item111 = new X(111);
+        X item1111 = new X(1111);
+        X item11 = new X(11);
+        X item1 = new X(1);
+
+        // Add the first item:
+        index.add(item111);
+
+        String expectedIndex;
+
+        // Make sure the index is as expected:
+        expectedIndex =
+            """
+            Index:  from X[x=0] to X[x=10000] with 1 division:
+            Division: 0 from X[x=0] to X[x=10000]:
+            .
+            └───1
+                └───📄'111'
+                    └───🔑'0'\
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Add the second item:
+        index.add(item1111);
+
+        // Make sure the index is as expected:
+        expectedIndex =
+            """
+            Index:  from X[x=0] to X[x=10000] with 1 division:
+            Division: 0 from X[x=0] to X[x=10000]:
+            .
+            └───1
+                ├───1
+                │   └───📄'1111'
+                │       └───🔑'1'
+                └───📄'111'
+                    └───🔑'0'\
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Add the third item:
+        index.add(item11); // NOTE: 1 is specifically after 1111 to make sure we re-index it correctly.
+
+        // Make sure the index is as expected:
+        expectedIndex =
+            """
+            Index:  from X[x=0] to X[x=10000] with 1 division:
+            Division: 0 from X[x=0] to X[x=10000]:
+            .
+            └───1
+                ├───1
+                │   └───📄'1111'
+                │       └───🔑'1'
+                └───📄'111'
+                    └───🔑'0'\
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Add the fourth item:
+        index.add(item11); // NOTE: 1 is specifically after 11 to make sure we re-index it correctly.
+
+        // Make sure the index is as expected:
+        expectedIndex =
+            """
+            Index:  from X[x=0] to X[x=10000] with 1 division:
+            Division: 0 from X[x=0] to X[x=10000]:
+            .
+            └───1
+                ├───1
+                │   └───📄'1111'
+                │       └───🔑'1'
+                └───📄'111'
+                    └───🔑'0'\
+            """;
+        assertRepoIndex(expectedIndex, index);
+
+        // Query the items:
+        X nearest;
+
+        nearest = index.searchNearest(item1);
+        assertEquals(item1, nearest);
+
+        nearest = index.searchNearest(item11);
+        assertEquals(item11, nearest);
+
+        nearest = index.searchNearest(item111);
+        assertEquals(item111, nearest);
+
+        nearest = index.searchNearest(item1111);
+        assertEquals(item1111, nearest);
     }
 
     public void assertRepoIndex(String expectedIndex, XRepoIndex1D index)

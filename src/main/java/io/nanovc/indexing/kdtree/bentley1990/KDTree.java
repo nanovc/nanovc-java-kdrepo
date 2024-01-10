@@ -1,0 +1,316 @@
+package io.nanovc.indexing.kdtree.bentley1990;
+
+import java.util.List;
+import java.util.function.BiFunction;
+
+
+/**
+ * See the papers folder for the reference: 98524.98564 - K-d Trees for Semidynamic Point Sets.pdf
+ * Bentley, Jon Louis. "K-d trees for semidynamic point sets." Proceedings of the sixth annual symposium on Computational geometry. 1990.
+ * <p>
+ * The reference to an optimized kd-tree is where we check which dimension has the biggest spread at each step.
+ * See the paper: 355744.355745 - An Algorithm for Finding Best Matches in Logarithmic Expected Time.pdf
+ * Friedman, Jerome H., Jon Louis Bentley, and Raphael Ari Finkel. "An algorithm for finding best matches in logarithmic expected time." ACM Transactions on Mathematical Software (TOMS) 3.3 (1977): 209-226.
+ * <p>
+ * The SELECT algorithm is informed by:
+ * 360680.360691 - Expected Time Bounds for Selection.pdf
+ * 360680.360694 - Algorithm 489 - The Algorithm SELECT - for finding the ith smallest of n elements.pdf
+ * Floyd, Robert W., and Ronald L. Rivest. "Expected time bounds for selection." Communications of the ACM 18.3 (1975): 165-172.
+ * Floyd, Robert W., and Ronald L. Rivest. "Algorithm 489: The algorithm SELECT—For finding the i th smallest of n elements [m1]." Communications of the ACM 18.3 (1975): 173.
+ * <p>
+ * Additional info from here:
+ * https://stackoverflow.com/questions/253767/kdtree-implementation-in-java
+ * https://simondlevy.academic.wlu.edu/software/kd/
+ * https://robowiki.net/wiki/Kd-tree
+ * https://github.com/AReallyGoodName/OfflineReverseGeocode/blob/master/src/main/java/geocode/kdtree/KDTree.java
+ * https://algorist.com/problems/Kd-Trees.html
+ * https://github.com/phishman3579/java-algorithms-implementation/blob/master/src/com/jwetherell/algorithms/data_structures/KdTree.java
+ *
+ * @param <TItem> The specific type of data that the index is for.
+ */
+public class KDTree<TItem>
+{
+    /**
+     * Two pointers into {@link #perm} represent a subset of the points.
+     * This is used for permuting the order of the points as the algorithm builds the kd-tree.
+     */
+    public int[] perm;
+
+    /**
+     * The root of the {@link KDTree}.
+     */
+    public KDNode root;
+
+    /**
+     * The points that are being indexed.
+     */
+    public List<TItem> points;
+
+    /**
+     * The cut-off number for the buckets.
+     * This is how many points to store in a bucket.
+     */
+    public int cutoff = 1;
+
+    /**
+     * This is the logic to extract the d-th dimensional coordinate for the given item.
+     * The first argument is the item.
+     * The second argument is the dimension to extract. Zero based.
+     */
+    public final BiFunction<TItem, Integer, Double> coordinateExtractor;
+
+    public KDTree(BiFunction<TItem, Integer, Double> extractor) {coordinateExtractor = extractor;}
+
+    /**
+     * The points to index.
+     *
+     * @param points The points to index.
+     */
+    public void index(List<TItem> points)
+    {
+        // Save the points:
+        this.points = points;
+
+        // Define constants:
+        int n = points.size();
+
+        // Initialise the arrays:
+        this.perm = new int[n];
+
+        // The tree is built by this code:
+        for (int i = 0; i < n; i++)
+        {
+            perm[i] = i;
+        }
+
+        // Build the kd-tree:
+        root = build(0, 0, n - 1);
+    }
+
+    /**
+     * Builds the node for the given bounds recursively.
+     *
+     * @param level The level that we are building. 0 is the root level.
+     * @param l     The lower bound to build.
+     * @param u     The upper bound to build.
+     * @return The node that was built.
+     */
+    public KDNode build(int level, int l, int u)
+    {
+        // Create the node:
+        KDNode p = new KDNode();
+
+        // Save the level of this node:
+        p.level = level;
+
+        // Check whether we are below the cutoff to make a bucket:
+        if (u - l + 1 <= cutoff)
+        {
+            // We are at our cutoff limit to create a bucket.
+            p.bucket = true; // 1
+            p.lopt = l;
+            p.hipt = u;
+        }
+        else
+        {
+            // We are not small enough to make a bucket, we are still an intermediate node.
+            p.bucket = false; // 0
+            p.cutdim = findmaxspread(l, u, p);
+            int m = (l + u) / 2;
+            select(l, u, m, p.cutdim);
+            p.cutval = px(m, p.cutdim);
+            p.loson = build(level + 1, l, m);
+            p.hison = build(level + 1, m + 1, u);
+        }
+        return p;
+    }
+
+    /**
+     * Returns the dimension with largest difference between minimum and maximum among the points in perm[l..u].
+     * This step makes this an optimized kd-tree.
+     * We will reduce the time of build by finding the dimension of maximum spread in a sample of
+     * the point set of size sqrt(N); the cost of partitioning after the sample is O(N).
+     *
+     * @param l    The lower bound to search.
+     * @param u    The upper bound to search.
+     * @param node The node that we are processing. This is useful for context.
+     * @return The dimension with the largest difference between minimum and maximum among the points in perm[l..u]
+     */
+    public int findmaxspread(int l, int u, KDNode node)
+    {
+        // The original kd-tree alternates between dimensions at each level of the tree.
+        return node.level % 2;
+    }
+
+    /**
+     * The function px(i,j) accesses the j-th coordinate of point perm[i].
+     *
+     * @param i The i-th point from perm[i] to get the j-th coordinate for.
+     * @param j The j-th coordinate of point perm[i].
+     * @return The j-th coordinate of point perm[i].
+     */
+    public double px(int i, int j)
+    {
+        return x(this.perm[i], j);
+    }
+
+    /**
+     * The function x ( i , j ) accesses the j-th dimension of point i.
+     *
+     * @param i The i-th point to get the j-th coordinate for.
+     * @param j The j-th coordinate of point i.
+     * @return The j-th coordinate of point i.
+     */
+    public double x(int i, int j)
+    {
+        return this.coordinateExtractor.apply(this.points.get(i), j);
+    }
+
+    /**
+     * The function select permutes perm[l..u] such that perm[m] contains a point
+     * that is not greater in the p->cutdim-th dimension than any point to its left,
+     * and is similarly not less than the points to its right.
+     * <p>
+     * The bulk of the time of building a tree is now spent in the select function
+     * (which uses a median-of-three partition, which is a sample of size 3).
+     * We could reduce that time by using the selection algorithm of Floyd and Rivest [1975],
+     * which uses a sample of size (roughly) sqrt(N) to find the median in (roughly) 3N/2 comparisons.
+     * Instead, we will compute the true median of a sample of size sqrt(N) elements,
+     * and partition around that value (which approximates the median of the set) in just N comparisons
+     * <p>
+     * @param l The lower bound to select in.
+     * @param u The upper bound to select in.
+     * @param m The middle of the bound.
+     * @param d The dimension to select.
+     */
+    public void select(int l, int u, int m, int d)
+    {
+        SELECT(perm, l, u, m, d, this::x );
+    }
+
+    /**
+     * SELECT will rearrange the values of array segment X[L:R]
+     * so that X[K] (for some given K; L <= K <= R) will contain the (K-L+1)-th smallest value,
+     * L <= I <= K will imply X[I] <= X[K],
+     * and K <= I <= R will imply X[I] >= X[K].
+     * <p>
+     * While SELECT is thus functionally equivalent to Hoare's algorothm FIND,
+     * it is significantly faster on the average due to the effective use of sampling
+     * to determine the element T about which to partition X.
+     * <p>
+     * The arbitrary constants 600, .5, and .5 appearing in the algorithm minimize execution time on the particular machine used.
+     * <p>
+     * SELECT has been shown to run in time asymptotically proportional to N + min(I,N-1),
+     * where N = L - R + 1 and I = K - L + 1.
+     * <p>
+     * A lower bound on the running time within 9 percent of this value has also been proved.
+     * <p>
+     * This is taken from:
+     * Algorithm 489: The algorithm SELECT—For finding the i th smallest of n elements [m1]
+     * <p>
+     * Floyd, Robert W., and Ronald L. Rivest. "Algorithm 489: The algorithm SELECT—For finding the i th smallest of n elements [m1]." Communications of the ACM 18.3 (1975): 173.
+     *
+     * @param X The array of index pointers (to points) to rearrange the values in.
+     * @param L The lower bound to select in.
+     * @param R The upper bound to select in.
+     * @param K The kth item that we want to select.
+     * @param d The dimension to select.
+     * @param XSampler This samples the point for the given index. The first argument is the index of the point to sample. The second argument is the dimension to sample.
+     */
+    public static void SELECT(int[] X, int L, int R, int K, int d, BiFunction<Integer, Integer, Double> XSampler)
+    {
+        // Algorithm 489: The algorithm SELECT—For finding the i th smallest of n elements [m1]
+
+        // Constants:
+        final int THRESHOLD = 600;
+        final double S_FACTOR = 0.5;
+        final double SD_FACTOR = 0.5;
+
+        // Variables:
+        int N, I, J, S, SD, LL, RR;
+        double Z, T;
+
+        // The algorithm:
+        while (R > L)
+        {
+            if (R - L > THRESHOLD)
+            {
+                // Use SELECT recursively on a sample of size S
+                // to get an estimate for the (K-L+1)-th smallest element into X[K],
+                // biased slightly so that the (K-L+1)-th
+                // element is expected to lie in the smaller set after partitioning.
+                N = R - L + 1;
+                I = K - L + 1;
+                Z = Math.log(N);
+                S = (int) (S_FACTOR * Math.exp(2 * Z / 3));
+                SD = (int) (SD_FACTOR * Math.sqrt(Z * S * (N - S) / N) * Math.signum(1 - N / 2));
+                LL = Math.max(L, K - 1 * S/N + SD);
+                RR = Math.min(R, K + (N-1) * S/N + SD);
+                SELECT(X, LL, RR, K, d, XSampler);
+            }
+            T = XSampler.apply(X[K], d);
+            // The following code partitions X[L : R] about T.
+            // It is similar to PARTITION but will run faster on most
+            // machines since subscript range checking on I and J has been eliminated.
+            I = L;
+            J = R;
+
+            // exchange(X[L],X[K]);
+            {
+                int exchangeTemp = X[L];
+                X[L] = X[K];
+                X[K] = exchangeTemp;
+            }
+
+            if (XSampler.apply(X[R], d) > T)
+            {
+                // exchange(X[R],X[L]);
+                {
+                    int exchangeTemp = X[R];
+                    X[R] = X[L];
+                    X[L] = exchangeTemp;
+                }
+            }
+
+            while (I < J)
+            {
+                // exchange(X[I],X[J]);
+                {
+                    int exchangeTemp = X[I];
+                    X[I] = X[J];
+                    X[J] = exchangeTemp;
+                }
+                // I = I + 1; J = J - 1;
+                I++; J--;
+                while (XSampler.apply(X[I],d) < T) I++;
+                while (XSampler.apply(X[J],d) > T) J--;
+            }
+
+            if (XSampler.apply(X[L], d) == T)
+            {
+                // exchange(X[L],X[J]);
+                {
+                    int exchangeTemp = X[L];
+                    X[L] = X[J];
+                    X[J] = exchangeTemp;
+                }
+            }
+            else
+            {
+                // J = J + 1;
+                J++;
+                // exchange(X[J],X[R]);
+                {
+                    int exchangeTemp = X[J];
+                    X[J] = X[R];
+                    X[R] = exchangeTemp;
+                }
+            }
+            // Now adjust L, R so that they surround the subset containing the
+            // (K-L+1)-th smallest element.
+            if (J <= K) L = J + 1;
+            if (K <= J) R = J - 1;
+        }
+    }
+
+}

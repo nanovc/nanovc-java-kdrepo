@@ -333,3 +333,45 @@ author={Bentley, Jon Louis and Friedman, Jerome H},
 year={1978},
 publisher={Computer Science Department, Carnegie-Mellon Univ.}
 }
+
+
+
+
+
+
+### Expected time bounds for selection
+| Field         | Value                                                                                                                        |
+|---------------|------------------------------------------------------------------------------------------------------------------------------|
+| title         | Expected time bounds for selection                                                                                           |
+| type          | Article                                                                                                                      |
+| authors       | Robert W Floyd, Ronald L Rivest                                                                                              |
+| journal       | Communications of the ACM                                                                                                    |
+| volume        | 18                                                                                                                           |
+| number        | 3                                                                                                                            |
+| pages         | 165-172                                                                                                                      |
+| publisher     | ACM New York, NY, USA                                                                                                        |
+| year          | 1975                                                                                                                         |
+| doi           | https://dl.acm.org/doi/abs/10.1145/360680.360691                                                                             |
+| url           | https://dl.acm.org/doi/pdf/10.1145/360680.360691                                                                             |
+| pdf           | [360680.360691 - Expected Time Bounds for Selection.pdf](360680.360691%20-%20Expected%20Time%20Bounds%20for%20Selection.pdf) |
+| last-accessed | 10 Jan 2024                                                                                                                  |
+
+#### Citation:
+Floyd, Robert W., and Ronald L. Rivest. "Expected time bounds for selection." Communications of the ACM 18.3 (1975): 165-172.
+Floyd, R. W., & Rivest, R. L. (1975). Expected time bounds for selection. Communications of the ACM, 18(3), 165-172.
+Floyd, Robert W., and Ronald L. Rivest. "Expected time bounds for selection." Communications of the ACM 18, no. 3 (1975): 165-172.
+Floyd, R.W. and Rivest, R.L., 1975. Expected time bounds for selection. Communications of the ACM, 18(3), pp.165-172.
+Floyd RW, Rivest RL. Expected time bounds for selection. Communications of the ACM. 1975 Mar 1;18(3):165-72.
+
+### Bibtex:
+@article{floyd1975expected,
+title={Expected time bounds for selection},
+author={Floyd, Robert W and Rivest, Ronald L},
+journal={Communications of the ACM},
+volume={18},
+number={3},
+pages={165--172},
+year={1975},
+publisher={ACM New York, NY, USA}
+}
+

@@ -375,3 +375,42 @@ year={1975},
 publisher={ACM New York, NY, USA}
 }
 
+
+
+
+
+### Algorithm 489: The algorithm SELECT—For finding the i th smallest of n elements [m1]
+| Field         | Value                                                                                                                                                                                                                                          |
+|---------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| title         | Algorithm 489: The algorithm SELECT—For finding the i th smallest of n elements [m1]                                                                                                                                                           |
+| type          | Article                                                                                                                                                                                                                                        |
+| authors       | Robert W Floyd, Ronald L Rivest                                                                                                                                                                                                                |
+| journal       | Communications of the ACM                                                                                                                                                                                                                      |
+| volume        | 18                                                                                                                                                                                                                                             |
+| number        | 3                                                                                                                                                                                                                                              |
+| pages         | 173                                                                                                                                                                                                                                            |
+| publisher     | ACM New York, NY, USA                                                                                                                                                                                                                          |
+| year          | 1975                                                                                                                                                                                                                                           |
+| doi           | https://dl.acm.org/doi/abs/10.1145/360680.360694                                                                                                                                                                                               |
+| url           | https://dl.acm.org/doi/pdf/10.1145/360680.360694                                                                                                                                                                                               |
+| pdf           | [360680.360694 - Algorithm 489 - The Algorithm SELECT - for finding the ith smallest of n elements.pdf](360680.360694%20-%20Algorithm%20489%20-%20The%20Algorithm%20SELECT%20-%20for%20finding%20the%20ith%20smallest%20of%20n%20elements.pdf) |
+| last-accessed | 10 Jan 2024                                                                                                                                                                                                                                    |
+
+#### Citation:
+Floyd, Robert W., and Ronald L. Rivest. "Algorithm 489: The algorithm SELECT—For finding the i th smallest of n elements [m1]." Communications of the ACM 18.3 (1975): 173.
+Floyd, R. W., & Rivest, R. L. (1975). Algorithm 489: The algorithm SELECT—For finding the i th smallest of n elements [m1]. Communications of the ACM, 18(3), 173.
+Floyd, Robert W., and Ronald L. Rivest. "Algorithm 489: The algorithm SELECT—For finding the i th smallest of n elements [m1]." Communications of the ACM 18, no. 3 (1975): 173.
+Floyd, R.W. and Rivest, R.L., 1975. Algorithm 489: The algorithm SELECT—For finding the i th smallest of n elements [m1]. Communications of the ACM, 18(3), p.173.
+Floyd RW, Rivest RL. Algorithm 489: The algorithm SELECT—For finding the i th smallest of n elements [m1]. Communications of the ACM. 1975 Mar 1;18(3):173.
+
+### Bibtex:
+@article{floyd1975algorithm,
+title={Algorithm 489: The algorithm SELECT—For finding the i th smallest of n elements [m1]},
+author={Floyd, Robert W and Rivest, Ronald L},
+journal={Communications of the ACM},
+volume={18},
+number={3},
+pages={173},
+year={1975},
+publisher={ACM New York, NY, USA}
+}

@@ -181,18 +181,6 @@ public class KDTree<TItem>
     /**
      * This finds the nearest item in the index to the given item.
      *
-     * @param item The item to search for.
-     * @return The nearest item to the given item.
-     */
-    public TItem searchNearest(TItem item)
-    {
-        // TODO
-        return null;
-    }
-
-    /**
-     * This finds the nearest item in the index to the given item.
-     *
      * @param pointIndex The index of the point to search for.
      * @return The nearest item to the given item.
      */
@@ -207,6 +195,13 @@ public class KDTree<TItem>
      * The target for the nearest neighbour search.
      */
     private int nntarget;
+
+    /**
+     * This is the nearest neighbour target item to search for.
+     * This is assumed to usually be outside the indexed set of points.
+     * This is our modification of the original algorithm to support this type of query.
+     */
+    private TItem nnTargetItem;
 
     /**
      * The nearest neighbour point number that has been found.
@@ -240,6 +235,8 @@ public class KDTree<TItem>
      * in which the difference between point coordinates in any single
      * dimension does not exceed the metric distance; the Minkowski
      * L 1, L 2 and L inf. metrics all display this property.
+     * @param j The index of the point to search for.
+     * @return The index in perm of the nearest neighbour to the given point index.
      */
     public int nn(int j)
     {
@@ -283,11 +280,84 @@ public class KDTree<TItem>
     }
 
     /**
+     * This finds the nearest item in the index to the given item.
+     * This is assumed that the given point is not necessarily one of the indexed points.
+     * This is our modification of the original algorithm to support this type of query.
+     * We try to keep the algorithm as close to the original as possible.
+     *
+     * @param item The item to search for.
+     * @return The nearest item to the given item.
+     */
+    public TItem searchNearest(TItem item)
+    {
+        int nearestIndex = nn_WithExternalTarget(item);
+        return this.points.get(nearestIndex);
+    }
+
+    /**
+     * The nn function in Program 2.2 computes the nearest
+     * neighbor to a point. The external (global) variables are used
+     * by the recursive procedure rnn, which does the work. At a
+     * bucket node, rnn performs a sequential nearest neighbor
+     * search. At an internal node, the search first proceeds down
+     * the closer son, and then searches the farther son only if
+     * necessary. (The function x ( i , j ) accesses the j-th dimension
+     * of point i.) These functions are correct for any metric
+     * in which the difference between point coordinates in any single
+     * dimension does not exceed the metric distance; the Minkowski
+     * L 1, L 2 and L inf. metrics all display this property.
+     * @param nnTargetItem The target item to search for nearest neighbours to. This is assumed to be outside the indexed set.
+     * @return The index in perm of the nearest neighbour to the given item.
+     */
+    public int nn_WithExternalTarget(TItem nnTargetItem)
+    {
+        this.nnTargetItem = nnTargetItem;
+        nndist = Double.MAX_VALUE;
+        rnn_WithExternalTarget(root);
+        return nnptnum;
+    }
+
+    private void rnn_WithExternalTarget(KDNode p)
+    {
+        if (p.bucket)
+        {
+            for (int i = p.lopt; i <= p.hipt; i++)
+            {
+                //double thisdist = dist(perm[i], nntarget);
+                double thisdist = this.distanceMeasurer.apply(this.points.get(this.perm[i]), this.nnTargetItem);
+                if (thisdist < nndist)
+                {
+                    nndist = thisdist;
+                    nnptnum = perm[i];
+                }
+            }
+        }
+        else
+        {
+            double val = p.cutval;
+            //double thisx = x(nntarget, p.cutdim);
+            double thisx = this.coordinateExtractor.apply(nnTargetItem, p.cutdim);
+            if (thisx < val)
+            {
+                rnn_WithExternalTarget(p.loson);
+                if (thisx + nndist > val)
+                    rnn_WithExternalTarget(p.hison);
+            }
+            else
+            {
+                rnn_WithExternalTarget(p.hison);
+                if (thisx - nndist < val)
+                    rnn_WithExternalTarget(p.loson);
+            }
+        }
+    }
+
+    /**
      * The function dist( i , j) returns the distance from point i to point j.
      */
     private double dist(int i, int j)
     {
-        return this.distanceMeasurer.apply(this.points.get(this.perm[i]), this.points.get(this.perm[j]));
+        return this.distanceMeasurer.apply(this.points.get(i), this.points.get(j));
     }
 
     /**

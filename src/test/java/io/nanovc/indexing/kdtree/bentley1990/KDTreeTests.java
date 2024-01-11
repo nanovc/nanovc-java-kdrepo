@@ -38,5 +38,16 @@ class KDTreeTests
         nearest = kdTree.searchNearest(1);
         assertEquals(new XY(2.0, 2.0), nearest);
 
+        nearest = kdTree.searchNearest(new XY(0.9, 0.9));
+        assertEquals(new XY(1.0, 1.0), nearest);
+
+        nearest = kdTree.searchNearest(new XY(1.1, 1.1));
+        assertEquals(new XY(1.0, 1.0), nearest);
+
+        nearest = kdTree.searchNearest(new XY(1.9, 1.9));
+        assertEquals(new XY(2.0, 2.0), nearest);
+
+        nearest = kdTree.searchNearest(new XY(2.1, 2.1));
+        assertEquals(new XY(2.0, 2.0), nearest);
     }
 }

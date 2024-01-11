@@ -1,9 +1,6 @@
 package io.nanovc.indexing.kdtree.bentley1990;
 
-import io.nanovc.indexing.Extractor;
-import io.nanovc.indexing.IndexKD;
-import io.nanovc.indexing.Measurer;
-import io.nanovc.indexing.Operator;
+import io.nanovc.indexing.*;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -40,7 +37,7 @@ public class KDTree<
     TItem,
     TDistance extends Number
     >
-    implements IndexKD<TItem>
+    implements Index1D<TItem>, Index2D<TItem>, IndexKD<TItem>
 {
     /**
      * Two pointers into {@link #perm} represent a subset of the points.

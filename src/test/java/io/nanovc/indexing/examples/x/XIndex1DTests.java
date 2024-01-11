@@ -379,6 +379,9 @@ public abstract class XIndex1DTests
         SingleOrEither<X> expectedClosestToPos2
     )
     {
+        // Allow the index to pre-process after adding and before searching:
+        index.index();
+
         // Create the assertion entries that we need:
         record IndexAssertionEntry(X samplePoint, SingleOrEither<X> expectedNearest) {}
         List<IndexAssertionEntry> assertionEntries = new ArrayList<>();
@@ -993,6 +996,9 @@ public abstract class XIndex1DTests
         // Create a histogram of the distances:
         Map<Integer, Integer> histogram = new TreeMap<>();
 
+        // Allow the index to pre-process after adding and before searching:
+        index.index();
+
         // Query the index by sweeping through it:
         for (int step = (int) (range * 2 / queries), i = (int) -range; i < range; i += step)
         {
@@ -1187,6 +1193,20 @@ public abstract class XIndex1DTests
         @Override protected XRepoIndex1D createIndex(double range)
         {
             return new XRepoIndex1D(new X((int) -range), new X((int) range), Math.max(1, (int) (range / 100)));
+        }
+    }
+
+    public static class KDTreeTests extends XIndex1DTests<XKDTreeIndex1D>
+    {
+
+        /**
+         * A factory method to create an index of the specific type.
+         *
+         * @return A new index of the specific type.
+         */
+        @Override protected XKDTreeIndex1D createIndex(double range)
+        {
+            return new XKDTreeIndex1D();
         }
     }
 

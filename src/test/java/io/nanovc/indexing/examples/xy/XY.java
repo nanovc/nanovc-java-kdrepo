@@ -1,5 +1,9 @@
 package io.nanovc.indexing.examples.xy;
 
+import io.nanovc.indexing.examples.x.X;
+
+import java.util.List;
+
 /**
  * A record for an X and Y coordinate.
  *
@@ -96,5 +100,86 @@ public record XY(double x, double y)
         double diffX = item2.x() - item1.x();
         double diffY = item2.y() - item1.y();
         return Math.max(Math.abs(diffX), Math.abs(diffY));
+    }
+
+    /**
+     * This splits the range given by the two items into the given number of divisions.
+     *
+     * @param o1                         The first item to measure the distance from.
+     * @param o2                         The second item to measure the distance to.
+     * @param divisions                  The number of divisions to split the range into.
+     * @param includeExtraRightMostSplit True to include an extra item in the list (1 more than the requested number of divisions) to represent the right most edge of the range. If this is false then we only have the left edges, leading up to but not including the right part of the range.
+     * @param splitsToAddTo              The collection of splits to add to while we split the range.
+     */
+    public static void splitRange(XY o1, XY o2, int divisions, boolean includeExtraRightMostSplit, List<XY> splitsToAddTo)
+    {
+        final int dimensions = 2;
+        double[] startingValues = new double[dimensions];
+        double[] endingValues = new double[dimensions];
+        double[] ranges = new double[dimensions];
+        double[] steps = new double[dimensions];
+
+        for (int i = 0; i < dimensions; i++)
+        {
+            // Get the range:
+            startingValues[i] = extractCoordinate(o1, i);
+            endingValues[i] = extractCoordinate(o2, i);
+            ranges[i] = endingValues[i] - startingValues[i];
+
+            // Get the step:
+            steps[i] = ranges[i] / divisions;
+
+            // Make sure the step is at least one unit:
+            if (steps[i] == 0.0) steps[i] = 1.0;
+        }
+
+        // Create the splits:
+        XY currentValue = new XY(startingValues[0], startingValues[1]);
+        for (int i = 0;i < divisions;i++)
+        {
+            // Add the item to the splits:
+            splitsToAddTo.add(currentValue);
+
+            // Create the new next:
+            currentValue = new XY(currentValue.x() + steps[0], currentValue.y() + steps[1]);
+        }
+
+        // Add the ending item if desired (NOTE: it means we might have more than the requested (divisions) items in the result, but this is useful to have an entry as the right most edge:
+        if (includeExtraRightMostSplit) splitsToAddTo.add(o2);
+    }
+
+    /**
+     * This finds the division index for an item in a range that is defined by two other items.
+     *
+     * @param o1                The first item to measure the distance from.
+     * @param o2                The second item to measure the distance to.
+     * @param divisions         The number of divisions to split the range into.
+     * @param itemToFindInRange The item to find the index of for the given range.
+     * @param dimension         The index of the dimension to perform the range split in. Zero based.
+     * @return The index of the division of the given item in the range specified.
+     */
+    public static int findIndexInRange(XY o1, XY o2, int divisions, XY itemToFindInRange, int dimension)
+    {
+        // Get the range:
+        double startingValue = extractCoordinate(o1, dimension);
+        double endingValue = extractCoordinate(o2, dimension);
+        double range = endingValue - startingValue;
+
+        // Get the step:
+        double step = range / divisions;
+
+        // Make sure the step is at least one unit:
+        if (step == 0.0) step = 1.0;
+
+        // Get the value for the item to find:
+        double itemToFindValueInDimension = extractCoordinate(itemToFindInRange, dimension);
+
+        // Get the index of the item:
+        int index = (int) ((itemToFindValueInDimension - startingValue) / step);
+
+        // Clamp the value in range:
+        index = Math.max(0, Math.min(index, divisions - 1));
+
+        return index;
     }
 }

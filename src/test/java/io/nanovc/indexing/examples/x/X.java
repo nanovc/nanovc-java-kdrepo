@@ -95,13 +95,14 @@ public record X(int x)
      * @param o2                The second item to measure the distance to.
      * @param divisions         The number of divisions to split the range into.
      * @param itemToFindInRange The item to find the index of for the given range.
+     * @param dimension         The index of the dimension to perform the range split in. Zero based.
      * @return The index of the division of the given item in the range specified.
      */
-    public static int findIndexInRange(X o1, X o2, int divisions, X itemToFindInRange)
+    public static int findIndexInRange(X o1, X o2, int divisions, X itemToFindInRange, int dimension)
     {
         // Get the range:
-        int startingValue = o1.x();
-        int endingValue = o2.x();
+        int startingValue = extractCoordinate(o1, dimension);
+        int endingValue = extractCoordinate(o2, dimension);
         int range = endingValue - startingValue;
 
         // Get the step:
@@ -110,8 +111,11 @@ public record X(int x)
         // Make sure the step is at least one unit:
         if (step == 0) step = 1;
 
+        // Get the value for the item to find:
+        int itemToFindValueInDimension = extractCoordinate(itemToFindInRange, dimension);
+
         // Get the index of the item:
-        int index = (itemToFindInRange.x() - startingValue) / step;
+        int index = (itemToFindValueInDimension - startingValue) / step;
 
         // Clamp the value in range:
         index = Math.max(0, Math.min(index, divisions - 1));

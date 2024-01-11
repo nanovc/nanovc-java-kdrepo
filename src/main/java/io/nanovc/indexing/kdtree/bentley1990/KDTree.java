@@ -584,4 +584,111 @@ public class KDTree<
     {
         this.points.add(item);
     }
+
+
+    @Override
+    public String toString()
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+        toString(stringBuilder);
+        return stringBuilder.toString();
+    }
+
+    public void toString(StringBuilder stringBuilder)
+    {
+        // // Write the details:
+        // stringBuilder.append("Nearest Distance: ");
+        // stringBuilder.append(this.nndist);
+        // stringBuilder.append(":\n");
+
+        // Write out the content for this division:
+        printNodeToStringRecursively(this.root, false, stringBuilder, "", "─");
+    }
+
+    /**
+     * Prints out the current node recursively.
+     *
+     * @param node          The node to process.
+     * @param hasSibling    True to flag that this node has a sibling that comes next. False to say that this node doesn't have a sibling that comes next.
+     * @param stringBuilder The string builder to add to.
+     * @param indent        The indent to prefix with.
+     * @param branchName    L for Low and H for High.
+     */
+    private void printNodeToStringRecursively(KDNode<TDistance> node, boolean hasSibling, StringBuilder stringBuilder, String indent, String branchName)
+    {
+        // Check whether this is the root node:
+        boolean isRootNode = node.level == 0;
+        if (isRootNode)
+        {
+            // This is the root node.
+            stringBuilder.append(">─");
+        }
+        else
+        {
+            // This is not a root node.
+
+            // Add the indent:
+            stringBuilder.append(indent);
+
+            // Check whether this node has a sibling so that we can render the lines correctly:
+            if (hasSibling)
+            {
+                // This node has another sibling that follows.
+
+                // Flag that there are more siblings to come:
+                stringBuilder.append("├─");
+            }
+            else
+            {
+                // This node does not have any more siblings to come.
+
+                // Flag that this is the last node:
+                stringBuilder.append("└─");
+            }
+
+        }
+
+        // Render the children correctly:
+        if (!node.bucket)
+        {
+            // The node has children.
+
+            // Write the node name:
+            stringBuilder.append(branchName);
+            stringBuilder.append("─");
+            stringBuilder.append(node.cutdim + 1);
+            stringBuilder.append("D:");
+            stringBuilder.append(node.cutval);
+
+            // Create the new indent for this child:
+            String nextIndent = indent + (hasSibling ? "│   " : "    ");
+
+            // Create a new line:
+            stringBuilder.append("\n");
+
+            // Print out the left child recursively:
+            printNodeToStringRecursively(node.loson, true, stringBuilder, nextIndent, "L");
+
+            // Create a new line:
+            stringBuilder.append("\n");
+
+            // Print out the left child recursively:
+            printNodeToStringRecursively(node.hison, false, stringBuilder, nextIndent, "H");
+        }
+        else
+        {
+            // This node is a leaf node.
+
+            // Write the branch name:
+            stringBuilder.append(branchName);
+            stringBuilder.append("─");
+
+            // Write all the points in this bucket:
+            for (int i = node.lopt, j = 0; i <= node.hipt ; i++, j++)
+            {
+                if (j > 0) stringBuilder.append(", ");
+                stringBuilder.append(points.get(perm[i]));
+            }
+        }
+    }
 }

@@ -59,7 +59,19 @@ public class KDTree<TItem>
      */
     public final BiFunction<TItem, Integer, Double> coordinateExtractor;
 
-    public KDTree(BiFunction<TItem, Integer, Double> extractor) {coordinateExtractor = extractor;}
+    /**
+     * This is the specific distance measurement that we want to use.
+     * It measures the distance between the two items.
+     */
+    public final BiFunction<TItem, TItem, Double> distanceMeasurer;
+
+    public KDTree(
+        BiFunction<TItem, Integer, Double> extractor,
+        BiFunction<TItem, TItem, Double> measurer)
+    {
+        coordinateExtractor = extractor;
+        distanceMeasurer = measurer;
+    }
 
     /**
      * The points to index.
@@ -167,6 +179,118 @@ public class KDTree<TItem>
     }
 
     /**
+     * This finds the nearest item in the index to the given item.
+     *
+     * @param item The item to search for.
+     * @return The nearest item to the given item.
+     */
+    public TItem searchNearest(TItem item)
+    {
+        // TODO
+        return null;
+    }
+
+    /**
+     * This finds the nearest item in the index to the given item.
+     *
+     * @param pointIndex The index of the point to search for.
+     * @return The nearest item to the given item.
+     */
+    public TItem searchNearest(int pointIndex)
+    {
+        int nearestIndex = nn(pointIndex);
+        return this.points.get(this.perm[nearestIndex]);
+    }
+
+
+    /**
+     * The target for the nearest neighbour search.
+     */
+    private int nntarget;
+
+    /**
+     * The nearest neighbour point number that has been found.
+     */
+    private int nnptnum;
+
+    /**
+     * The distance to the nearest neighbour.
+     */
+    private double nndist;
+
+    /**
+     * The new global variable nndist2 represents the square of nndist.
+     * For the common case of the Euclidean metric,
+     * Sproull also observes that one need not compute the (expensive)
+     * true distance to the nearest neighbor. Computing only
+     * the square of the distance is clearly sufficient within a
+     * bucket.
+     */
+    private double nndist2;
+
+    /**
+     * The nn function in Program 2.2 computes the nearest
+     * neighbor to a point. The external (global) variables are used
+     * by the recursive procedure rnn, which does the work. At a
+     * bucket node, rnn performs a sequential nearest neighbor
+     * search. At an internal node, the search first proceeds down
+     * the closer son, and then searches the farther son only if
+     * necessary. (The function x ( i , j ) accesses the j-th dimension
+     * of point i.) These functions are correct for any metric
+     * in which the difference between point coordinates in any single
+     * dimension does not exceed the metric distance; the Minkowski
+     * L 1, L 2 and L inf. metrics all display this property.
+     */
+    public int nn(int j)
+    {
+        nntarget = j;
+        nndist = Double.MAX_VALUE;
+        rnn(root);
+        return nnptnum;
+    }
+
+    private void rnn(KDNode p)
+    {
+        if (p.bucket)
+        {
+            for (int i = p.lopt; i <= p.hipt; i++)
+            {
+                double thisdist = dist(perm[i], nntarget);
+                if (thisdist < nndist)
+                {
+                    nndist = thisdist;
+                    nnptnum = perm[i];
+                }
+            }
+        }
+        else
+        {
+            double val = p.cutval;
+            double thisx = x(nntarget, p.cutdim);
+            if (thisx < val)
+            {
+                rnn(p.loson);
+                if (thisx + nndist > val)
+                    rnn(p.hison);
+            }
+            else
+            {
+                rnn(p.hison);
+                if (thisx - nndist < val)
+                    rnn(p.loson);
+            }
+        }
+    }
+
+    /**
+     * The function dist( i , j) returns the distance from point i to point j.
+     */
+    private double dist(int i, int j)
+    {
+        return this.distanceMeasurer.apply(this.points.get(this.perm[i]), this.points.get(this.perm[j]));
+    }
+
+    /**
      * The function select permutes perm[l..u] such that perm[m] contains a point
      * that is not greater in the p->cutdim-th dimension than any point to its left,
      * and is similarly not less than the points to its right.
@@ -178,6 +302,7 @@ public class KDTree<TItem>
      * Instead, we will compute the true median of a sample of size sqrt(N) elements,
      * and partition around that value (which approximates the median of the set) in just N comparisons
      * <p>
+     *
      * @param l The lower bound to select in.
      * @param u The upper bound to select in.
      * @param m The middle of the bound.
@@ -185,7 +310,7 @@ public class KDTree<TItem>
      */
     public void select(int l, int u, int m, int d)
     {
-        SELECT(perm, l, u, m, d, this::x );
+        SELECT(perm, l, u, m, d, this::x);
     }
 
     /**
@@ -210,11 +335,11 @@ public class KDTree<TItem>
      * <p>
      * Floyd, Robert W., and Ronald L. Rivest. "Algorithm 489: The algorithm SELECT—For finding the i th smallest of n elements [m1]." Communications of the ACM 18.3 (1975): 173.
      *
-     * @param X The array of index pointers (to points) to rearrange the values in.
-     * @param L The lower bound to select in.
-     * @param R The upper bound to select in.
-     * @param K The kth item that we want to select.
-     * @param d The dimension to select.
+     * @param X        The array of index pointers (to points) to rearrange the values in.
+     * @param L        The lower bound to select in.
+     * @param R        The upper bound to select in.
+     * @param K        The kth item that we want to select.
+     * @param d        The dimension to select.
      * @param XSampler This samples the point for the given index. The first argument is the index of the point to sample. The second argument is the dimension to sample.
      */
     public static void SELECT(int[] X, int L, int R, int K, int d, BiFunction<Integer, Integer, Double> XSampler)
@@ -244,8 +369,8 @@ public class KDTree<TItem>
                 Z = Math.log(N);
                 S = (int) (S_FACTOR * Math.exp(2 * Z / 3));
                 SD = (int) (SD_FACTOR * Math.sqrt(Z * S * (N - S) / N) * Math.signum(1 - N / 2));
-                LL = Math.max(L, K - 1 * S/N + SD);
-                RR = Math.min(R, K + (N-1) * S/N + SD);
+                LL = Math.max(L, K - 1 * S / N + SD);
+                RR = Math.min(R, K + (N - 1) * S / N + SD);
                 SELECT(X, LL, RR, K, d, XSampler);
             }
             T = XSampler.apply(X[K], d);
@@ -281,9 +406,10 @@ public class KDTree<TItem>
                     X[J] = exchangeTemp;
                 }
                 // I = I + 1; J = J - 1;
-                I++; J--;
-                while (XSampler.apply(X[I],d) < T) I++;
-                while (XSampler.apply(X[J],d) > T) J--;
+                I++;
+                J--;
+                while (XSampler.apply(X[I], d) < T) I++;
+                while (XSampler.apply(X[J], d) > T) J--;
             }
 
             if (XSampler.apply(X[L], d) == T)

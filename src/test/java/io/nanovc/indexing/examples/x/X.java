@@ -22,6 +22,21 @@ public record X(int x)
     }
 
     /**
+     * Extracts the coordinate for the given dimension.
+     *
+     * @param dimension The dimension to extract.
+     * @return The coordinate for the given dimension.
+     */
+    public static int extractCoordinate(X item, Integer dimension)
+    {
+        return switch (dimension)
+        {
+            case 0 -> item.x();
+            default -> throw new IllegalStateException("Unexpected value: " + dimension);
+        };
+    }
+
+    /**
      * Measures the distance between two items.
      *
      * @param item1 The first item.

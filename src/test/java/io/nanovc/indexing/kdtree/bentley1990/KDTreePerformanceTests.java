@@ -1,6 +1,7 @@
 package io.nanovc.indexing.kdtree.bentley1990;
 
 import io.nanovc.indexing.examples.xy.XY;
+import io.nanovc.indexing.examples.xy.XYKDTree;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -124,7 +125,7 @@ public class KDTreePerformanceTests
     public void compareCorrectnessAgainstLinearIndex(int addCount , int addMin, int addMax , int addSeed , int searchCount , int searchMin , int searchMax , int searchSeed , String scenario , String comment)
     {
         // Create the index:
-        var testedIndex = new KDTree<>(XY::extractCoordinate, XY::measureDistanceL2NormEuclidean);
+        var testedIndex = new XYKDTree();
 
         // Create the random number generators:
         Random addRandom = new Random(addSeed);

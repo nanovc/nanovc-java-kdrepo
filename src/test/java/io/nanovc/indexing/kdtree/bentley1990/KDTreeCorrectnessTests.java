@@ -3,6 +3,7 @@ package io.nanovc.indexing.kdtree.bentley1990;
 import io.nanovc.indexing.examples.x.X;
 import io.nanovc.indexing.examples.x.XRepoIndex1D;
 import io.nanovc.indexing.examples.xy.XY;
+import io.nanovc.indexing.examples.xy.XYKDTree;
 import io.nanovc.indexing.examples.xy.XYLinearIndex2D;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -45,7 +46,7 @@ public class KDTreeCorrectnessTests
     {
         // Create the indexes:
         var referenceIndex = new XYLinearIndex2D();
-        var testedIndex = new KDTree<>(XY::extractCoordinate, XY::measureDistanceL2NormEuclidean);
+        var testedIndex = new XYKDTree();
 
         // Create the random number generators:
         Random addRandom = new Random(addSeed);
@@ -74,18 +75,18 @@ public class KDTreeCorrectnessTests
             XY item = new XY(searchRandom.nextDouble(searchMin, searchMax), searchRandom.nextDouble(searchMin, searchMax));
 
             // Query the indexes:
-            XY nearestLinear = referenceIndex.searchNearest(item);
-            XY nearestKDTree = testedIndex.searchNearest(item);
+            XY nearestReference = referenceIndex.searchNearest(item);
+            XY nearestTested = testedIndex.searchNearest(item);
 
             // For debugging when the values are different, put a breakpoint in the next line:
-            if (!nearestLinear.equals(nearestKDTree))
+            if (!nearestReference.equals(nearestTested))
             {
                 testedIndex.searchNearest(item);
             }
 
             // Make sure that the results are the same:
             assertEquals(
-                nearestLinear, nearestKDTree,
+                nearestReference, nearestTested,
                 () ->
                     "Scenario: " + scenario + (comment.isEmpty() ? "" : " [" + comment + "]") + "\n"+
                     "Input was: " + item + "\n" +

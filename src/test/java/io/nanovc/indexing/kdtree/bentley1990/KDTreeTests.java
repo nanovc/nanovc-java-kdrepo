@@ -1,6 +1,7 @@
 package io.nanovc.indexing.kdtree.bentley1990;
 
 import io.nanovc.indexing.examples.xy.XY;
+import io.nanovc.indexing.examples.xy.XYKDTree;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -15,13 +16,13 @@ class KDTreeTests
     @Test
     public void creationTest()
     {
-        new KDTree<XY>(XY::extractCoordinate, XY::measureDistanceL2NormEuclidean);
+        new XYKDTree();
     }
 
     @Test
     public void test_X1Y1_X2Y2()
     {
-        KDTree<XY> kdTree = new KDTree<>(XY::extractCoordinate, XY::measureDistanceL2NormEuclidean);
+        XYKDTree kdTree = new XYKDTree();
 
         var items = new ArrayList<XY>();
         items.add(new XY(1.0, 1.0));
@@ -55,7 +56,7 @@ class KDTreeTests
     @Test
     public void test_X1Y1_X1YNeg1_XNeg1YNeg1_XNeg1Y1()
     {
-        KDTree<XY> kdTree = new KDTree<>(XY::extractCoordinate, XY::measureDistanceL2NormEuclidean);
+        XYKDTree kdTree = new XYKDTree();
 
         var items = new ArrayList<XY>();
         items.add(new XY(1.0, 1.0));

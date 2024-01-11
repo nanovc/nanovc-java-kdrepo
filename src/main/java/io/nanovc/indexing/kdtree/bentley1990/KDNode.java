@@ -2,8 +2,12 @@ package io.nanovc.indexing.kdtree.bentley1990;
 
 /**
  * A node in the {@link KDTree}.
+ *
+ * @param <TDistance> The type for the distance between the items.
  */
-public class KDNode
+public class KDNode<
+    TDistance
+    >
 {
     /**
      * The depth of this node in the kd-tree.
@@ -25,7 +29,7 @@ public class KDNode
     /**
      * A value in the {@link #cutdim} dimension.
      */
-    public double cutval;
+    public TDistance cutval;
 
     /**
      * The pointer to the low son subtree.

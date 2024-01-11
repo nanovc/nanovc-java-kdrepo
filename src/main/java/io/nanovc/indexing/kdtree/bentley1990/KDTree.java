@@ -1,8 +1,12 @@
 package io.nanovc.indexing.kdtree.bentley1990;
 
+import io.nanovc.indexing.Extractor;
 import io.nanovc.indexing.IndexKD;
+import io.nanovc.indexing.Measurer;
+import io.nanovc.indexing.Operator;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiFunction;
 
@@ -29,9 +33,14 @@ import java.util.function.BiFunction;
  * https://algorist.com/problems/Kd-Trees.html
  * https://github.com/phishman3579/java-algorithms-implementation/blob/master/src/com/jwetherell/algorithms/data_structures/KdTree.java
  *
- * @param <TItem> The specific type of data that the index is for.
+ * @param <TItem>               The specific type of data that the index is for.
+ * @param <TDistance>           The type for the distance between the items.
  */
-public class KDTree<TItem> implements IndexKD<TItem>
+public class KDTree<
+    TItem,
+    TDistance extends Number
+    >
+    implements IndexKD<TItem>
 {
     /**
      * Two pointers into {@link #perm} represent a subset of the points.
@@ -60,20 +69,57 @@ public class KDTree<TItem> implements IndexKD<TItem>
      * The first argument is the item.
      * The second argument is the dimension to extract. Zero based.
      */
-    public final BiFunction<TItem, Integer, Double> coordinateExtractor;
+    public final Extractor<TItem, TDistance> coordinateExtractor;
 
     /**
      * This is the specific distance measurement that we want to use.
      * It measures the distance between the two items.
      */
-    public final BiFunction<TItem, TItem, Double> distanceMeasurer;
+    public final Measurer<TItem, TDistance> distanceMeasurer;
+
+    /**
+     * This is the specific distance comparator that we want to us.
+     * It compares the distances between items.
+     */
+    public final Comparator<TDistance> distanceComparator;
+
+    /**
+     * The logic to add distances.
+     */
+    public final Operator<TDistance> distanceAdder;
+
+    /**
+     * The logic to subtract distances.
+     */
+    public final Operator<TDistance> distanceSubtractor;
+
+    /**
+     * This is the maximum distance amount.
+     */
+    public final TDistance maxDistance;
+
+    /**
+     * The number of dimensions for this kd-Tree.
+     */
+    public final int numberOfDimensions;
 
     public KDTree(
-        BiFunction<TItem, Integer, Double> extractor,
-        BiFunction<TItem, TItem, Double> measurer)
+        Extractor<TItem, TDistance> extractor,
+        Measurer<TItem, TDistance> measurer,
+        Comparator<TDistance> distanceComparator,
+        Operator<TDistance> distanceAdder,
+        Operator<TDistance> distanceSubtractor,
+        TDistance maxDistance,
+        int numberOfDimensions
+    )
     {
-        coordinateExtractor = extractor;
-        distanceMeasurer = measurer;
+        this.coordinateExtractor = extractor;
+        this.distanceMeasurer = measurer;
+        this.distanceComparator = distanceComparator;
+        this.distanceAdder = distanceAdder;
+        this.distanceSubtractor = distanceSubtractor;
+        this.maxDistance = maxDistance;
+        this.numberOfDimensions = numberOfDimensions;
     }
 
     /**
@@ -162,7 +208,7 @@ public class KDTree<TItem> implements IndexKD<TItem>
     public int findmaxspread(int l, int u, KDNode node)
     {
         // The original kd-tree alternates between dimensions at each level of the tree.
-        return node.level % 2;
+        return node.level % numberOfDimensions;
     }
 
     /**
@@ -172,7 +218,7 @@ public class KDTree<TItem> implements IndexKD<TItem>
      * @param j The j-th coordinate of point perm[i].
      * @return The j-th coordinate of point perm[i].
      */
-    public double px(int i, int j)
+    public TDistance px(int i, int j)
     {
         return x(this.perm[i], j);
     }
@@ -184,9 +230,9 @@ public class KDTree<TItem> implements IndexKD<TItem>
      * @param j The j-th coordinate of point i.
      * @return The j-th coordinate of point i.
      */
-    public double x(int i, int j)
+    public TDistance x(int i, int j)
     {
-        return this.coordinateExtractor.apply(this.points.get(i), j);
+        return this.coordinateExtractor.extractDimensionalValue(this.points.get(i), j);
     }
 
     /**
@@ -222,7 +268,7 @@ public class KDTree<TItem> implements IndexKD<TItem>
     /**
      * The distance to the nearest neighbour.
      */
-    private double nndist;
+    private TDistance nndist;
 
     /**
      * The new global variable nndist2 represents the square of nndist.
@@ -232,7 +278,7 @@ public class KDTree<TItem> implements IndexKD<TItem>
      * the square of the distance is clearly sufficient within a
      * bucket.
      */
-    private double nndist2;
+    private TDistance nndist2;
 
     /**
      * The nn function in Program 2.2 computes the nearest
@@ -252,19 +298,20 @@ public class KDTree<TItem> implements IndexKD<TItem>
     public int nn(int j)
     {
         nntarget = j;
-        nndist = Double.MAX_VALUE;
+        nndist = maxDistance;
         rnn(root);
         return nnptnum;
     }
 
-    private void rnn(KDNode p)
+    private void rnn(KDNode<TDistance> p)
     {
         if (p.bucket)
         {
             for (int i = p.lopt; i <= p.hipt; i++)
             {
-                double thisdist = dist(perm[i], nntarget);
-                if (thisdist < nndist)
+                TDistance thisdist = dist(perm[i], nntarget);
+                //if (thisdist < nndist)
+                if (distanceComparator.compare(thisdist,nndist) < 0)
                 {
                     nndist = thisdist;
                     nnptnum = perm[i];
@@ -273,18 +320,21 @@ public class KDTree<TItem> implements IndexKD<TItem>
         }
         else
         {
-            double val = p.cutval;
-            double thisx = x(nntarget, p.cutdim);
-            if (thisx < val)
+            TDistance val = p.cutval;
+            TDistance thisx = x(nntarget, p.cutdim);
+            //if (thisx < val)
+            if (distanceComparator.compare(thisx, val) < 0)
             {
                 rnn(p.loson);
-                if (thisx + nndist > val)
+                //if (thisx + nndist > val)
+                if (distanceComparator.compare(distanceAdder.performOperation(thisx,nndist), val) > 0)
                     rnn(p.hison);
             }
             else
             {
                 rnn(p.hison);
-                if (thisx - nndist < val)
+                //if (thisx - nndist < val)
+                if (distanceComparator.compare(distanceSubtractor.performOperation(thisx,nndist), val) < 0)
                     rnn(p.loson);
             }
         }
@@ -323,20 +373,21 @@ public class KDTree<TItem> implements IndexKD<TItem>
     public int nn_WithExternalTarget(TItem nnTargetItem)
     {
         this.nnTargetItem = nnTargetItem;
-        nndist = Double.MAX_VALUE;
+        nndist = maxDistance;
         rnn_WithExternalTarget(root);
         return nnptnum;
     }
 
-    private void rnn_WithExternalTarget(KDNode p)
+    private void rnn_WithExternalTarget(KDNode<TDistance> p)
     {
         if (p.bucket)
         {
             for (int i = p.lopt; i <= p.hipt; i++)
             {
                 //double thisdist = dist(perm[i], nntarget);
-                double thisdist = this.distanceMeasurer.apply(this.points.get(this.perm[i]), this.nnTargetItem);
-                if (thisdist < nndist)
+                TDistance thisdist = this.distanceMeasurer.measureDistanceBetween(this.points.get(this.perm[i]), this.nnTargetItem);
+                //if (thisdist < nndist)
+                if (distanceComparator.compare(thisdist, nndist) < 0)
                 {
                     nndist = thisdist;
                     nnptnum = perm[i];
@@ -345,19 +396,22 @@ public class KDTree<TItem> implements IndexKD<TItem>
         }
         else
         {
-            double val = p.cutval;
+            TDistance val = p.cutval;
             //double thisx = x(nntarget, p.cutdim);
-            double thisx = this.coordinateExtractor.apply(nnTargetItem, p.cutdim);
-            if (thisx < val)
+            TDistance thisx = this.coordinateExtractor.extractDimensionalValue(nnTargetItem, p.cutdim);
+            //if (thisx < val)
+            if (distanceComparator.compare(thisx, val) < 0)
             {
                 rnn_WithExternalTarget(p.loson);
-                if (thisx + nndist > val)
+                //if (thisx + nndist > val)
+                if (distanceComparator.compare(distanceAdder.performOperation(thisx, nndist), val) > 0)
                     rnn_WithExternalTarget(p.hison);
             }
             else
             {
                 rnn_WithExternalTarget(p.hison);
-                if (thisx - nndist < val)
+                // if (thisx - nndist < val)
+                if (distanceComparator.compare(distanceSubtractor.performOperation(thisx, nndist), val) < 0)
                     rnn_WithExternalTarget(p.loson);
             }
         }
@@ -366,9 +420,9 @@ public class KDTree<TItem> implements IndexKD<TItem>
     /**
      * The function dist( i , j) returns the distance from point i to point j.
      */
-    private double dist(int i, int j)
+    private TDistance dist(int i, int j)
     {
-        return this.distanceMeasurer.apply(this.points.get(i), this.points.get(j));
+        return this.distanceMeasurer.measureDistanceBetween(this.points.get(i), this.points.get(j));
     }
 
     /**
@@ -423,7 +477,7 @@ public class KDTree<TItem> implements IndexKD<TItem>
      * @param d        The dimension to select.
      * @param XSampler This samples the point for the given index. The first argument is the index of the point to sample. The second argument is the dimension to sample.
      */
-    public static void SELECT(int[] X, int L, int R, int K, int d, BiFunction<Integer, Integer, Double> XSampler)
+    public void SELECT(int[] X, int L, int R, int K, int d, BiFunction<Integer, Integer, TDistance> XSampler)
     {
         // Algorithm 489: The algorithm SELECT—For finding the i th smallest of n elements [m1]
 
@@ -434,7 +488,8 @@ public class KDTree<TItem> implements IndexKD<TItem>
 
         // Variables:
         int N, I, J, S, SD, LL, RR;
-        double Z, T;
+        Number Z;
+        TDistance T;
 
         // The algorithm:
         while (R > L)
@@ -448,10 +503,10 @@ public class KDTree<TItem> implements IndexKD<TItem>
                 N = R - L + 1;
                 I = K - L + 1;
                 Z = Math.log(N);
-                S = (int) (S_FACTOR * Math.exp(2 * Z / 3));
-                SD = (int) (SD_FACTOR * Math.sqrt(Z * S * (N - S) / N) * Math.signum(1 - N / 2));
-                LL = Math.max(L, K - 1 * S / N + SD);
-                RR = Math.min(R, K + (N - 1) * S / N + SD);
+                S = (int) (S_FACTOR * Math.exp(2 * Z.doubleValue() / 3));
+                SD = (int) (SD_FACTOR * Math.sqrt(Z.doubleValue() * S * (N - S) / N) * Math.signum(I - N / 2));
+                LL = Math.max(L, K - I * S / N + SD);
+                RR = Math.min(R, K + (N - I) * S / N + SD);
                 SELECT(X, LL, RR, K, d, XSampler);
             }
             T = XSampler.apply(X[K], d);
@@ -468,7 +523,8 @@ public class KDTree<TItem> implements IndexKD<TItem>
                 X[K] = exchangeTemp;
             }
 
-            if (XSampler.apply(X[R], d) > T)
+            //if (XSampler.apply(X[R], d) > T)
+            if (distanceComparator.compare(XSampler.apply(X[R], d), T) > 0)
             {
                 // exchange(X[R],X[L]);
                 {
@@ -489,11 +545,14 @@ public class KDTree<TItem> implements IndexKD<TItem>
                 // I = I + 1; J = J - 1;
                 I++;
                 J--;
-                while (XSampler.apply(X[I], d) < T) I++;
-                while (XSampler.apply(X[J], d) > T) J--;
+                //while (XSampler.apply(X[I], d) < T) I++;
+                while (distanceComparator.compare(XSampler.apply(X[I], d), T) < 0) I++;
+                //while (XSampler.apply(X[J], d) > T) J--;
+                while (distanceComparator.compare(XSampler.apply(X[J], d), T) > 0) J--;
             }
 
-            if (XSampler.apply(X[L], d) == T)
+            //if (XSampler.apply(X[L], d) == T)
+            if (distanceComparator.compare(XSampler.apply(X[L], d), T) == 0)
             {
                 // exchange(X[L],X[J]);
                 {

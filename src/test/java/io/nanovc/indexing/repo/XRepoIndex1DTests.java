@@ -1,5 +1,7 @@
-package io.nanovc.indexing.examples.x;
+package io.nanovc.indexing.repo;
 
+import io.nanovc.indexing.examples.x.X;
+import io.nanovc.indexing.examples.x.XRepoIndex1D;
 import org.junit.jupiter.api.Test;
 
 import java.util.Random;

@@ -1,5 +1,8 @@
-package io.nanovc.indexing.examples.x;
+package io.nanovc.indexing.repo;
 
+import io.nanovc.indexing.examples.x.X;
+import io.nanovc.indexing.examples.x.XLinearIndex1D;
+import io.nanovc.indexing.examples.x.XRepoIndex1D;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 

@@ -1,5 +1,6 @@
 package io.nanovc.indexing.kdtree.bentley1990;
 
+import io.nanovc.indexing.examples.xy.XY;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;

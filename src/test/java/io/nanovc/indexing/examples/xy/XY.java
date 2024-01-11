@@ -1,4 +1,4 @@
-package io.nanovc.indexing.kdtree.bentley1990;
+package io.nanovc.indexing.examples.xy;
 
 /**
  * A record for an X and Y coordinate.

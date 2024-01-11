@@ -74,7 +74,15 @@ public class KDTree<TItem>
     }
 
     /**
-     * The points to index.
+     * Indexes the points that have been added.
+     */
+    public void index()
+    {
+        this.index(this.points);
+    }
+
+    /**
+     * Indexes the given points.
      *
      * @param points The points to index.
      */
@@ -509,4 +517,12 @@ public class KDTree<TItem>
         }
     }
 
+    /**
+     * Adds the item to the index.
+     * @param item The item to add.
+     */
+    public void add(TItem item)
+    {
+        this.points.add(item);
+    }
 }

@@ -240,6 +240,15 @@ public abstract class GridIndex1DBase<
     }
 
     /**
+     * Indexes the items that have been added.
+     * This is a pre-computation step that needs to be called before we search for nearest neighbours.
+     */
+    @Override public void index()
+    {
+        // Do nothing for this index.
+    }
+
+    /**
      * This finds the nearest item in the index to the given item.
      *
      * @param item The item to search for.

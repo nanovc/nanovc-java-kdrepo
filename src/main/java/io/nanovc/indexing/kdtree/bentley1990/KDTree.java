@@ -1,5 +1,8 @@
 package io.nanovc.indexing.kdtree.bentley1990;
 
+import io.nanovc.indexing.IndexKD;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 
@@ -28,7 +31,7 @@ import java.util.function.BiFunction;
  *
  * @param <TItem> The specific type of data that the index is for.
  */
-public class KDTree<TItem>
+public class KDTree<TItem> implements IndexKD<TItem>
 {
     /**
      * Two pointers into {@link #perm} represent a subset of the points.
@@ -44,7 +47,7 @@ public class KDTree<TItem>
     /**
      * The points that are being indexed.
      */
-    public List<TItem> points;
+    public List<TItem> points = new ArrayList<>();
 
     /**
      * The cut-off number for the buckets.

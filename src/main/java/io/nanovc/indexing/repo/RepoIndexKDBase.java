@@ -212,6 +212,8 @@ public abstract class RepoIndexKDBase<
      */
     public void add(TItem item)
     {
+
+
         // We divide the search space into divisions so that we can perform range searches in them.
         // We use branches in the repo for each division.
         // This allows us to get grid-like decomposition of the search space when we don't find an exact match.
@@ -228,16 +230,17 @@ public abstract class RepoIndexKDBase<
         var division = getOrCreateDivision(divisionIndex);
 
         // Add the item in this division:
-        addItemToDivision(item, division);
+        addItemToDivisionTrieApproach(item, division);
     }
 
     /**
      * Adds the given item to the specific division.
+     * It uses a trie to encode the content.
      *
      * @param item     The item to add.
      * @param division The specific division to add the item to.
      */
-    protected void addItemToDivision(TItem item, Division<TItem, TContent, TArea> division)
+    protected void addItemToDivisionTrieApproach(TItem item, Division<TItem, TContent, TArea> division)
     {
         // We use a trie based approach where the content byte representation is a path to the content
         // similar to how the git hash of the content gives us the address of the content,
@@ -396,7 +399,7 @@ public abstract class RepoIndexKDBase<
             for (TItem itemToReIndex : itemsToReIndex)
             {
                 // Re-Index the item:
-                addItemToDivision(itemToReIndex, division);
+                addItemToDivisionTrieApproach(itemToReIndex, division);
             }
         }
     }

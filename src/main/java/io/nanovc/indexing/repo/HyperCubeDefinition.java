@@ -1,12 +1,11 @@
 package io.nanovc.indexing.repo;
 
+import io.nanovc.indexing.repo.arithmetic.Arithmetic;
 import io.nanovc.indexing.repo.ranges.Range;
 import io.nanovc.indexing.repo.ranges.RangeCalculator;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
-import java.util.function.BiFunction;
 
 /**
  * A multidimensional hyper cube definition which describes the dimensions that we are indexing.
@@ -27,24 +26,20 @@ public class HyperCubeDefinition
     /**
      * A factory method to create a new dimension for this {@link HyperCubeDefinition}.
      *
-     * @param unitComparator The logic to compare units of this dimension.
-     * @param unitAdder      The logic to add two units in this dimension.
-     * @param unitSubtractor The logic to subtract two units in this dimension.
+     * @param arithmetic     The logic for performing arithmetic in this dimension.
      * @param name           The name of the dimension. If this is null or empty then the dimension index is used as the name.
      * @param range          The range for the dimension.
      * @param <TUnit>        The data type of the units for this dimension.
      * @return The dimension that was added.
      */
     public <TUnit> Dimension<TUnit> addDimension(
-        Comparator<TUnit> unitComparator,
-        BiFunction<TUnit, TUnit, TUnit> unitAdder,
-        BiFunction<TUnit, TUnit, TUnit> unitSubtractor,
+        Arithmetic<TUnit> arithmetic,
         String name,
         Range<TUnit> range
     )
     {
         // Create the range calculator for the dimension:
-        RangeCalculator<TUnit> rangeCalculator = new RangeCalculator<>(unitComparator);
+        RangeCalculator<TUnit> rangeCalculator = new RangeCalculator<>(arithmetic);
 
         // Get the dimension index that we are going to use:
         int dimensionIndex = this.dimensions.size();
@@ -57,9 +52,7 @@ public class HyperCubeDefinition
             dimensionNameToUse,
             dimensionIndex,
             range,
-            unitComparator,
-            unitAdder,
-            unitSubtractor,
+            arithmetic,
             rangeCalculator
         );
 
@@ -92,6 +85,30 @@ public class HyperCubeDefinition
     {
         //noinspection unchecked
         return (Dimension<TUnit>) this.dimensions.get(dimensionIndex);
+    }
+
+    /**
+     * Creates a hyper cube that covers the range of this definition.
+     *
+     * @return A hyper cube that covers the range of this definition.
+     */
+    public HyperCube createHyperCube()
+    {
+        // Get the ranges for this hyper cube:
+        Range<?>[] ranges = new Range<?>[this.getDimensionCount()];
+        for (int dimIndex = 0; dimIndex < this.getDimensionCount(); dimIndex++)
+        {
+            // Get the dimension:
+            Dimension<Object> dimension = getDimension(dimIndex);
+
+            // Get the range:
+            ranges[dimIndex] = dimension.getRange();
+        }
+
+        // Create the hyper cube:
+        HyperCube cube = new HyperCube(this, ranges);
+
+        return cube;
     }
 
     /**

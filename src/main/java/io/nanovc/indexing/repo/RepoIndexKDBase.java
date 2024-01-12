@@ -55,6 +55,11 @@ public abstract class RepoIndexKDBase<
     private final int divisions;
 
     /**
+     * This is the maximum number of items that we want to keep in a bucket before we split the range further.
+     */
+    private final int bucketThreshold = 1;
+
+    /**
      * This contains information for each division of the range for the repo index.
      * Each division corresponds to the grid based split of the range for this index {@link #getMinRange()} {@link #getMaxRange()}.
      */
@@ -127,12 +132,17 @@ public abstract class RepoIndexKDBase<
     private final TDistance maxDistance;
 
     /**
-     * The hyper cube that defines the dimensions for this index.
+     * The definition of the hyper cube that defines the dimensions for this index.
      */
-    private final HyperCubeDefinition hyperCube;
+    private final HyperCubeDefinition hyperCubeDefinition;
+
+    /**
+     * The root of the kd-tree.
+     */
+    private KDNode root;
 
     public RepoIndexKDBase(
-        HyperCubeDefinition hyperCube,
+        HyperCubeDefinition hyperCubeDefinition,
         int numberOfDimensions,
         TItem minRange, TItem maxRange, int divisions,
         Extractor<TItem, TDistance> extractor, Measurer<TItem, TDistance> measurer, Comparator<TDistance> distanceComparator,
@@ -142,7 +152,7 @@ public abstract class RepoIndexKDBase<
         ContentCreator<TItem, TContent> contentCreator, ContentReader<TItem, TContent> contentReader
     )
     {
-        this.hyperCube = hyperCube;
+        this.hyperCubeDefinition = hyperCubeDefinition;
         this.numberOfDimensions = numberOfDimensions;
         this.minRange = minRange;
         this.maxRange = maxRange;
@@ -219,6 +229,24 @@ public abstract class RepoIndexKDBase<
      */
     public void add(TItem item)
     {
+        // Make sure that we have a root node:
+        if (this.root == null)
+        {
+            // We don't have a root yet.
+
+            // Create the root node:
+            KDBucketNode<?> root = new KDBucketNode<>();
+
+            // Create the hyper cube for this bucket:
+            root.hyperCube = this.hyperCubeDefinition.createHyperCube();
+
+            // Save the root node:
+            this.root = root;
+        }
+
+        // Index the item recursively:
+        this.root = addItemToKDNode(item, this.root);
+
 
 
         // We divide the search space into divisions so that we can perform range searches in them.
@@ -238,6 +266,62 @@ public abstract class RepoIndexKDBase<
 
         // Add the item in this division:
         addItemToDivisionTrieApproach(item, division);
+    }
+
+    protected KDNode addItemToKDNode(TItem item, KDNode node)
+    {
+        // Get the content for the item:
+        TContent itemContent = createContentForItem(item);
+
+        // Check what type of node this is:
+        switch (node)
+        {
+            case KDBucketNode<?> bucketNodeUntyped ->
+            {
+                //noinspection unchecked
+                KDBucketNode<TContent> bucketNode = (KDBucketNode<TContent>) bucketNodeUntyped;
+
+                // Check whether we have exceeded our bucket threshold:
+                if (bucketNode.contentList.size() == this.bucketThreshold)
+                {
+                    // We have exceeded the bucket size for this node.
+
+                    // Create a new intermediate node:
+                    KDIntermediateNode<Object> newNode = new KDIntermediateNode<>();
+                    newNode.parent = bucketNode.parent;
+                    newNode.level = bucketNode.level;
+
+                    // Get the dimension index that we want to index by:
+                    int dimensionIndex = bucketNode.level % this.hyperCubeDefinition.getDimensionCount();
+                    Dimension<Object> dimension = this.hyperCubeDefinition.getDimension(dimensionIndex);
+                    newNode.dimension = dimension;
+
+                    // Work out the value to split the dimension range in:
+                    //newNode.cutValue = dimension.(
+
+
+                    // Replace the previous node with the new node:
+                    return newNode;
+                }
+                else
+                {
+                    // We are still within the allowed bucket threshold.
+
+                    // Just add the content to the bucket:
+                    bucketNode.contentList.add(itemContent);
+
+                    // Leave the node as it was:
+                    return bucketNode;
+                }
+            }
+            case KDIntermediateNode<?> intermediateNode ->
+            {
+
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + node);
+        }
+
+        return node;
     }
 
     /**

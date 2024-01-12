@@ -1,10 +1,8 @@
 package io.nanovc.indexing.repo;
 
+import io.nanovc.indexing.repo.arithmetic.Arithmetic;
 import io.nanovc.indexing.repo.ranges.Range;
 import io.nanovc.indexing.repo.ranges.RangeCalculator;
-
-import java.util.Comparator;
-import java.util.function.BiFunction;
 
 /**
  * A dimension that we are indexing.
@@ -30,20 +28,9 @@ public class Dimension<TUnit>
     private final Range<TUnit> range;
 
     /**
-     * The logic to compare units of this dimension.
+     * The logic for arithmetic in this dimension.
      */
-    private final Comparator<TUnit> unitComparator;
-
-    /**
-     * The logic to add two units together in this dimension.
-     */
-    private final BiFunction<TUnit, TUnit, TUnit> unitAdder;
-
-    /**
-     * The logic to subtract two units in this dimension.
-     * It corresponds to first - second.
-     */
-    private final BiFunction<TUnit, TUnit, TUnit> unitSubtractor;
+    private final Arithmetic<TUnit> arithmetic;
 
     /**
      * The range calculator to use for performing computations on ranges in this dimension.
@@ -54,18 +41,14 @@ public class Dimension<TUnit>
         String name,
         int index,
         Range<TUnit> range,
-        Comparator<TUnit> comparator,
-        BiFunction<TUnit, TUnit, TUnit> unitAdder,
-        BiFunction<TUnit, TUnit, TUnit> unitSubtractor,
+        Arithmetic<TUnit> arithmetic,
         RangeCalculator<TUnit> calculator
     )
     {
         this.name = name;
         dimensionIndex = index;
         this.range = range;
-        unitComparator = comparator;
-        this.unitAdder = unitAdder;
-        this.unitSubtractor = unitSubtractor;
+        this.arithmetic = arithmetic;
         rangeCalculator = calculator;
     }
 
@@ -81,33 +64,8 @@ public class Dimension<TUnit>
     }
 
     /**
-     * Adds the two values together.
-     * result = left + right
-     *
-     * @param left  The left value to add.
-     * @param right The right value to add.
-     * @return The result after adding. result = left + right
-     */
-    public TUnit add(TUnit left, TUnit right)
-    {
-        return this.getUnitAdder().apply(left, right);
-    }
-
-    /**
-     * Subtracts the two values.
-     * result = left - right
-     *
-     * @param left  The left value to add.
-     * @param right The right value to add.
-     * @return The result after subtracting. result = left - right
-     */
-    public TUnit subtract(TUnit left, TUnit right)
-    {
-        return this.getUnitSubtractor().apply(left, right);
-    }
-
-    /**
      * Creates a range between the given values and bounds it by the range of this dimension.
+     *
      * @param minInclusive The minimum value for the range. Inclusive.
      * @param maxInclusive The maximum value for the range. Exclusive.
      * @return The bounded range between the values.
@@ -149,34 +107,13 @@ public class Dimension<TUnit>
     }
 
     /**
-     * Gets the logic to compare units of this dimension.
+     * Gets the logic for arithmetic in this dimension.
      *
-     * @return The logic to compare units of this dimension.
+     * @return The logic for arithmetic in this dimension.
      */
-    public Comparator<TUnit> getUnitComparator()
+    public Arithmetic<TUnit> getArithmetic()
     {
-        return unitComparator;
-    }
-
-    /**
-     * Gets the logic to add two units together in this dimension.
-     *
-     * @return The logic to add two units together in this dimension.
-     */
-    public BiFunction<TUnit, TUnit, TUnit> getUnitAdder()
-    {
-        return unitAdder;
-    }
-
-    /**
-     * Gets the logic to subtract two units in this dimension.
-     * It corresponds to first - second.
-     *
-     * @return The logic to subtract two units in this dimension. It corresponds to first - second.
-     */
-    public BiFunction<TUnit, TUnit, TUnit> getUnitSubtractor()
-    {
-        return unitSubtractor;
+        return arithmetic;
     }
 
     /**

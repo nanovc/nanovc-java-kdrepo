@@ -1,5 +1,8 @@
 package io.nanovc.indexing.repo.ranges;
 
+import io.nanovc.indexing.repo.arithmetic.DoubleArithmetic;
+import io.nanovc.indexing.repo.arithmetic.IntegerArithmetic;
+import io.nanovc.indexing.repo.arithmetic.StringArithmetic;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -14,13 +17,13 @@ class RangeCalculatorTests
     @Test
     public void creationTest()
     {
-        new RangeCalculator<Double>(Double::compare);
+        new RangeCalculator<Double>(DoubleArithmetic.instance());
     }
 
     @Test
     public void testDoubleRanges()
     {
-        RangeCalculator<Double> rangeCalculator = new RangeCalculator<>(Double::compare);
+        RangeCalculator<Double> rangeCalculator = new RangeCalculator<>(DoubleArithmetic.instance());
 
         assertRange(rangeCalculator, true , 0.0, new UnBoundedRange<>());
         assertRange(rangeCalculator, false, 0.0, new NeverInRange<>());
@@ -89,7 +92,7 @@ class RangeCalculatorTests
     @Test
     public void testIntegerRanges()
     {
-        RangeCalculator<Integer> rangeCalculator = new RangeCalculator<>(Integer::compare);
+        RangeCalculator<Integer> rangeCalculator = new RangeCalculator<>(IntegerArithmetic.instance());
 
         assertRange(rangeCalculator, true , 0, new UnBoundedRange<>());
         assertRange(rangeCalculator, false, 0, new NeverInRange<>());
@@ -158,7 +161,7 @@ class RangeCalculatorTests
     @Test
     public void testIntegerInverseRanges()
     {
-        RangeCalculator<Integer> rangeCalculator = new RangeCalculator<>(Integer::compare);
+        RangeCalculator<Integer> rangeCalculator = new RangeCalculator<>(IntegerArithmetic.instance());
 
         assertRange(rangeCalculator, !true , 0, new UnBoundedRange<Integer>().inverse());
         assertRange(rangeCalculator, !false, 0, new NeverInRange<Integer>().inverse());
@@ -227,7 +230,7 @@ class RangeCalculatorTests
     @Test
     public void testIntegerInverseInverseRanges()
     {
-        RangeCalculator<Integer> rangeCalculator = new RangeCalculator<>(Integer::compare);
+        RangeCalculator<Integer> rangeCalculator = new RangeCalculator<>(IntegerArithmetic.instance());
 
         assertRange(rangeCalculator, true , 0, new UnBoundedRange<Integer>().inverse().inverse());
         assertRange(rangeCalculator, false, 0, new NeverInRange<Integer>().inverse().inverse());
@@ -296,7 +299,7 @@ class RangeCalculatorTests
     @Test
     public void testStringRanges()
     {
-        RangeCalculator<String> rangeCalculator = new RangeCalculator<>(String::compareTo);
+        RangeCalculator<String> rangeCalculator = new RangeCalculator<>(StringArithmetic.instance());
 
         assertRange(rangeCalculator, true , "A", new UnBoundedRange<>());
         assertRange(rangeCalculator, false, "A", new NeverInRange<>());

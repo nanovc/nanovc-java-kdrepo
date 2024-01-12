@@ -1,6 +1,7 @@
 package io.nanovc.indexing.examples.xy;
 
 import io.nanovc.indexing.repo.HyperCubeDefinition;
+import io.nanovc.indexing.repo.arithmetic.DoubleArithmetic;
 import io.nanovc.indexing.repo.ranges.MinInclusiveMaxInclusiveRange;
 import io.nanovc.indexing.repo.ranges.Range;
 
@@ -207,8 +208,8 @@ public record XY(double x, double y)
     public static HyperCubeDefinition defineHyperCube(Range<Double> xRange, Range<Double> yRange)
     {
         HyperCubeDefinition cube = new HyperCubeDefinition();
-        cube.addDimension(Double::compare, Double::sum, (l,r) -> l - r, "X", xRange);
-        cube.addDimension(Double::compare, Double::sum, (l,r) -> l - r, "Y", yRange);
+        cube.addDimension(DoubleArithmetic.instance(), "X", xRange);
+        cube.addDimension(DoubleArithmetic.instance(), "Y", yRange);
         return cube;
     }
 }

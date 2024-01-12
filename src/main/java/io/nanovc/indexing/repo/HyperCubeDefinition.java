@@ -9,23 +9,23 @@ import java.util.LinkedHashMap;
 import java.util.function.BiFunction;
 
 /**
- * A multidimensional hyper cube which describes the dimensions that we are indexing.
+ * A multidimensional hyper cube definition which describes the dimensions that we are indexing.
  * This allows us to have different data types for each dimension.
  */
-public class HyperCube
+public class HyperCubeDefinition
 {
     /**
-     * The dimensions in this {@link HyperCube} indexed by their name.
+     * The dimensions in this {@link HyperCubeDefinition} indexed by their name.
      */
     private final LinkedHashMap<String, Dimension<?>> dimensionsByName = new LinkedHashMap<>();
 
     /**
-     * The dimensions in this {@link HyperCube}.
+     * The dimensions in this {@link HyperCubeDefinition}.
      */
     private final ArrayList<Dimension<?>> dimensions = new ArrayList<>();
 
     /**
-     * A factory method to create a new dimension for this {@link HyperCube}.
+     * A factory method to create a new dimension for this {@link HyperCubeDefinition}.
      *
      * @param unitComparator The logic to compare units of this dimension.
      * @param unitAdder      The logic to add two units in this dimension.

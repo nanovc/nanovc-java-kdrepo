@@ -6,20 +6,20 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests the {@link HyperCube}.
+ * Tests the {@link HyperCubeDefinition}.
  */
-class HyperCubeTests
+class HyperCubeDefinitionTests
 {
     @Test
     public void creationTest()
     {
-        new HyperCube();
+        new HyperCubeDefinition();
     }
 
     @Test
     public void testCube_1D_Integer()
     {
-        HyperCube cube = new HyperCube();
+        HyperCubeDefinition cube = new HyperCubeDefinition();
         Dimension<Integer> xDim = cube.addDimension(Integer::compareTo, Integer::sum, (l,r) -> l - r, "X", new MinInclusiveMaxInclusiveRange<>(0, 1));
 
         assertFalse(xDim.isInRange(-1));
@@ -31,7 +31,7 @@ class HyperCubeTests
     @Test
     public void testCube_2D_Integer_Double()
     {
-        HyperCube cube = new HyperCube();
+        HyperCubeDefinition cube = new HyperCubeDefinition();
         Dimension<Integer> xDim = cube.addDimension(Integer::compareTo, Integer::sum, (l,r) -> l - r, "X", new MinInclusiveMaxInclusiveRange<>(0, 1));
 
         assertFalse(xDim.isInRange(-1));
@@ -56,7 +56,7 @@ class HyperCubeTests
     @Test
     public void testWrongDimensionCastsFail()
     {
-        HyperCube cube = new HyperCube();
+        HyperCubeDefinition cube = new HyperCubeDefinition();
         Dimension<Integer> xDim = cube.addDimension(Integer::compareTo, Integer::sum, (l,r) -> l - r, "X", new MinInclusiveMaxInclusiveRange<>(0, 1));
 
         // Get the dimensions generically:

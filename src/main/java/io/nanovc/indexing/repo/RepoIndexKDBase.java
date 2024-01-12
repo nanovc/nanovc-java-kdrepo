@@ -129,10 +129,10 @@ public abstract class RepoIndexKDBase<
     /**
      * The hyper cube that defines the dimensions for this index.
      */
-    private final HyperCube hyperCube;
+    private final HyperCubeDefinition hyperCube;
 
     public RepoIndexKDBase(
-        HyperCube hyperCube,
+        HyperCubeDefinition hyperCube,
         int numberOfDimensions,
         TItem minRange, TItem maxRange, int divisions,
         Extractor<TItem, TDistance> extractor, Measurer<TItem, TDistance> measurer, Comparator<TDistance> distanceComparator,

@@ -3,16 +3,12 @@ package io.nanovc.indexing.repo;
 /**
  * A node in the KD-Tree
  */
-public class KDNode
+public sealed class KDNode
+    permits KDIntermediateNode, KDBucketNode
 {
     /**
      * The index that this node is at.
      * Zero based.
      */
     public int level;
-
-    /**
-     * The dimension that this node slices the search space by.
-     */
-    public Dimension dimension;
 }

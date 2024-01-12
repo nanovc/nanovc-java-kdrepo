@@ -51,4 +51,54 @@ public class RangeCalculator<TUnit>
         };
     }
 
+    public Range<TUnit> createRangeLessThanOrEqualTo(TUnit value)
+    {
+        return new MaxInclusiveRange<>(value);
+    }
+
+    public Range<TUnit> createRangeLessThan(TUnit value)
+    {
+        return new MaxExclusiveRange<>(value);
+    }
+
+    public Range<TUnit> createRangeEqualTo(TUnit value)
+    {
+        return new SingleValueRange<>(value);
+    }
+
+    public Range<TUnit> createRangeGreaterThan(TUnit value)
+    {
+        return new MinExclusiveRange<>(value);
+    }
+
+    public Range<TUnit> createRangeGreaterThanOrEqualTo(TUnit value)
+    {
+        return new MinInclusiveRange<>(value);
+    }
+
+
+    public Range<TUnit> createBoundedRangeLessThanOrEqualTo(TUnit value, Range<TUnit> bounds)
+    {
+        return new AndRange<>(new MaxInclusiveRange<>(value), bounds);
+    }
+
+    public Range<TUnit> createBoundedRangeLessThan(TUnit value, Range<TUnit> bounds)
+    {
+        return new AndRange<>(new MaxExclusiveRange<>(value), bounds);
+    }
+
+    public Range<TUnit> createBoundedRangeEqualTo(TUnit value, Range<TUnit> bounds)
+    {
+        return new AndRange<>(new SingleValueRange<>(value), bounds);
+    }
+
+    public Range<TUnit> createBoundedRangeGreaterThan(TUnit value, Range<TUnit> bounds)
+    {
+        return new AndRange<>(new MinExclusiveRange<>(value), bounds);
+    }
+
+    public Range<TUnit> createBoundedRangeGreaterThanOrEqualTo(TUnit value, Range<TUnit> bounds)
+    {
+        return new AndRange<>(new MinInclusiveRange<>(value), bounds);
+    }
 }

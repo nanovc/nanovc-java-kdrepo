@@ -27,9 +27,9 @@ public class HyperCube
      * A factory method to create a new dimension for this {@link HyperCube}.
      *
      * @param unitComparator The logic to compare units of this dimension.
-     * @param name The name of the dimension. If this is null or empty then the dimension index is used as the name.
-     * @param range The range for the dimension.
-     * @param <TUnit>   The data type of the units for this dimension.
+     * @param name           The name of the dimension. If this is null or empty then the dimension index is used as the name.
+     * @param range          The range for the dimension.
+     * @param <TUnit>        The data type of the units for this dimension.
      * @return The dimension that was added.
      */
     public <TUnit> Dimension<TUnit> addDimension(Comparator<TUnit> unitComparator, String name, Range<TUnit> range)
@@ -57,5 +57,26 @@ public class HyperCube
         this.dimensionsByName.put(dimensionNameToUse, dimension);
 
         return dimension;
+    }
+
+    /**
+     * Gets the dimension with the given name.
+     * @param dimensionName The name of the dimension to get.
+     * @return The dimension with the given name.
+     */
+    public <TUnit> Dimension<TUnit> getDimension(String dimensionName)
+    {
+        return (Dimension<TUnit>) this.dimensionsByName.get(dimensionName);
+    }
+
+    /**
+     * Gets the dimension with the given index.
+     *
+     * @param dimensionIndex The index of the dimension to get.
+     * @return The dimension with that index.
+     */
+    public <TUnit> Dimension<TUnit> getDimension(int dimensionIndex)
+    {
+        return (Dimension<TUnit>) this.dimensions.get(dimensionIndex);
     }
 }

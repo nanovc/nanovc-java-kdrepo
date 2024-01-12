@@ -11,4 +11,8 @@ import java.util.Set;
  */
 public record MultiValueRange<TUnit>(Set<TUnit> values) implements Range<TUnit>
 {
+    @Override public Range<TUnit> inverse()
+    {
+        return new NotMultiValueRange<>(this.values());
+    }
 }

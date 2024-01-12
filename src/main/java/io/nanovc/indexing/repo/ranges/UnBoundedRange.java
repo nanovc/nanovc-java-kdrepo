@@ -8,4 +8,8 @@ package io.nanovc.indexing.repo.ranges;
  */
 public record UnBoundedRange<TUnit>() implements Range<TUnit>
 {
+    @Override public Range<TUnit> inverse()
+    {
+        return new NeverInRange<>();
+    }
 }

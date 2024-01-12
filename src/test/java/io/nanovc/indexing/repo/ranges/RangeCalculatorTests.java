@@ -156,6 +156,144 @@ class RangeCalculatorTests
     }
 
     @Test
+    public void testIntegerInverseRanges()
+    {
+        RangeCalculator<Integer> rangeCalculator = new RangeCalculator<>(Integer::compare);
+
+        assertRange(rangeCalculator, !true , 0, new UnBoundedRange<Integer>().inverse());
+        assertRange(rangeCalculator, !false, 0, new NeverInRange<Integer>().inverse());
+
+        assertRange(rangeCalculator, !false,-1, new SingleValueRange<>(0).inverse());
+        assertRange(rangeCalculator, !true , 0, new SingleValueRange<>(0).inverse());
+        assertRange(rangeCalculator, !false, 1, new SingleValueRange<>(0).inverse());
+
+        assertRange(rangeCalculator, !true ,-1, new NotSingleValueRange<>(0).inverse());
+        assertRange(rangeCalculator, !false, 0, new NotSingleValueRange<>(0).inverse());
+        assertRange(rangeCalculator, !true , 1, new NotSingleValueRange<>(0).inverse());
+
+        assertRange(rangeCalculator, !false,-1, new MultiValueRange<>(Set.of(0, 1)).inverse());
+        assertRange(rangeCalculator, !true , 0, new MultiValueRange<>(Set.of(0, 1)).inverse());
+        assertRange(rangeCalculator, !true , 1, new MultiValueRange<>(Set.of(0, 1)).inverse());
+
+        assertRange(rangeCalculator, !true ,-1, new NotMultiValueRange<>(Set.of(0, 1)).inverse());
+        assertRange(rangeCalculator, !false, 0, new NotMultiValueRange<>(Set.of(0, 1)).inverse());
+        assertRange(rangeCalculator, !false, 1, new NotMultiValueRange<>(Set.of(0, 1)).inverse());
+
+        assertRange(rangeCalculator, !true , 0, new MinInclusiveRange<>(0).inverse());
+        assertRange(rangeCalculator, !false, 0, new MinExclusiveRange<>(0).inverse());
+        assertRange(rangeCalculator, !true , 0, new MaxInclusiveRange<>(0).inverse());
+        assertRange(rangeCalculator, !false, 0, new MaxExclusiveRange<>(0).inverse());
+
+        assertRange(rangeCalculator, !true , 0, new MinInclusiveMaxInclusiveRange<>(0, 1).inverse());
+        assertRange(rangeCalculator, !true , 0, new MinInclusiveMaxExclusiveRange<>(0, 1).inverse());
+        assertRange(rangeCalculator, !false, 0, new MinExclusiveMaxInclusiveRange<>(0, 1).inverse());
+        assertRange(rangeCalculator, !false, 0, new MinExclusiveMaxExclusiveRange<>(0, 1).inverse());
+
+        assertRange(rangeCalculator, !true , 1, new MinInclusiveMaxInclusiveRange<>(0, 1).inverse());
+        assertRange(rangeCalculator, !false, 1, new MinInclusiveMaxExclusiveRange<>(0, 1).inverse());
+        assertRange(rangeCalculator, !true , 1, new MinExclusiveMaxInclusiveRange<>(0, 1).inverse());
+        assertRange(rangeCalculator, !false, 1, new MinExclusiveMaxExclusiveRange<>(0, 1).inverse());
+
+
+        assertRange(rangeCalculator, !true , 1, new UnBoundedRange<Integer>().inverse());
+        assertRange(rangeCalculator, !false, 1, new NeverInRange<Integer>().inverse());
+
+        assertRange(rangeCalculator, !true , 1, new MinInclusiveRange<>(0).inverse());
+        assertRange(rangeCalculator, !true , 1, new MinExclusiveRange<>(0).inverse());
+        assertRange(rangeCalculator, !false, 1, new MaxInclusiveRange<>(0).inverse());
+        assertRange(rangeCalculator, !false, 1, new MaxExclusiveRange<>(0).inverse());
+
+        assertRange(rangeCalculator, !false, -1, new MinInclusiveRange<>(0).inverse());
+        assertRange(rangeCalculator, !false, -1, new MinExclusiveRange<>(0).inverse());
+        assertRange(rangeCalculator, !true , -1, new MaxInclusiveRange<>(0).inverse());
+        assertRange(rangeCalculator, !true , -1, new MaxExclusiveRange<>(0).inverse());
+
+        assertRange(rangeCalculator, !false, -1, new MinInclusiveMaxInclusiveRange<>(0, 1).inverse());
+        assertRange(rangeCalculator, !false, -1, new MinInclusiveMaxExclusiveRange<>(0, 1).inverse());
+        assertRange(rangeCalculator, !false, -1, new MinExclusiveMaxInclusiveRange<>(0, 1).inverse());
+        assertRange(rangeCalculator, !false, -1, new MinExclusiveMaxExclusiveRange<>(0, 1).inverse());
+
+        assertRange(rangeCalculator, !true , 1, new MinInclusiveMaxInclusiveRange<>(0, 2).inverse());
+        assertRange(rangeCalculator, !true , 1, new MinInclusiveMaxExclusiveRange<>(0, 2).inverse());
+        assertRange(rangeCalculator, !true , 1, new MinExclusiveMaxInclusiveRange<>(0, 2).inverse());
+        assertRange(rangeCalculator, !true , 1, new MinExclusiveMaxExclusiveRange<>(0, 2).inverse());
+
+        assertRange(rangeCalculator, !false, 2, new MinInclusiveMaxInclusiveRange<>(0, 1).inverse());
+        assertRange(rangeCalculator, !false, 2, new MinInclusiveMaxExclusiveRange<>(0, 1).inverse());
+        assertRange(rangeCalculator, !false, 2, new MinExclusiveMaxInclusiveRange<>(0, 1).inverse());
+        assertRange(rangeCalculator, !false, 2, new MinExclusiveMaxExclusiveRange<>(0, 1).inverse());
+    }
+
+    @Test
+    public void testIntegerInverseInverseRanges()
+    {
+        RangeCalculator<Integer> rangeCalculator = new RangeCalculator<>(Integer::compare);
+
+        assertRange(rangeCalculator, true , 0, new UnBoundedRange<Integer>().inverse().inverse());
+        assertRange(rangeCalculator, false, 0, new NeverInRange<Integer>().inverse().inverse());
+
+        assertRange(rangeCalculator, false,-1, new SingleValueRange<>(0).inverse().inverse());
+        assertRange(rangeCalculator, true , 0, new SingleValueRange<>(0).inverse().inverse());
+        assertRange(rangeCalculator, false, 1, new SingleValueRange<>(0).inverse().inverse());
+
+        assertRange(rangeCalculator, true ,-1, new NotSingleValueRange<>(0).inverse().inverse());
+        assertRange(rangeCalculator, false, 0, new NotSingleValueRange<>(0).inverse().inverse());
+        assertRange(rangeCalculator, true , 1, new NotSingleValueRange<>(0).inverse().inverse());
+
+        assertRange(rangeCalculator, false,-1, new MultiValueRange<>(Set.of(0, 1)).inverse().inverse());
+        assertRange(rangeCalculator, true , 0, new MultiValueRange<>(Set.of(0, 1)).inverse().inverse());
+        assertRange(rangeCalculator, true , 1, new MultiValueRange<>(Set.of(0, 1)).inverse().inverse());
+
+        assertRange(rangeCalculator, true ,-1, new NotMultiValueRange<>(Set.of(0, 1)).inverse().inverse());
+        assertRange(rangeCalculator, false, 0, new NotMultiValueRange<>(Set.of(0, 1)).inverse().inverse());
+        assertRange(rangeCalculator, false, 1, new NotMultiValueRange<>(Set.of(0, 1)).inverse().inverse());
+
+        assertRange(rangeCalculator, true , 0, new MinInclusiveRange<>(0).inverse().inverse());
+        assertRange(rangeCalculator, false, 0, new MinExclusiveRange<>(0).inverse().inverse());
+        assertRange(rangeCalculator, true , 0, new MaxInclusiveRange<>(0).inverse().inverse());
+        assertRange(rangeCalculator, false, 0, new MaxExclusiveRange<>(0).inverse().inverse());
+
+        assertRange(rangeCalculator, true , 0, new MinInclusiveMaxInclusiveRange<>(0, 1).inverse().inverse());
+        assertRange(rangeCalculator, true , 0, new MinInclusiveMaxExclusiveRange<>(0, 1).inverse().inverse());
+        assertRange(rangeCalculator, false, 0, new MinExclusiveMaxInclusiveRange<>(0, 1).inverse().inverse());
+        assertRange(rangeCalculator, false, 0, new MinExclusiveMaxExclusiveRange<>(0, 1).inverse().inverse());
+
+        assertRange(rangeCalculator, true , 1, new MinInclusiveMaxInclusiveRange<>(0, 1).inverse().inverse());
+        assertRange(rangeCalculator, false, 1, new MinInclusiveMaxExclusiveRange<>(0, 1).inverse().inverse());
+        assertRange(rangeCalculator, true , 1, new MinExclusiveMaxInclusiveRange<>(0, 1).inverse().inverse());
+        assertRange(rangeCalculator, false, 1, new MinExclusiveMaxExclusiveRange<>(0, 1).inverse().inverse());
+
+
+        assertRange(rangeCalculator, true , 1, new UnBoundedRange<Integer>().inverse().inverse());
+        assertRange(rangeCalculator, false, 1, new NeverInRange<Integer>().inverse().inverse());
+
+        assertRange(rangeCalculator, true , 1, new MinInclusiveRange<>(0).inverse().inverse());
+        assertRange(rangeCalculator, true , 1, new MinExclusiveRange<>(0).inverse().inverse());
+        assertRange(rangeCalculator, false, 1, new MaxInclusiveRange<>(0).inverse().inverse());
+        assertRange(rangeCalculator, false, 1, new MaxExclusiveRange<>(0).inverse().inverse());
+
+        assertRange(rangeCalculator, false, -1, new MinInclusiveRange<>(0).inverse().inverse());
+        assertRange(rangeCalculator, false, -1, new MinExclusiveRange<>(0).inverse().inverse());
+        assertRange(rangeCalculator, true , -1, new MaxInclusiveRange<>(0).inverse().inverse());
+        assertRange(rangeCalculator, true , -1, new MaxExclusiveRange<>(0).inverse().inverse());
+
+        assertRange(rangeCalculator, false, -1, new MinInclusiveMaxInclusiveRange<>(0, 1).inverse().inverse());
+        assertRange(rangeCalculator, false, -1, new MinInclusiveMaxExclusiveRange<>(0, 1).inverse().inverse());
+        assertRange(rangeCalculator, false, -1, new MinExclusiveMaxInclusiveRange<>(0, 1).inverse().inverse());
+        assertRange(rangeCalculator, false, -1, new MinExclusiveMaxExclusiveRange<>(0, 1).inverse().inverse());
+
+        assertRange(rangeCalculator, true , 1, new MinInclusiveMaxInclusiveRange<>(0, 2).inverse().inverse());
+        assertRange(rangeCalculator, true , 1, new MinInclusiveMaxExclusiveRange<>(0, 2).inverse().inverse());
+        assertRange(rangeCalculator, true , 1, new MinExclusiveMaxInclusiveRange<>(0, 2).inverse().inverse());
+        assertRange(rangeCalculator, true , 1, new MinExclusiveMaxExclusiveRange<>(0, 2).inverse().inverse());
+
+        assertRange(rangeCalculator, false, 2, new MinInclusiveMaxInclusiveRange<>(0, 1).inverse().inverse());
+        assertRange(rangeCalculator, false, 2, new MinInclusiveMaxExclusiveRange<>(0, 1).inverse().inverse());
+        assertRange(rangeCalculator, false, 2, new MinExclusiveMaxInclusiveRange<>(0, 1).inverse().inverse());
+        assertRange(rangeCalculator, false, 2, new MinExclusiveMaxExclusiveRange<>(0, 1).inverse().inverse());
+    }
+
+    @Test
     public void testStringRanges()
     {
         RangeCalculator<String> rangeCalculator = new RangeCalculator<>(String::compareTo);

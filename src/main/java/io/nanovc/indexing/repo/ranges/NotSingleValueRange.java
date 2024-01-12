@@ -9,4 +9,8 @@ package io.nanovc.indexing.repo.ranges;
  */
 public record NotSingleValueRange<TUnit>(TUnit value) implements Range<TUnit>
 {
+    @Override public Range<TUnit> inverse()
+    {
+        return new SingleValueRange<>(this.value());
+    }
 }

@@ -9,4 +9,8 @@ package io.nanovc.indexing.repo.ranges;
  */
 public record MaxExclusiveRange<TUnit>(TUnit max) implements Range<TUnit>
 {
+    @Override public Range<TUnit> inverse()
+    {
+        return new MinInclusiveRange<>(this.max());
+    }
 }

@@ -7,6 +7,7 @@ package io.nanovc.indexing.repo.ranges;
  */
 public sealed interface Range<TUnit>
     permits
+    NotRange, AndRange, OrRange,
     UnBoundedRange, NeverInRange,
     SingleValueRange, NotSingleValueRange,
     MultiValueRange, NotMultiValueRange,
@@ -15,5 +16,9 @@ public sealed interface Range<TUnit>
     MinInclusiveMaxInclusiveRange, MinInclusiveMaxExclusiveRange,
     MinExclusiveMaxInclusiveRange, MinExclusiveMaxExclusiveRange
 {
-
+    /**
+     * Gets the inverse of this range.
+     * @return The inverse of this range.
+     */
+    Range<TUnit> inverse();
 }

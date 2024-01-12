@@ -31,6 +31,9 @@ public class RangeCalculator<TUnit>
     {
         return switch (range)
         {
+            case NotRange<TUnit>                      r -> !isInRange(value, r.innerRange());
+            case OrRange<TUnit>                       r -> isInRange(value, r.range()) || isInRange(value, r.other());
+            case AndRange<TUnit>                      r -> isInRange(value, r.range()) && isInRange(value, r.other());
             case UnBoundedRange<TUnit>                r -> true;
             case NeverInRange<TUnit>                  r -> false;
             case SingleValueRange<TUnit>              r -> this.unitComparator.compare(r.value(), value) == 0;

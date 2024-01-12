@@ -8,6 +8,8 @@ package io.nanovc.indexing.repo.ranges;
 public sealed interface Range<TUnit>
     permits
     UnBoundedRange, NeverInRange,
+    SingleValueRange, NotSingleValueRange,
+    MultiValueRange, NotMultiValueRange,
     MinInclusiveRange, MinExclusiveRange,
     MaxInclusiveRange, MaxExclusiveRange,
     MinInclusiveMaxInclusiveRange, MinInclusiveMaxExclusiveRange,

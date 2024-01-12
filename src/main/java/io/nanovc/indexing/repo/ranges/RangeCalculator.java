@@ -33,6 +33,10 @@ public class RangeCalculator<TUnit>
         {
             case UnBoundedRange<TUnit>                r -> true;
             case NeverInRange<TUnit>                  r -> false;
+            case SingleValueRange<TUnit>              r -> this.unitComparator.compare(r.value(), value) == 0;
+            case NotSingleValueRange<TUnit>           r -> this.unitComparator.compare(r.value(), value) != 0;
+            case MultiValueRange<TUnit>               r -> r.values().contains(value);
+            case NotMultiValueRange<TUnit>            r -> !r.values().contains(value);
             case MinInclusiveRange<TUnit>             r -> this.unitComparator.compare(r.min(), value) <= 0;
             case MinExclusiveRange<TUnit>             r -> this.unitComparator.compare(r.min(), value) <  0;
             case MaxInclusiveRange<TUnit>             r -> this.unitComparator.compare(value, r.max()) <= 0;

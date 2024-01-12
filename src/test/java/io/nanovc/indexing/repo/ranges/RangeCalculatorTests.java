@@ -2,6 +2,8 @@ package io.nanovc.indexing.repo.ranges;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -20,8 +22,24 @@ class RangeCalculatorTests
     {
         RangeCalculator<Double> rangeCalculator = new RangeCalculator<>(Double::compare);
 
-        assertRange(rangeCalculator, true, 0.0, new UnBoundedRange<>());
+        assertRange(rangeCalculator, true , 0.0, new UnBoundedRange<>());
         assertRange(rangeCalculator, false, 0.0, new NeverInRange<>());
+
+        assertRange(rangeCalculator, false,-1.0, new SingleValueRange<>(0.0));
+        assertRange(rangeCalculator, true , 0.0, new SingleValueRange<>(0.0));
+        assertRange(rangeCalculator, false, 1.0, new SingleValueRange<>(0.0));
+
+        assertRange(rangeCalculator, true ,-1.0, new NotSingleValueRange<>(0.0));
+        assertRange(rangeCalculator, false, 0.0, new NotSingleValueRange<>(0.0));
+        assertRange(rangeCalculator, true , 1.0, new NotSingleValueRange<>(0.0));
+
+        assertRange(rangeCalculator, false,-1.0, new MultiValueRange<>(Set.of(0.0, 1.0)));
+        assertRange(rangeCalculator, true , 0.0, new MultiValueRange<>(Set.of(0.0, 1.0)));
+        assertRange(rangeCalculator, true , 1.0, new MultiValueRange<>(Set.of(0.0, 1.0)));
+
+        assertRange(rangeCalculator, true ,-1.0, new NotMultiValueRange<>(Set.of(0.0, 1.0)));
+        assertRange(rangeCalculator, false, 0.0, new NotMultiValueRange<>(Set.of(0.0, 1.0)));
+        assertRange(rangeCalculator, false, 1.0, new NotMultiValueRange<>(Set.of(0.0, 1.0)));
 
         assertRange(rangeCalculator, true , 0.0, new MinInclusiveRange<>(0.0));
         assertRange(rangeCalculator, false, 0.0, new MinExclusiveRange<>(0.0));
@@ -47,15 +65,15 @@ class RangeCalculatorTests
         assertRange(rangeCalculator, false, 1.0, new MaxInclusiveRange<>(0.0));
         assertRange(rangeCalculator, false, 1.0, new MaxExclusiveRange<>(0.0));
 
-        assertRange(rangeCalculator, false, -1.0, new MinInclusiveRange<>(0.0));
-        assertRange(rangeCalculator, false, -1.0, new MinExclusiveRange<>(0.0));
-        assertRange(rangeCalculator, true , -1.0, new MaxInclusiveRange<>(0.0));
-        assertRange(rangeCalculator, true , -1.0, new MaxExclusiveRange<>(0.0));
+        assertRange(rangeCalculator, false,-1.0, new MinInclusiveRange<>(0.0));
+        assertRange(rangeCalculator, false,-1.0, new MinExclusiveRange<>(0.0));
+        assertRange(rangeCalculator, true ,-1.0, new MaxInclusiveRange<>(0.0));
+        assertRange(rangeCalculator, true ,-1.0, new MaxExclusiveRange<>(0.0));
 
-        assertRange(rangeCalculator, false, -1.0, new MinInclusiveMaxInclusiveRange<>(0.0, 1.0));
-        assertRange(rangeCalculator, false, -1.0, new MinInclusiveMaxExclusiveRange<>(0.0, 1.0));
-        assertRange(rangeCalculator, false, -1.0, new MinExclusiveMaxInclusiveRange<>(0.0, 1.0));
-        assertRange(rangeCalculator, false, -1.0, new MinExclusiveMaxExclusiveRange<>(0.0, 1.0));
+        assertRange(rangeCalculator, false,-1.0, new MinInclusiveMaxInclusiveRange<>(0.0, 1.0));
+        assertRange(rangeCalculator, false,-1.0, new MinInclusiveMaxExclusiveRange<>(0.0, 1.0));
+        assertRange(rangeCalculator, false,-1.0, new MinExclusiveMaxInclusiveRange<>(0.0, 1.0));
+        assertRange(rangeCalculator, false,-1.0, new MinExclusiveMaxExclusiveRange<>(0.0, 1.0));
 
         assertRange(rangeCalculator, true , 0.5, new MinInclusiveMaxInclusiveRange<>(0.0, 1.0));
         assertRange(rangeCalculator, true , 0.5, new MinInclusiveMaxExclusiveRange<>(0.0, 1.0));
@@ -75,6 +93,22 @@ class RangeCalculatorTests
 
         assertRange(rangeCalculator, true , 0, new UnBoundedRange<>());
         assertRange(rangeCalculator, false, 0, new NeverInRange<>());
+
+        assertRange(rangeCalculator, false,-1, new SingleValueRange<>(0));
+        assertRange(rangeCalculator, true , 0, new SingleValueRange<>(0));
+        assertRange(rangeCalculator, false, 1, new SingleValueRange<>(0));
+
+        assertRange(rangeCalculator, true ,-1, new NotSingleValueRange<>(0));
+        assertRange(rangeCalculator, false, 0, new NotSingleValueRange<>(0));
+        assertRange(rangeCalculator, true , 1, new NotSingleValueRange<>(0));
+
+        assertRange(rangeCalculator, false,-1, new MultiValueRange<>(Set.of(0, 1)));
+        assertRange(rangeCalculator, true , 0, new MultiValueRange<>(Set.of(0, 1)));
+        assertRange(rangeCalculator, true , 1, new MultiValueRange<>(Set.of(0, 1)));
+
+        assertRange(rangeCalculator, true ,-1, new NotMultiValueRange<>(Set.of(0, 1)));
+        assertRange(rangeCalculator, false, 0, new NotMultiValueRange<>(Set.of(0, 1)));
+        assertRange(rangeCalculator, false, 1, new NotMultiValueRange<>(Set.of(0, 1)));
 
         assertRange(rangeCalculator, true , 0, new MinInclusiveRange<>(0));
         assertRange(rangeCalculator, false, 0, new MinExclusiveRange<>(0));
@@ -128,6 +162,22 @@ class RangeCalculatorTests
 
         assertRange(rangeCalculator, true , "A", new UnBoundedRange<>());
         assertRange(rangeCalculator, false, "A", new NeverInRange<>());
+
+        assertRange(rangeCalculator, false,"A", new SingleValueRange<>("B"));
+        assertRange(rangeCalculator, true ,"B", new SingleValueRange<>("B"));
+        assertRange(rangeCalculator, false,"C", new SingleValueRange<>("B"));
+
+        assertRange(rangeCalculator, true ,"A", new NotSingleValueRange<>("B"));
+        assertRange(rangeCalculator, false,"B", new NotSingleValueRange<>("B"));
+        assertRange(rangeCalculator, true ,"C", new NotSingleValueRange<>("B"));
+
+        assertRange(rangeCalculator, false,"A", new MultiValueRange<>(Set.of("B", "C")));
+        assertRange(rangeCalculator, true ,"B", new MultiValueRange<>(Set.of("B", "C")));
+        assertRange(rangeCalculator, true ,"C", new MultiValueRange<>(Set.of("B", "C")));
+
+        assertRange(rangeCalculator, true , "A", new NotMultiValueRange<>(Set.of("B", "C")));
+        assertRange(rangeCalculator, false, "B", new NotMultiValueRange<>(Set.of("B", "C")));
+        assertRange(rangeCalculator, false, "C", new NotMultiValueRange<>(Set.of("B", "C")));
 
         assertRange(rangeCalculator, true , "A", new MinInclusiveRange<>("A"));
         assertRange(rangeCalculator, false, "A", new MinExclusiveRange<>("A"));

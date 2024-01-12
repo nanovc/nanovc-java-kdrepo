@@ -126,7 +126,13 @@ public abstract class RepoIndexKDBase<
      */
     private final TDistance maxDistance;
 
+    /**
+     * The hyper cube that defines the dimensions for this index.
+     */
+    private final HyperCube hyperCube;
+
     public RepoIndexKDBase(
+        HyperCube hyperCube,
         int numberOfDimensions,
         TItem minRange, TItem maxRange, int divisions,
         Extractor<TItem, TDistance> extractor, Measurer<TItem, TDistance> measurer, Comparator<TDistance> distanceComparator,
@@ -136,6 +142,7 @@ public abstract class RepoIndexKDBase<
         ContentCreator<TItem, TContent> contentCreator, ContentReader<TItem, TContent> contentReader
     )
     {
+        this.hyperCube = hyperCube;
         this.numberOfDimensions = numberOfDimensions;
         this.minRange = minRange;
         this.maxRange = maxRange;

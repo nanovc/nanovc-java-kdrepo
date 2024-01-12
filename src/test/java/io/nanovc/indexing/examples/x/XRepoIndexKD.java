@@ -25,6 +25,7 @@ public class XRepoIndexKD extends RepoIndexKDImplementation<
     public XRepoIndexKD(X minRange, X maxRange, int divisions, StringMemoryRepoHandler repoHandler, RepoPath rootRepoPath, ContentCreator<X, StringContent> contentCreator, ContentReader<X, StringContent> contentReader)
     {
         super(
+            X.defineHyperCube(minRange, maxRange),
             1,
             minRange, maxRange, divisions,
             X::extractCoordinate, X::measureDistance, Integer::compare,

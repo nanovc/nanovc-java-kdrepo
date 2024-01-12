@@ -6,6 +6,7 @@ import io.nanovc.indexing.repo.ranges.RangeCalculator;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.function.BiFunction;
 
 /**
  * A multidimensional hyper cube which describes the dimensions that we are indexing.
@@ -27,12 +28,20 @@ public class HyperCube
      * A factory method to create a new dimension for this {@link HyperCube}.
      *
      * @param unitComparator The logic to compare units of this dimension.
+     * @param unitAdder      The logic to add two units in this dimension.
+     * @param unitSubtractor The logic to subtract two units in this dimension.
      * @param name           The name of the dimension. If this is null or empty then the dimension index is used as the name.
      * @param range          The range for the dimension.
      * @param <TUnit>        The data type of the units for this dimension.
      * @return The dimension that was added.
      */
-    public <TUnit> Dimension<TUnit> addDimension(Comparator<TUnit> unitComparator, String name, Range<TUnit> range)
+    public <TUnit> Dimension<TUnit> addDimension(
+        Comparator<TUnit> unitComparator,
+        BiFunction<TUnit, TUnit, TUnit> unitAdder,
+        BiFunction<TUnit, TUnit, TUnit> unitSubtractor,
+        String name,
+        Range<TUnit> range
+    )
     {
         // Create the range calculator for the dimension:
         RangeCalculator<TUnit> rangeCalculator = new RangeCalculator<>(unitComparator);
@@ -49,6 +58,8 @@ public class HyperCube
             dimensionIndex,
             range,
             unitComparator,
+            unitAdder,
+            unitSubtractor,
             rangeCalculator
         );
 
@@ -61,11 +72,13 @@ public class HyperCube
 
     /**
      * Gets the dimension with the given name.
+     *
      * @param dimensionName The name of the dimension to get.
      * @return The dimension with the given name.
      */
     public <TUnit> Dimension<TUnit> getDimension(String dimensionName)
     {
+        //noinspection unchecked
         return (Dimension<TUnit>) this.dimensionsByName.get(dimensionName);
     }
 
@@ -77,6 +90,7 @@ public class HyperCube
      */
     public <TUnit> Dimension<TUnit> getDimension(int dimensionIndex)
     {
+        //noinspection unchecked
         return (Dimension<TUnit>) this.dimensions.get(dimensionIndex);
     }
 }

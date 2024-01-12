@@ -1,6 +1,8 @@
 package io.nanovc.indexing.examples.xy;
 
-import io.nanovc.indexing.examples.x.X;
+import io.nanovc.indexing.repo.HyperCube;
+import io.nanovc.indexing.repo.ranges.MinInclusiveMaxInclusiveRange;
+import io.nanovc.indexing.repo.ranges.Range;
 
 import java.util.List;
 
@@ -181,5 +183,32 @@ public record XY(double x, double y)
         index = Math.max(0, Math.min(index, divisions - 1));
 
         return index;
+    }
+    /**
+     * Defines the hyper cube for this data structure.
+     * @param minRange The minimum range value. Inclusive.
+     * @param maxRange The maximum range value. Inclusive.
+     * @return The hyper cube for this data structure.
+     */
+    public static HyperCube defineHyperCube(XY minRange, XY maxRange)
+    {
+        return defineHyperCube(
+            new MinInclusiveMaxInclusiveRange<>(minRange.x(), maxRange.x()),
+            new MinInclusiveMaxInclusiveRange<>(minRange.y(), maxRange.y())
+        );
+    }
+
+    /**
+     * Defines the hyper cube for this data structure.
+     * @param xRange The range of X values for this cube.
+     * @param yRange The range of Y values for this cube.
+     * @return The hyper cube for this data structure.
+     */
+    public static HyperCube defineHyperCube(Range<Double> xRange, Range<Double> yRange)
+    {
+        HyperCube cube = new HyperCube();
+        cube.addDimension(Double::compare, Double::sum, (l,r) -> l - r, "X", xRange);
+        cube.addDimension(Double::compare, Double::sum, (l,r) -> l - r, "Y", yRange);
+        return cube;
     }
 }

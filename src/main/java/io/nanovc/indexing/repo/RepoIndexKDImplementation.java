@@ -25,6 +25,7 @@ public class RepoIndexKDImplementation<
     > extends RepoIndexKDBase<TItem, TDistance, TContent, TArea, TCommit, TRepoHandler>
 {
     public RepoIndexKDImplementation(
+        HyperCube hyperCube,
         int numberOfDimensions,
         TItem minRange, TItem maxRange, int divisions,
         Extractor<TItem, TDistance> extractor, Measurer<TItem, TDistance> measurer, Comparator<TDistance> distanceComparator,
@@ -35,6 +36,7 @@ public class RepoIndexKDImplementation<
     )
     {
         super(
+            hyperCube,
             numberOfDimensions,
             minRange, maxRange, divisions,
             extractor, measurer, distanceComparator,

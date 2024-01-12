@@ -1,5 +1,9 @@
 package io.nanovc.indexing.examples.x;
 
+import io.nanovc.indexing.repo.HyperCube;
+import io.nanovc.indexing.repo.ranges.MinInclusiveMaxInclusiveRange;
+import io.nanovc.indexing.repo.ranges.Range;
+
 import java.util.List;
 
 /**
@@ -121,5 +125,29 @@ public record X(int x)
         index = Math.max(0, Math.min(index, divisions - 1));
 
         return index;
+    }
+
+    /**
+     * Defines the hyper cube for this data structure.
+     * @param min The minimum value. Inclusive.
+     * @param max The maximum value. Inclusive.
+     * @return The hyper cube for this data structure.
+     */
+    public static HyperCube defineHyperCube(X min, X max)
+    {
+        return defineHyperCube(new MinInclusiveMaxInclusiveRange<>(min.x(), max.x()));
+    }
+
+    /**
+     * Defines the hyper cube for this data structure.
+     * @param xRange The range of X values for this cube.
+     * @param yRange The range of Y values for this cube.
+     * @return The hyper cube for this data structure.
+     */
+    public static HyperCube defineHyperCube(Range<Integer> xRange)
+    {
+        HyperCube cube = new HyperCube();
+        cube.addDimension(Integer::compare, Integer::sum, (l,r) -> l - r, "X", xRange);
+        return cube;
     }
 }

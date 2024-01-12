@@ -1,5 +1,6 @@
 package io.nanovc.indexing.repo.arithmetic;
 
+import java.util.Comparator;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -11,6 +12,7 @@ import java.util.function.Function;
 public class PluggableArithmetic<TUnit> extends Arithmetic<TUnit>
 {
     public PluggableArithmetic(
+        Comparator<TUnit> comparator,
         BiFunction<TUnit, TUnit, TUnit> adder,
         BiFunction<TUnit, TUnit, TUnit> subtractor,
         BiFunction<TUnit, TUnit, TUnit> multiplier,
@@ -19,6 +21,7 @@ public class PluggableArithmetic<TUnit> extends Arithmetic<TUnit>
         Function<TUnit, TUnit> doubler
     )
     {
+        this.comparator = comparator;
         this.adder = adder;
         this.subtractor = subtractor;
         this.multiplier = multiplier;
@@ -26,6 +29,11 @@ public class PluggableArithmetic<TUnit> extends Arithmetic<TUnit>
         this.halver = halver;
         this.doubler = doubler;
     }
+
+    /**
+     * The logic to compare values.
+     */
+    private final Comparator<TUnit> comparator;
 
     /**
      * The logic for adding.
@@ -56,6 +64,26 @@ public class PluggableArithmetic<TUnit> extends Arithmetic<TUnit>
      * The logic for adding.
      */
     private final Function<TUnit, TUnit> doubler;
+
+    /**
+     * Compares the left value to the right value.
+     * <p>
+     * You can use it like this:
+     * compare(left, right) <  0 // for left <= right
+     * compare(left, right) <= 0 // for left <= right
+     * compare(left, right) == 0 // for left == right
+     * compare(left, right) != 0 // for left != right
+     * compare(left, right) >= 0 // for left >= right
+     * compare(left, right) >  0 // for left >  right
+     *
+     * @param leftValue  The left value to compare.
+     * @param rightValue The right value to compare.
+     * @return A negative integer, zero, or a positive integer as the first argument is less than, equal to, or greater than the second.
+     */
+    @Override public int compare(TUnit leftValue, TUnit rightValue)
+    {
+        return comparator.compare(leftValue, rightValue);
+    }
 
     /**
      * Adds the two values.

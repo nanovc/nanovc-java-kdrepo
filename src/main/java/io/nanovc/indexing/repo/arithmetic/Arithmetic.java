@@ -8,6 +8,23 @@ package io.nanovc.indexing.repo.arithmetic;
 public abstract class Arithmetic<TUnit>
 {
     /**
+     * Compares the left value to the right value.
+     *
+     * You can use it like this:
+     * compare(left, right) <  0 // for left <= right
+     * compare(left, right) <= 0 // for left <= right
+     * compare(left, right) == 0 // for left == right
+     * compare(left, right) != 0 // for left != right
+     * compare(left, right) >= 0 // for left >= right
+     * compare(left, right) >  0 // for left >  right
+     *
+     * @param leftValue The left value to compare.
+     * @param rightValue The right value to compare.
+     * @return A negative integer, zero, or a positive integer as the first argument is less than, equal to, or greater than the second.
+     */
+    public abstract int compare(TUnit leftValue, TUnit rightValue);
+
+    /**
      * Adds the two values.
      * result = leftValue + rightValue
      *

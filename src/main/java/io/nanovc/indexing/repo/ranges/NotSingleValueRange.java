@@ -13,4 +13,9 @@ public record NotSingleValueRange<TUnit>(TUnit value) implements Range<TUnit>
     {
         return new SingleValueRange<>(this.value());
     }
+
+    @Override public String toString()
+    {
+        return "!=" + value();
+    }
 }

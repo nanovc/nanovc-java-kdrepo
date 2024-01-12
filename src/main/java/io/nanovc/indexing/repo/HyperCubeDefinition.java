@@ -93,4 +93,26 @@ public class HyperCubeDefinition
         //noinspection unchecked
         return (Dimension<TUnit>) this.dimensions.get(dimensionIndex);
     }
+
+    /**
+     * @return The number of dimensions in this {@link HyperCube}.
+     */
+    public int getDimensionCount()
+    {
+        return this.dimensions.size();
+    }
+
+    @Override public String toString()
+    {
+        StringBuilder sb = new StringBuilder();
+        int dimensionCount = this.getDimensionCount();
+        for (int dimensionIndex = 0; dimensionIndex < dimensionCount; dimensionIndex++)
+        {
+            if (dimensionIndex != 0) sb.append(",");
+            Dimension<?> dimension = this.getDimension(dimensionIndex);
+            sb.append(dimension.getName());
+        }
+        return sb.toString();
+    }
+
 }

@@ -11,4 +11,10 @@ public sealed class KDNode
      * Zero based.
      */
     public int level;
+
+    /**
+     * The parent of this node.
+     * Null if this is a root node.
+     */
+    public KDNode parent;
 }

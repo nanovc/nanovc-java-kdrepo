@@ -101,4 +101,9 @@ public class RangeCalculator<TUnit>
     {
         return new AndRange<>(new MinInclusiveRange<>(value), bounds);
     }
+
+    public Range<TUnit> createBoundedRangeBetween(TUnit minInclusive, TUnit maxInclusive, Range<TUnit> bounds)
+    {
+        return new AndRange<>(new MinInclusiveMaxInclusiveRange<>(minInclusive, maxInclusive), bounds);
+    }
 }

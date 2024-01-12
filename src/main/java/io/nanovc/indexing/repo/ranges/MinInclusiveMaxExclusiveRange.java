@@ -15,4 +15,9 @@ public record MinInclusiveMaxExclusiveRange<TUnit>(TUnit min, TUnit max) impleme
     {
         return new NotRange<>(this);
     }
+
+    @Override public String toString()
+    {
+        return "[" + min() + "," + max() + ")";
+    }
 }

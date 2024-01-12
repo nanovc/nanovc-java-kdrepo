@@ -1,6 +1,8 @@
 package io.nanovc.indexing.repo.ranges;
 
+import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
 
 /**
  * A range that doesn't match for many specific values.
@@ -14,5 +16,20 @@ public record NotMultiValueRange<TUnit>(Set<TUnit> values) implements Range<TUni
     @Override public Range<TUnit> inverse()
     {
         return new MultiValueRange<>(this.values());
+    }
+
+    @Override public String toString()
+    {
+        Set<TUnit> values = this.values();
+        if (values == null || values.size() == 0) return "![]";
+        else
+        {
+            StringJoiner joiner = new StringJoiner(",");
+            for (TUnit value : values)
+            {
+                joiner.add(Objects.toString(value));
+            }
+            return "![" + joiner.toString() + "]";
+        }
     }
 }

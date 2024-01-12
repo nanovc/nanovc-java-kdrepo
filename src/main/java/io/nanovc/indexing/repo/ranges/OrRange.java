@@ -12,4 +12,9 @@ public record OrRange<TUnit>(Range<TUnit> range, Range<TUnit> other) implements 
     {
         return new NotRange<>(this);
     }
+
+    @Override public String toString()
+    {
+        return range() + " || " + other();
+    }
 }

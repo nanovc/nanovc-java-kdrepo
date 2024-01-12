@@ -12,4 +12,9 @@ public record NeverInRange<TUnit>() implements Range<TUnit>
     {
         return new UnBoundedRange<>();
     }
+
+    @Override public String toString()
+    {
+        return "NEVER";
+    }
 }

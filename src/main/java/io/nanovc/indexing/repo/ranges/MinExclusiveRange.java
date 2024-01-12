@@ -14,4 +14,9 @@ public record MinExclusiveRange<TUnit>(TUnit min) implements Range<TUnit>
     {
         return new MaxInclusiveRange<>(this.min());
     }
+
+    @Override public String toString()
+    {
+        return ">" + min();
+    }
 }

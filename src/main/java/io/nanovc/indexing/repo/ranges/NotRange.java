@@ -13,4 +13,9 @@ public record NotRange<TUnit>(Range<TUnit> innerRange) implements Range<TUnit>
         // Since we want to invert what we already are, an inverse, we can just return our inner range:
         return this.innerRange();
     }
+
+    @Override public String toString()
+    {
+        return "NOT " + innerRange();
+    }
 }

@@ -107,6 +107,17 @@ public class Dimension<TUnit>
     }
 
     /**
+     * Creates a range between the given values and bounds it by the range of this dimension.
+     * @param minInclusive The minimum value for the range. Inclusive.
+     * @param maxInclusive The maximum value for the range. Exclusive.
+     * @return The bounded range between the values.
+     */
+    public Range<TUnit> rangeBetween(TUnit minInclusive, TUnit maxInclusive)
+    {
+        return this.getRangeCalculator().createBoundedRangeBetween(minInclusive, maxInclusive, this.getRange());
+    }
+
+    /**
      * Gets the descriptive name of this dimension.
      *
      * @return The descriptive name of this dimension.

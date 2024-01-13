@@ -366,8 +366,11 @@ public abstract class RepoIndexKDBase<
                         // Get the item from the content:
                         TItem bucketItem = readItemFromContent(content);
 
+                        // Get the coordinate for this item:
+                        HyperCoord bucketItemCoord = extractItemCoordinate(bucketItem, this.hyperCubeDefinition);
+
                         // Recursively add the bucket item:
-                        nodeToReturn = addItemToKDNode(bucketItem, itemCoord, newNode);
+                        nodeToReturn = addItemToKDNode(bucketItem, bucketItemCoord, nodeToReturn);
                     }
 
                     // Recursively update the new node with the items that was added (which triggered this re-indexing):

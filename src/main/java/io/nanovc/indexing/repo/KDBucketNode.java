@@ -2,6 +2,7 @@ package io.nanovc.indexing.repo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A node in the KD-Tree
@@ -23,7 +24,11 @@ public final class KDBucketNode<TContent> extends KDNode
     {
         return "Bucket Node at level " + level +
                " with " +
-               contentList.size() + " item" + (contentList.size() == 1 ? "" : "s") +
-               "\n" + hyperCube;
+               contentList.size() + " item" + (contentList.size() == 1 ? "" : "s") + "\n" +
+               "Bucket range:" + "\n" +
+               hyperCube + "\n" +
+               "Items:" + "\n" +
+               contentList.stream().map(Object::toString).collect(Collectors.joining("\n"))
+               ;
     }
 }

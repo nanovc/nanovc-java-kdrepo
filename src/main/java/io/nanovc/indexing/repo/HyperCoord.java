@@ -1,5 +1,7 @@
 package io.nanovc.indexing.repo;
 
+import java.util.Arrays;
+
 /**
  * A coordinate in a multidimensional {@link HyperCube hyper cube}.
  * @param values The values in this {@link HyperCoord hyper coordinate}.
@@ -25,5 +27,12 @@ public record HyperCoord(Object... values)
     public Object getValue(int dimensionIndex)
     {
         return values()[dimensionIndex];
+    }
+
+    @Override public String toString()
+    {
+        return "<" +
+               Arrays.toString(values) +
+               ">";
     }
 }

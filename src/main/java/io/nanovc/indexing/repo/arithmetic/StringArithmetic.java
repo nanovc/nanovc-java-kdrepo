@@ -115,6 +115,32 @@ public class StringArithmetic extends Arithmetic<String>
     }
 
     /**
+     * Gets the scaled value.
+     * result = value * scale
+     *
+     * @param value The value to scale.
+     * @param scale The amount to scale by.
+     * @return The result of scaling the given value. result = value * scale
+     */
+    @Override public String scaleByMultiplier(String value, double scale)
+    {
+        throw new UnsupportedOperationException("Cannot scale strings by multiplication");
+    }
+
+    /**
+     * Gets the scaled value.
+     * result = value / scale
+     *
+     * @param value The value to scale.
+     * @param scale The amount to scale by.
+     * @return The result of scaling the given value. result = value / scale
+     */
+    @Override public String scaleByDivisor(String value, double scale)
+    {
+        throw new UnsupportedOperationException("Cannot scale strings by division");
+    }
+
+    /**
      * The singleton reusable instance.
      */
     private final static StringArithmetic instance = new StringArithmetic();

@@ -91,4 +91,22 @@ public abstract class Arithmetic<TUnit>
      * @return The result of getting the midpoint between the two values. result = (leftValue + rightValue) / 2 or mid(left,right)
      */
     public abstract TUnit midPoint(TUnit leftValue, TUnit rightValue);
+
+    /**
+     * Gets the scaled value.
+     * result = value * scale
+     * @param value The value to scale.
+     * @param scale The amount to scale by.
+     * @return The result of scaling the given value. result = value * scale
+     */
+    public abstract TUnit scaleByMultiplier(TUnit value, double scale);
+
+    /**
+     * Gets the scaled value.
+     * result = value / scale
+     * @param value The value to scale.
+     * @param scale The amount to scale by.
+     * @return The result of scaling the given value. result = value / scale
+     */
+    public abstract TUnit scaleByDivisor(TUnit value, double scale);
 }

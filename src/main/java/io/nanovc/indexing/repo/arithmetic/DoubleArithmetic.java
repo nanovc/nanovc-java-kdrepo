@@ -115,6 +115,32 @@ public class DoubleArithmetic extends Arithmetic<Double>
     }
 
     /**
+     * Gets the scaled value.
+     * result = value * scale
+     *
+     * @param value The value to scale.
+     * @param scale The amount to scale by.
+     * @return The result of scaling the given value. result = value * scale
+     */
+    @Override public Double scaleByMultiplier(Double value, double scale)
+    {
+        return value * scale;
+    }
+
+    /**
+     * Gets the scaled value.
+     * result = value / scale
+     *
+     * @param value The value to scale.
+     * @param scale The amount to scale by.
+     * @return The result of scaling the given value. result = value / scale
+     */
+    @Override public Double scaleByDivisor(Double value, double scale)
+    {
+        return value / scale;
+    }
+
+    /**
      * The singleton reusable instance.
      */
     private final static DoubleArithmetic instance = new DoubleArithmetic();

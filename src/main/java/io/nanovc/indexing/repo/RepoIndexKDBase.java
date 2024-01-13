@@ -138,7 +138,13 @@ public abstract class RepoIndexKDBase<
     /**
      * The definition of the hyper cube that defines the dimensions for this index.
      */
-    private final HyperCubeDefinition hyperCubeDefinition;
+    protected final HyperCubeDefinition hyperCubeDefinition;
+
+    /**
+     * This is the cube of divisions that slices up the {@link HyperCubeDefinition} into smaller divisions.
+     * This is also what defines the branches that we have because it's one branch for each {@link DivisionCell} in this {@link DivisionCube}.
+     */
+    protected DivisionCube divisionCube;
 
     /**
      * The root of the kd-tree.
@@ -246,7 +252,11 @@ public abstract class RepoIndexKDBase<
 
             // Save the root node:
             this.root = root;
+
+            //
         }
+
+
 
         // Get the coordinate of the given item:
         HyperCoord itemCoord = extractItemCoordinate(item, hyperCubeDefinition);
@@ -273,6 +283,172 @@ public abstract class RepoIndexKDBase<
 
         // Add the item in this division:
         addItemToDivisionTrieApproach(item, division);
+
+
+        // Find the right division for this item at the given coordinate:
+        DivisionCell<TContent, TArea> divisionCell = getOrCreateDivisionCell(itemCoord);
+
+    }
+
+    /**
+     * This walks the {@link #divisionCube} and gets or creates the {@link DivisionCell} that we need for the given coordinate.
+     * @param itemCoord The coordinate of the item that we want to find the cell of.
+     * @return The {@link DivisionCell} that corresponds to the given {@link HyperCoord hyper coordinate}.
+     */
+    protected DivisionCell<TContent, TArea> getOrCreateDivisionCell(HyperCoord itemCoord)
+    {
+        // Check whether we need to create the division cube:
+        if (this.divisionCube == null)
+        {
+            // This is the first time we are adding.
+            // We need to create the division cube.
+
+            // Create the division cube:
+            this.divisionCube = new DivisionCube();
+
+            // Set the extents of the division cube:
+            this.divisionCube.hyperCube = this.hyperCubeDefinition.createHyperCube();
+
+            // Create the root dimension:
+            DivisionDimension rootDimension = createDivisionDimension(0);
+            this.divisionCube.rootDimension = rootDimension;
+            rootDimension.hyperCube = this.divisionCube.hyperCube;
+        }
+
+        // Walk the tree recursively until we find the division cell:
+        return getOrCreateDivisionCellRecursively(itemCoord, this.divisionCube.rootDimension);
+    }
+
+    /**
+     * Creates the {@link DivisionDimension} with the given parameters.
+     * @param dimensionIndexToCreate The dimensionIndex that we are creating.
+     * @return The {@link DivisionDimension} that was created.
+     */
+    private DivisionDimension createDivisionDimension(int dimensionIndexToCreate)
+    {
+        // Check whether we have more than one division dimension so that we know what type of node to create:
+        int dimensionCount = this.hyperCubeDefinition.getDimensionCount();
+        int lastDimensionIndex = dimensionCount - 1;
+
+        // Create the root dimension:
+        DivisionDimension divisionDimension;
+        if (dimensionIndexToCreate == lastDimensionIndex)
+        {
+            // This is the last dimension index:
+            divisionDimension = new DivisionDimension.Last();
+        }
+        else if (dimensionIndexToCreate == 0)
+        {
+            // This is the first dimension.
+            divisionDimension = new DivisionDimension.First();
+        }
+        else if (dimensionIndexToCreate < lastDimensionIndex)
+        {
+            // This is an intermediate dimension.
+            divisionDimension = new DivisionDimension.Intermediate();
+        }
+        else throw new IllegalArgumentException("Dimension Index is out of bounds");
+
+        // Set parameters:
+        divisionDimension.dimension = this.hyperCubeDefinition.getDimension(dimensionIndexToCreate);
+
+        // Create the list for range splits to be the same size as the number of divisions that we want:
+        // NOTE: Depending on the smallest steps size for the dimension, it might be more or less than that.
+        divisionDimension.splits = new ArrayList<>(this.divisions);
+
+        // Work out the range splits for this dimension:
+        divisionDimension.dimension.calculateRangeSplitsForDimension(this.divisions, divisionDimension.splits);
+        // NOTE: The number of splits MIGHT be different to what was requested because of the smallest step size for the dimension.
+        //       Therefore, it's important to use the size of the splits array to know what index is appropriate.
+
+        return divisionDimension;
+    }
+
+    /**
+     * This walks the {@link #divisionCube} and gets or creates the {@link DivisionCell} that we need for the given coordinate.
+     * @param itemCoord The coordinate of the item that we want to find the cell of.
+     * @return The {@link DivisionCell} that corresponds to the given {@link HyperCoord hyper coordinate}.
+     */
+    private DivisionCell<TContent, TArea> getOrCreateDivisionCellRecursively(HyperCoord itemCoord, DivisionDimension currentDimensionNode)
+    {
+        // Get the dimensionIndex that we are processing:
+        int dimensionIndex = currentDimensionNode.dimension.getDimensionIndex();
+
+        // Get the value of the coordinate for this dimension:
+        Object value = itemCoord.getValue(dimensionIndex);
+
+        // Find the range split that this coordinate falls into:
+        for (int divisionIndex = 0; divisionIndex < currentDimensionNode.splits.size(); divisionIndex++)
+        {
+            // Get the range for this split:
+            Range<Object> splitRange = currentDimensionNode.splits.get(divisionIndex);
+
+            // Check whether the coordinate is in this range:
+            if (currentDimensionNode.dimension.getRangeCalculator().isInRange(value, splitRange))
+            {
+                // This item is in this split range.
+
+                // Check where we are in the dimension chain to decide how to walk next:
+                switch (currentDimensionNode)
+                {
+                    case DivisionDimension.First firstDivisionDimension ->
+                    {
+                        // Make sure we have the next dimension to walk down:
+                        if (firstDivisionDimension.nextDivisionDimension == null)
+                        {
+                            // Create the next dimension:
+                            firstDivisionDimension.nextDivisionDimension = createDivisionDimension(dimensionIndex + 1);
+
+                            // Set the hyper cube for this split range:
+                            firstDivisionDimension.nextDivisionDimension.hyperCube = firstDivisionDimension.hyperCube.createHyperCubeWithChangedRange(dimensionIndex, splitRange);
+                        }
+
+                        // Walk to the next dimension until we find the division cell:
+                        return getOrCreateDivisionCellRecursively(itemCoord, firstDivisionDimension.nextDivisionDimension);
+                    }
+                    case DivisionDimension.Intermediate intermediateDivisionDimension ->
+                    {
+                        // Make sure we have the next dimension to walk down:
+                        if (intermediateDivisionDimension.nextDivisionDimension == null)
+                        {
+                            // Create the next dimension:
+                            intermediateDivisionDimension.nextDivisionDimension = createDivisionDimension(dimensionIndex + 1);
+
+                            // Set the hyper cube for this split range:
+                            intermediateDivisionDimension.nextDivisionDimension.hyperCube = intermediateDivisionDimension.hyperCube.createHyperCubeWithChangedRange(dimensionIndex, splitRange);
+                        }
+
+                        // Walk to the next dimension until we find the division cell:
+                        return getOrCreateDivisionCellRecursively(itemCoord, intermediateDivisionDimension.nextDivisionDimension);
+                    }
+                    case DivisionDimension.Last lastDivisionDimension ->
+                    {
+                        // We are at the last dimension.
+
+                        // Search for the division cell:
+                        //noinspection unchecked
+                        DivisionCell<TContent, TArea> divisionCell = (DivisionCell<TContent, TArea>) lastDivisionDimension.cellsByIndex.get(divisionIndex);
+                        if (divisionCell == null)
+                        {
+                            // This is the first time we are accessing this division cell.
+
+                            // Create the division cell:
+                            divisionCell = new DivisionCell<>();
+                            lastDivisionDimension.cellsByIndex.put(divisionIndex, divisionCell);
+                            divisionCell.parentDimension = lastDivisionDimension;
+                            divisionCell.hyperCube = lastDivisionDimension.hyperCube.createHyperCubeWithChangedRange(
+                                lastDivisionDimension.dimension.getDimensionIndex(),
+                                splitRange
+                            );
+                        }
+                        // Now we have the division cell.
+                        return divisionCell;
+                    }
+                }
+            }
+        }
+        // If we get here then the coordinate was not in any of the ranges.
+        return null;
     }
 
     /**

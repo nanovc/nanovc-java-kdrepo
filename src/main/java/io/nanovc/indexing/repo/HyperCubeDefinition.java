@@ -26,15 +26,17 @@ public class HyperCubeDefinition
     /**
      * A factory method to create a new dimension for this {@link HyperCubeDefinition}.
      *
-     * @param arithmetic     The logic for performing arithmetic in this dimension.
-     * @param name           The name of the dimension. If this is null or empty then the dimension index is used as the name.
-     * @param range          The range for the dimension.
-     * @param <TUnit>        The data type of the units for this dimension.
+     * @param arithmetic               The logic for performing arithmetic in this dimension.
+     * @param name                     The name of the dimension. If this is null or empty then the dimension index is used as the name.
+     * @param smallestDivisionStepSize This is the smallest division steps size that we allow when partitioning this dimension.
+     * @param range                    The range for the dimension.
+     * @param <TUnit>                  The data type of the units for this dimension.
      * @return The dimension that was added.
      */
     public <TUnit> Dimension<TUnit> addDimension(
         Arithmetic<TUnit> arithmetic,
         String name,
+        TUnit smallestDivisionStepSize,
         Range<TUnit> range
     )
     {
@@ -52,6 +54,7 @@ public class HyperCubeDefinition
             dimensionNameToUse,
             dimensionIndex,
             range,
+            smallestDivisionStepSize,
             arithmetic,
             rangeCalculator
         );

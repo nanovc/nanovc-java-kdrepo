@@ -19,7 +19,9 @@ public class PluggableArithmetic<TUnit> extends Arithmetic<TUnit>
         BiFunction<TUnit, TUnit, TUnit> divider,
         BiFunction<TUnit, TUnit, TUnit> midPointFinder,
         Function<TUnit, TUnit> halver,
-        Function<TUnit, TUnit> doubler
+        Function<TUnit, TUnit> doubler,
+        BiFunction<TUnit, Double, TUnit> scalerByMultiplication,
+        BiFunction<TUnit, Double, TUnit> scalerByDivision
     )
     {
         this.comparator = comparator;
@@ -30,6 +32,8 @@ public class PluggableArithmetic<TUnit> extends Arithmetic<TUnit>
         this.midPointFinder = midPointFinder;
         this.halver = halver;
         this.doubler = doubler;
+        this.scalerByMultiplication = scalerByMultiplication;
+        this.scalerByDivision = scalerByDivision;
     }
 
     /**
@@ -71,6 +75,17 @@ public class PluggableArithmetic<TUnit> extends Arithmetic<TUnit>
      * The logic for adding.
      */
     private final Function<TUnit, TUnit> doubler;
+
+    /**
+     * The logic for scaling by multiplication.
+     */
+    private final BiFunction<TUnit, Double, TUnit> scalerByMultiplication;
+
+    /**
+     * The logic for scaling by division.
+     */
+    private final BiFunction<TUnit, Double, TUnit> scalerByDivision;
+
 
     /**
      * Compares the left value to the right value.
@@ -181,4 +196,29 @@ public class PluggableArithmetic<TUnit> extends Arithmetic<TUnit>
         return doubler.apply(value);
     }
 
+    /**
+     * Gets the scaled value.
+     * result = value * scale
+     *
+     * @param value The value to scale.
+     * @param scale The amount to scale by.
+     * @return The result of scaling the given value. result = value * scale
+     */
+    @Override public TUnit scaleByMultiplier(TUnit value, double scale)
+    {
+        return scalerByMultiplication.apply(value, scale);
+    }
+
+    /**
+     * Gets the scaled value.
+     * result = value / scale
+     *
+     * @param value The value to scale.
+     * @param scale The amount to scale by.
+     * @return The result of scaling the given value. result = value / scale
+     */
+    @Override public TUnit scaleByDivisor(TUnit value, double scale)
+    {
+        return scalerByDivision.apply(value, scale);
+    }
 }

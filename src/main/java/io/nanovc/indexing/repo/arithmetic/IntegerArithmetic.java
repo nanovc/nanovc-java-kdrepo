@@ -115,6 +115,32 @@ public class IntegerArithmetic extends Arithmetic<Integer>
     }
 
     /**
+     * Gets the scaled value.
+     * result = value * scale
+     *
+     * @param value The value to scale.
+     * @param scale The amount to scale by.
+     * @return The result of scaling the given value. result = value * scale
+     */
+    @Override public Integer scaleByMultiplier(Integer value, double scale)
+    {
+        return (int) (value * scale);
+    }
+
+    /**
+     * Gets the scaled value.
+     * result = value / scale
+     *
+     * @param value The value to scale.
+     * @param scale The amount to scale by.
+     * @return The result of scaling the given value. result = value / scale
+     */
+    @Override public Integer scaleByDivisor(Integer value, double scale)
+    {
+        return (int) (value / scale);
+    }
+
+    /**
      * The singleton reusable instance.
      */
     private final static IntegerArithmetic instance = new IntegerArithmetic();

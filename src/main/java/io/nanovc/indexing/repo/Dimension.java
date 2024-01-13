@@ -4,6 +4,8 @@ import io.nanovc.indexing.repo.arithmetic.Arithmetic;
 import io.nanovc.indexing.repo.ranges.Range;
 import io.nanovc.indexing.repo.ranges.RangeCalculator;
 
+import java.util.List;
+
 /**
  * A dimension that we are indexing.
  *
@@ -28,6 +30,11 @@ public class Dimension<TUnit>
     private final Range<TUnit> range;
 
     /**
+     * This is the smallest division steps size that we allow when partitioning this dimension.
+     */
+    private final TUnit smallestDivisionStepSize;
+
+    /**
      * The logic for arithmetic in this dimension.
      */
     private final Arithmetic<TUnit> arithmetic;
@@ -41,15 +48,17 @@ public class Dimension<TUnit>
         String name,
         int index,
         Range<TUnit> range,
+        TUnit smallestDivisionStepSize,
         Arithmetic<TUnit> arithmetic,
         RangeCalculator<TUnit> calculator
     )
     {
         this.name = name;
-        dimensionIndex = index;
+        this.dimensionIndex = index;
         this.range = range;
+        this.smallestDivisionStepSize = smallestDivisionStepSize;
         this.arithmetic = arithmetic;
-        rangeCalculator = calculator;
+        this.rangeCalculator = calculator;
     }
 
     /**
@@ -73,6 +82,17 @@ public class Dimension<TUnit>
     public Range<TUnit> rangeBetween(TUnit minInclusive, TUnit maxInclusive)
     {
         return this.getRangeCalculator().createBoundedRangeBetween(minInclusive, maxInclusive, this.getRange());
+    }
+
+    /**
+     * This calculates the range splits for the {@link #getRange() range} of the dimension
+     * by dividing that {@link #getRange() range} into the given number of divisions.
+     * @param divisions The number of divisions to split the range into.
+     * @param splitsToAddTo The list to add th range splits to.
+     */
+    public void calculateRangeSplitsForDimension(int divisions, List<Range<TUnit>> splitsToAddTo)
+    {
+        this.getRangeCalculator().calculateRangeSplits(this.getRange(), divisions, this.getSmallestDivisionStepSize(), splitsToAddTo);
     }
 
     /**
@@ -124,6 +144,15 @@ public class Dimension<TUnit>
     public RangeCalculator<TUnit> getRangeCalculator()
     {
         return rangeCalculator;
+    }
+
+    /**
+     * Gets the smallest division steps size that we allow when partitioning this dimension.
+     * @return This is the smallest division steps size that we allow when partitioning this dimension.
+     */
+    public TUnit getSmallestDivisionStepSize()
+    {
+        return smallestDivisionStepSize;
     }
 
     @Override public String toString()

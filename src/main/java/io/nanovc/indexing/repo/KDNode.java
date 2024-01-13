@@ -17,4 +17,9 @@ public sealed class KDNode
      * Null if this is a root node.
      */
     public KDNode parent;
+
+    /**
+     * The repo path node that keeps track of where in the content area this node belongs.
+     */
+    public RepoPathNode repoPathNode;
 }

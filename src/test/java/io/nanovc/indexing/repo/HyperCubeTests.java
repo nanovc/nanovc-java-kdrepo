@@ -25,7 +25,7 @@ class HyperCubeTests
     {
         // Define the cube structure:
         HyperCubeDefinition definition = new HyperCubeDefinition();
-        Dimension<Integer> xDim = definition.addDimension(IntegerArithmetic.instance(), "X", new UnBoundedRange<>());
+        Dimension<Integer> xDim = definition.addDimension(IntegerArithmetic.instance(), "X", 1, new UnBoundedRange<>());
 
         // Create a hyper cube:
         HyperCube cube = new HyperCube(definition, xDim.rangeBetween(0, 1));
@@ -44,7 +44,7 @@ class HyperCubeTests
     {
         // Define the cube structure:
         HyperCubeDefinition definition = new HyperCubeDefinition();
-        Dimension<Integer> xDim = definition.addDimension(IntegerArithmetic.instance(), "X", new MinInclusiveMaxInclusiveRange<>(0,1));
+        Dimension<Integer> xDim = definition.addDimension(IntegerArithmetic.instance(), "X", 1, new MinInclusiveMaxInclusiveRange<>(0,1));
 
         // Create a hyper cube:
         HyperCube cube = new HyperCube(definition, xDim.rangeBetween(-1, 2)); // Outside of dimension bounds.
@@ -63,8 +63,8 @@ class HyperCubeTests
     {
         // Define the cube structure:
         HyperCubeDefinition definition = new HyperCubeDefinition();
-        Dimension<Integer> xDim = definition.addDimension(IntegerArithmetic.instance(), "X", new UnBoundedRange<>());
-        Dimension<Double> yDim = definition.addDimension(DoubleArithmetic.instance(), "Y", new UnBoundedRange<>());
+        Dimension<Integer> xDim = definition.addDimension(IntegerArithmetic.instance(), "X", 1, new UnBoundedRange<>());
+        Dimension<Double> yDim = definition.addDimension(DoubleArithmetic.instance(), "Y", 0.01, new UnBoundedRange<>());
 
         // Create a hyper cube:
         HyperCube cube = new HyperCube(definition, xDim.rangeBetween(0, 1), yDim.rangeBetween(0.0, 1.0));
@@ -104,8 +104,8 @@ class HyperCubeTests
     {
         // Define the cube structure:
         HyperCubeDefinition definition = new HyperCubeDefinition();
-        Dimension<Integer> xDim = definition.addDimension(IntegerArithmetic.instance(), "X", new MinInclusiveMaxInclusiveRange<>(0,1));
-        Dimension<Double> yDim = definition.addDimension(DoubleArithmetic.instance(), "Y", new MinInclusiveMaxInclusiveRange<>(0.0,1.0));
+        Dimension<Integer> xDim = definition.addDimension(IntegerArithmetic.instance(), "X", 1, new MinInclusiveMaxInclusiveRange<>(0,1));
+        Dimension<Double> yDim = definition.addDimension(DoubleArithmetic.instance(), "Y", 0.01, new MinInclusiveMaxInclusiveRange<>(0.0,1.0));
 
         // Create a hyper cube:
         HyperCube cube = new HyperCube(definition, xDim.rangeBetween(-1, 2), yDim.rangeBetween(-1.0, 2.0)); // Outside of dimension bounds.

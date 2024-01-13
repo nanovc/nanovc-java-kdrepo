@@ -26,6 +26,11 @@ public class DivisionCell<
     public HyperCube hyperCube;
 
     /**
+     * The root of the kd-tree.
+     */
+    public KDNode kdTreeRoot;
+
+    /**
      * The content area for this division.
      */
     public TArea contentArea;

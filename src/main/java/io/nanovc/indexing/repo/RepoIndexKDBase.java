@@ -146,11 +146,6 @@ public abstract class RepoIndexKDBase<
      */
     protected DivisionCube divisionCube;
 
-    /**
-     * The root of the kd-tree.
-     */
-    private KDNode root;
-
     public RepoIndexKDBase(
         HyperCubeDefinition hyperCubeDefinition,
         int numberOfDimensions,
@@ -239,8 +234,25 @@ public abstract class RepoIndexKDBase<
      */
     public void add(TItem item)
     {
-        // Make sure that we have a root node:
-        if (this.root == null)
+        // We divide the search space into divisions so that we can perform range searches in them.
+        // We use branches in the repo for each division.
+        // This allows us to get grid-like decomposition of the search space when we don't find an exact match.
+
+        // Inside each division of the search space (branch),
+        // we use a simple list in each bucket if the number of items is small.
+        // As the number of items in each bucket grows beyond a certain point,
+        // we use a trie based approach where the content byte representation is a path to the content
+        // similar to how the git hash of the content gives us the address of the content,
+        // thus making a content-addressable-file-system.
+
+        // Get the coordinate of the given item:
+        HyperCoord itemCoord = extractItemCoordinate(item, hyperCubeDefinition);
+
+        // Find the right division for this item at the given coordinate:
+        DivisionCell<TContent, TArea> divisionCell = getOrCreateDivisionCell(itemCoord);
+
+        // Make sure that we have a root node for this division cell:
+        if (divisionCell.kdTreeRoot == null)
         {
             // We don't have a root yet.
 
@@ -248,32 +260,17 @@ public abstract class RepoIndexKDBase<
             KDBucketNode<?> root = new KDBucketNode<>();
 
             // Create the hyper cube for this bucket:
-            root.hyperCube = this.hyperCubeDefinition.createHyperCube();
+            root.hyperCube = divisionCell.hyperCube;
 
             // Save the root node:
-            this.root = root;
-
-            //
+            divisionCell.kdTreeRoot = root;
         }
 
-
-
-        // Get the coordinate of the given item:
-        HyperCoord itemCoord = extractItemCoordinate(item, hyperCubeDefinition);
-
         // Index the item recursively:
-        this.root = addItemToKDNode(item, itemCoord, this.root);
+        divisionCell.kdTreeRoot = addItemToKDNode(item, itemCoord, divisionCell.kdTreeRoot);
 
 
 
-        // We divide the search space into divisions so that we can perform range searches in them.
-        // We use branches in the repo for each division.
-        // This allows us to get grid-like decomposition of the search space when we don't find an exact match.
-
-        // Inside each branch region of the search space (branch),
-        // we use a trie based approach where the content byte representation is a path to the content
-        // similar to how the git hash of the content gives us the address of the content,
-        // thus making a content-addressable-file-system.
 
         // Find the index of the division in the range:
         int divisionIndex = findIndexInRange(this.minRange, this.maxRange, this.divisions, item);
@@ -283,10 +280,6 @@ public abstract class RepoIndexKDBase<
 
         // Add the item in this division:
         addItemToDivisionTrieApproach(item, division);
-
-
-        // Find the right division for this item at the given coordinate:
-        DivisionCell<TContent, TArea> divisionCell = getOrCreateDivisionCell(itemCoord);
 
     }
 
@@ -484,6 +477,8 @@ public abstract class RepoIndexKDBase<
      */
     protected KDNode addItemToKDNode(TItem item, HyperCoord itemCoord, KDNode node)
     {
+        // Make s
+
         // Check what type of node this is:
         switch (node)
         {

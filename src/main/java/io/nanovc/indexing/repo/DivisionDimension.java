@@ -91,4 +91,13 @@ public abstract sealed class DivisionDimension
          */
         public TreeMap<Integer, DivisionCell<?,?>> cellsByIndex = new TreeMap<>();
     }
+
+    @Override public String toString()
+    {
+        return "DivisionDimension{" + "\n" +
+               "hyperCube=\n" + hyperCube + ",\n" +
+               "dimension=\n" + dimension + ",\n" +
+               "splits=" + splits.size() + "\n" +
+               '}';
+    }
 }

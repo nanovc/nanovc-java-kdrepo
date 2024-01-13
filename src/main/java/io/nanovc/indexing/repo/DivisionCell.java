@@ -35,4 +35,11 @@ public class DivisionCell<
      * It matches up with the paths in the {@link #contentArea}
      */
     public RepoPathTree repoPathTree;
+
+    @Override public String toString()
+    {
+        return "DivisionCell{" + "\n" +
+               "hyperCube=\n" + hyperCube + ",\n" +
+               '}';
+    }
 }

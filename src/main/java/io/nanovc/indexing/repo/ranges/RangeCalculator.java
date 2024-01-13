@@ -241,7 +241,7 @@ public class RangeCalculator<TUnit>
         ArrayList<TUnit> values = new ArrayList<>();
         TUnit currentValue = startingValue;
         int stepIndex = 0;
-        while ((stepIndex < divisions) && (arithmetic.compare(currentValue, endingValue) <= 0)) // NOTE: We limit by the requested divisions.
+        while ((stepIndex <= divisions) && (arithmetic.compare(currentValue, endingValue) <= 0)) // NOTE: We limit by the requested divisions.
         {
             // We need to keep stepping.
 
@@ -324,6 +324,20 @@ public class RangeCalculator<TUnit>
                     case MinInclusiveMaxInclusiveRange<TUnit> r -> splitsToAddTo.add(new MinInclusiveMaxInclusiveRange<>(previousValue, currentValue));
                     case MinInclusiveMaxExclusiveRange<TUnit> r -> splitsToAddTo.add(new MinInclusiveMaxExclusiveRange<>(previousValue, currentValue));
                     case MinExclusiveMaxInclusiveRange<TUnit> r -> splitsToAddTo.add(new MinInclusiveMaxInclusiveRange<>(previousValue, currentValue));
+                    case MinExclusiveMaxExclusiveRange<TUnit> r -> splitsToAddTo.add(new MinInclusiveMaxExclusiveRange<>(previousValue, currentValue));
+
+                    default -> throw new UnsupportedOperationException("Cannot split the given range into divisions");
+                }
+            }
+            else
+            {
+                // This is not the first value, not the second and not the last value. It's an intermediate value.
+
+                switch (range)
+                {
+                    case MinInclusiveMaxInclusiveRange<TUnit> r -> splitsToAddTo.add(new MinInclusiveMaxExclusiveRange<>(previousValue, currentValue));
+                    case MinInclusiveMaxExclusiveRange<TUnit> r -> splitsToAddTo.add(new MinInclusiveMaxExclusiveRange<>(previousValue, currentValue));
+                    case MinExclusiveMaxInclusiveRange<TUnit> r -> splitsToAddTo.add(new MinInclusiveMaxExclusiveRange<>(previousValue, currentValue));
                     case MinExclusiveMaxExclusiveRange<TUnit> r -> splitsToAddTo.add(new MinInclusiveMaxExclusiveRange<>(previousValue, currentValue));
 
                     default -> throw new UnsupportedOperationException("Cannot split the given range into divisions");

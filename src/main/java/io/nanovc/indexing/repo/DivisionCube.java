@@ -16,4 +16,11 @@ public class DivisionCube
      * Walk this to find the specific division of data that we have.
      */
     public DivisionDimension rootDimension;
+
+    @Override public String toString()
+    {
+        return "DivisionCube{" + "\n" +
+               "hyperCube=\n" + hyperCube + "\n" +
+               '}';
+    }
 }

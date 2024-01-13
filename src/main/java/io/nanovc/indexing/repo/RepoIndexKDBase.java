@@ -371,7 +371,7 @@ public abstract class RepoIndexKDBase<
                     }
 
                     // Recursively update the new node with the items that was added (which triggered this re-indexing):
-                    nodeToReturn = addItemToKDNode(item, itemCoord, newNode);
+                    nodeToReturn = addItemToKDNode(item, itemCoord, nodeToReturn);
 
                     // Replace the previous node with the new node:
                     return nodeToReturn;
@@ -408,7 +408,7 @@ public abstract class RepoIndexKDBase<
                 Object value = itemCoord.getValue(intermediateNode.dimension);
 
                 // Check whether to index the item in the lower branch:
-                if (rangeCalculator.isInRange(value, intermediateNode.rangeSplit.lower()))
+                if (rangeCalculator.isInRange(value, rangeSplit.lower()))
                 {
                     // This item belongs in the lower range.
 
@@ -417,18 +417,19 @@ public abstract class RepoIndexKDBase<
                 }
 
                 // Check whether to index the item in the higher branch:
-                if (rangeCalculator.isInRange(value, intermediateNode.rangeSplit.higher()))
+                if (rangeCalculator.isInRange(value, rangeSplit.higher()))
                 {
                     // This item belongs in the higher range.
 
                     // Recursively add the item to that branch:
                     intermediateNode.higherNode = addItemToKDNode(item, itemCoord, intermediateNode.higherNode);
                 }
+
+                // Return the intermediate node unchanged:
+                return intermediateNode;
             }
             default -> throw new IllegalStateException("Unexpected value: " + node);
         }
-
-        return node;
     }
 
     /**

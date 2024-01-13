@@ -32,11 +32,12 @@ public record X(int x)
      * @param dimension The dimension to extract.
      * @return The coordinate for the given dimension.
      */
-    public static int extractCoordinate(X item, Integer dimension)
+    public static <TUnit> TUnit extractCoordinate(X item, int dimension)
     {
         return switch (dimension)
         {
-            case 0 -> item.x();
+            case 0 -> //noinspection unchecked
+                (TUnit)(Integer)item.x();
             default -> throw new IllegalStateException("Unexpected value: " + dimension);
         };
     }

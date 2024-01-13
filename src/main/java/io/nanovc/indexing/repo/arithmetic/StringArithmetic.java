@@ -78,6 +78,19 @@ public class StringArithmetic extends Arithmetic<String>
     }
 
     /**
+     * Gets the midpoint between the two values.
+     * result = (leftValue + rightValue) / 2 or mid(left,right), depending on the context.
+     *
+     * @param leftValue  The left value to get the midpoint between.
+     * @param rightValue The right value to get the midpoint between.
+     * @return The result of getting the midpoint between the two values. result = (leftValue + rightValue) / 2 or mid(left,right)
+     */
+    @Override public String midPoint(String leftValue, String rightValue)
+    {
+        throw new UnsupportedOperationException("Cannot find midpoint of strings");
+    }
+
+    /**
      * Halves the value.
      * result = value / 2
      *

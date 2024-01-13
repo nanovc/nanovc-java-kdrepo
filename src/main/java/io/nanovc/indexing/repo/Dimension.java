@@ -134,4 +134,14 @@ public class Dimension<TUnit>
                ", range=" + range +
                '}';
     }
+
+    /**
+     * Gets the midpoint of the dimensions range.
+     *
+     * @return The midpoint of the dimensions range.
+     */
+    public TUnit getRangeMidPoint()
+    {
+        return this.rangeCalculator.midPoint(this.range);
+    }
 }

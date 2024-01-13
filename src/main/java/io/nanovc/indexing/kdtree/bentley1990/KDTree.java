@@ -66,7 +66,7 @@ public class KDTree<
      * The first argument is the item.
      * The second argument is the dimension to extract. Zero based.
      */
-    public final Extractor<TItem, TDistance> coordinateExtractor;
+    public final Extractor<TItem> coordinateExtractor;
 
     /**
      * This is the specific distance measurement that we want to use.
@@ -101,7 +101,7 @@ public class KDTree<
     public final int numberOfDimensions;
 
     public KDTree(
-        Extractor<TItem, TDistance> extractor,
+        Extractor<TItem> extractor,
         Measurer<TItem, TDistance> measurer,
         Comparator<TDistance> distanceComparator,
         Operator<TDistance> distanceAdder,

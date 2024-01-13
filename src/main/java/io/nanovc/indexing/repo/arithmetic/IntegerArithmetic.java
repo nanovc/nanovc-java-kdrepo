@@ -102,6 +102,19 @@ public class IntegerArithmetic extends Arithmetic<Integer>
     }
 
     /**
+     * Gets the midpoint between the two values.
+     * result = (leftValue + rightValue) / 2 or mid(left,right), depending on the context.
+     *
+     * @param leftValue  The left value to get the midpoint between.
+     * @param rightValue The right value to get the midpoint between.
+     * @return The result of getting the midpoint between the two values. result = (leftValue + rightValue) / 2 or mid(left,right)
+     */
+    @Override public Integer midPoint(Integer leftValue, Integer rightValue)
+    {
+        return (leftValue + rightValue) / 2;
+    }
+
+    /**
      * The singleton reusable instance.
      */
     private final static IntegerArithmetic instance = new IntegerArithmetic();

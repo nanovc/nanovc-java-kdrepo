@@ -81,4 +81,14 @@ public abstract class Arithmetic<TUnit>
      * @return The result of doubling the value. result = value * 2
      */
     public abstract TUnit doubleValue(TUnit value);
+
+    /**
+     * Gets the midpoint between the two values.
+     * result = (leftValue + rightValue) / 2 or mid(left,right), depending on the context.
+     *
+     * @param leftValue  The left value to get the midpoint between.
+     * @param rightValue The right value to get the midpoint between.
+     * @return The result of getting the midpoint between the two values. result = (leftValue + rightValue) / 2 or mid(left,right)
+     */
+    public abstract TUnit midPoint(TUnit leftValue, TUnit rightValue);
 }

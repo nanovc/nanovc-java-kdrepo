@@ -17,6 +17,7 @@ public class PluggableArithmetic<TUnit> extends Arithmetic<TUnit>
         BiFunction<TUnit, TUnit, TUnit> subtractor,
         BiFunction<TUnit, TUnit, TUnit> multiplier,
         BiFunction<TUnit, TUnit, TUnit> divider,
+        BiFunction<TUnit, TUnit, TUnit> midPointFinder,
         Function<TUnit, TUnit> halver,
         Function<TUnit, TUnit> doubler
     )
@@ -26,6 +27,7 @@ public class PluggableArithmetic<TUnit> extends Arithmetic<TUnit>
         this.subtractor = subtractor;
         this.multiplier = multiplier;
         this.divider = divider;
+        this.midPointFinder = midPointFinder;
         this.halver = halver;
         this.doubler = doubler;
     }
@@ -54,6 +56,11 @@ public class PluggableArithmetic<TUnit> extends Arithmetic<TUnit>
      * The logic for adding.
      */
     private final BiFunction<TUnit, TUnit, TUnit> divider;
+
+    /**
+     * The logic for finding the midpoint.
+     */
+    private final BiFunction<TUnit, TUnit, TUnit> midPointFinder;
 
     /**
      * The logic for adding.
@@ -135,6 +142,19 @@ public class PluggableArithmetic<TUnit> extends Arithmetic<TUnit>
     @Override public TUnit divide(TUnit leftValue, TUnit rightValue)
     {
         return divider.apply(leftValue, rightValue);
+    }
+
+    /**
+     * Gets the midpoint between the two values.
+     * result = (leftValue + rightValue) / 2 or mid(left,right), depending on the context.
+     *
+     * @param leftValue  The left value to get the midpoint between.
+     * @param rightValue The right value to get the midpoint between.
+     * @return The result of getting the midpoint between the two values. result = (leftValue + rightValue) / 2 or mid(left,right)
+     */
+    @Override public TUnit midPoint(TUnit leftValue, TUnit rightValue)
+    {
+        return midPointFinder.apply(leftValue, rightValue);
     }
 
     /**

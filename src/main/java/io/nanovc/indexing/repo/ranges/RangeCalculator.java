@@ -124,6 +124,38 @@ public class RangeCalculator<TUnit>
         };
     }
 
+    /**
+     * Gets the midpoint of the given range.
+     * @param range The range to get the midpoint of.
+     * @return The midpoint of the given range.
+     */
+    public TUnit midPoint(Range<TUnit> range)
+    {
+        return switch (range)
+        {
+            //case NotRange<TUnit>                      r -> null;
+            //case OrRange<TUnit>                       r -> null;
+            //case AndRange<TUnit>                      r -> null;
+            //case UnBoundedRange<TUnit>                r -> null;
+            //case NeverInRange<TUnit>                  r -> null;
+            //case SingleValueRange<TUnit>              r -> null;
+            //case NotSingleValueRange<TUnit>           r -> null;
+            //case MultiValueRange<TUnit>               r -> null;
+            //case NotMultiValueRange<TUnit>            r -> null;
+            //case MinInclusiveRange<TUnit>             r -> null;
+            //case MinExclusiveRange<TUnit>             r -> null;
+            //case MaxInclusiveRange<TUnit>             r -> null;
+            //case MaxExclusiveRange<TUnit>             r -> null;
+
+            case MinInclusiveMaxInclusiveRange<TUnit> r -> arithmetic.midPoint(r.min(), r.max());
+            case MinInclusiveMaxExclusiveRange<TUnit> r -> arithmetic.midPoint(r.min(), r.max());
+            case MinExclusiveMaxInclusiveRange<TUnit> r -> arithmetic.midPoint(r.min(), r.max());
+            case MinExclusiveMaxExclusiveRange<TUnit> r -> arithmetic.midPoint(r.min(), r.max());
+
+            default -> throw new UnsupportedOperationException("Cannot get midpoint of the given range");
+        };
+    }
+
     public Range<TUnit> createRangeLessThanOrEqualTo(TUnit value)
     {
         return new MaxInclusiveRange<>(value);
@@ -189,4 +221,6 @@ public class RangeCalculator<TUnit>
     {
         return arithmetic;
     }
+
+
 }

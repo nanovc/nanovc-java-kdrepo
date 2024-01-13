@@ -28,7 +28,7 @@ public class RepoIndexKDImplementation<
         HyperCubeDefinition hyperCubeDefinition,
         int numberOfDimensions,
         TItem minRange, TItem maxRange, int divisions,
-        Extractor<TItem, TDistance> extractor, Measurer<TItem, TDistance> measurer, Comparator<TDistance> distanceComparator,
+        Extractor<TItem> extractor, Measurer<TItem, TDistance> measurer, Comparator<TDistance> distanceComparator,
         Operator<TDistance> distanceAdder, Operator<TDistance> distanceSubtractor, TDistance maxDistance,
         RangeSplitter<TItem> rangeSplitter, RangeFinder<TItem> rangeFinder,
         TRepoHandler repoHandler, RepoPath rootRepoPath,

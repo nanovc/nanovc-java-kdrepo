@@ -18,6 +18,6 @@ public record MinExclusiveMaxInclusiveRange<TUnit>(TUnit min, TUnit max) impleme
 
     @Override public String toString()
     {
-        return "([)" + min() + "," + max() + "]";
+        return "(" + min() + "," + max() + "]";
     }
 }

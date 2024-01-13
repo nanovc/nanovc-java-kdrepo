@@ -18,4 +18,12 @@ public final class KDBucketNode<TContent> extends KDNode
      * The {@link HyperCube} that defines the ranges for each dimension of the volume that this bucket encloses.
      */
     public HyperCube hyperCube;
+
+    @Override public String toString()
+    {
+        return "Bucket Node at level " + level +
+               " with " +
+               contentList.size() + " item" + (contentList.size() == 1 ? "" : "s") +
+               "\n" + hyperCube;
+    }
 }

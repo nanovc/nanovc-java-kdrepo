@@ -21,12 +21,14 @@ public record XY(double x, double y)
      * @param dimension The dimension to extract.
      * @return The coordinate for the given dimension.
      */
-    public static double extractCoordinate(XY item, Integer dimension)
+    public static <TUnit> TUnit extractCoordinate(XY item, Integer dimension)
     {
         return switch (dimension)
         {
-            case 0 -> item.x();
-            case 1 -> item.y();
+            case 0 -> //noinspection unchecked
+                (TUnit)(Double)item.x();
+            case 1 -> //noinspection unchecked
+                (TUnit)(Double)item.y();
             default -> throw new IllegalStateException("Unexpected value: " + dimension);
         };
     }

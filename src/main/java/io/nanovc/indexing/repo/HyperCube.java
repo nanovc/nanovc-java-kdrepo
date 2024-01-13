@@ -2,6 +2,8 @@ package io.nanovc.indexing.repo;
 
 import io.nanovc.indexing.repo.ranges.Range;
 
+import java.util.Arrays;
+
 /**
  * A hyper cube that defines a region of a multidimensional space.
  */
@@ -93,6 +95,39 @@ public class HyperCube
         return true;
     }
 
+    /**
+     * Gets the range for the dimension with the given index.
+     *
+     * @param dimensionIndex The index of the dimension that we want to get the range for.
+     * @return The range for the given dimension.
+     */
+    public <TUnit> Range<TUnit> getRangeForDimension(int dimensionIndex)
+    {
+        //noinspection unchecked
+        return (Range<TUnit>) this.ranges[dimensionIndex];
+    }
+
+    /**
+     * Creates a new hyper cube with a different range for the given dimension index.
+     *
+     * @param dimensionIndex The dimension index to change.
+     * @param newRange       The new range for that dimension.
+     * @return A new hyper cube with a different value for the given dimension.
+     */
+    public <TUnit> HyperCube createHyperCubeWithChangedRange(int dimensionIndex, Range<TUnit> newRange)
+    {
+        // Get the ranges from the current cube:
+        Range<?>[] oldRanges = this.getRanges();
+
+        // Copy the ranges:
+        Range<?>[] newRanges = Arrays.copyOf(oldRanges, oldRanges.length);
+
+        // Replace the range for the given dimension:
+        newRanges[dimensionIndex] = newRange;
+
+        return new HyperCube(this.getDefinition(), newRanges);
+    }
+
     @Override public String toString()
     {
         HyperCubeDefinition definition = this.getDefinition();
@@ -113,4 +148,5 @@ public class HyperCube
         }
         return sb.toString();
     }
+
 }

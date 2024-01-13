@@ -2,6 +2,10 @@ package io.nanovc.indexing.repo;
 
 import io.nanovc.*;
 import io.nanovc.indexing.*;
+import io.nanovc.indexing.repo.ranges.Range;
+import io.nanovc.indexing.repo.ranges.RangeCalculator;
+import io.nanovc.indexing.repo.ranges.RangeSplit;
+import io.nanovc.indexing.repo.ranges.RangeSplitInclusion;
 
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -68,7 +72,7 @@ public abstract class RepoIndexKDBase<
     /**
      * This is used for extracting specific dimensional values from an item.
      */
-    private final Extractor<TItem, TDistance> extractor;
+    private final Extractor<TItem> extractor;
 
     /**
      * The measurer that measures distances between items.
@@ -145,7 +149,7 @@ public abstract class RepoIndexKDBase<
         HyperCubeDefinition hyperCubeDefinition,
         int numberOfDimensions,
         TItem minRange, TItem maxRange, int divisions,
-        Extractor<TItem, TDistance> extractor, Measurer<TItem, TDistance> measurer, Comparator<TDistance> distanceComparator,
+        Extractor<TItem> extractor, Measurer<TItem, TDistance> measurer, Comparator<TDistance> distanceComparator,
         Operator<TDistance> distanceAdder, Operator<TDistance> distanceSubtractor, TDistance maxDistance,
         RangeSplitter<TItem> rangeSplitter, RangeFinder<TItem> rangeFinder,
         TRepoHandler repoHandler, RepoPath rootRepoPath,
@@ -244,8 +248,11 @@ public abstract class RepoIndexKDBase<
             this.root = root;
         }
 
+        // Get the coordinate of the given item:
+        HyperCoord itemCoord = extractItemCoordinate(item, hyperCubeDefinition);
+
         // Index the item recursively:
-        this.root = addItemToKDNode(item, this.root);
+        this.root = addItemToKDNode(item, itemCoord, this.root);
 
 
 
@@ -268,11 +275,39 @@ public abstract class RepoIndexKDBase<
         addItemToDivisionTrieApproach(item, division);
     }
 
-    protected KDNode addItemToKDNode(TItem item, KDNode node)
+    /**
+     * Extracts the coordinate for this item.
+     * @param item The item to get the coordinate of.
+     * @param hyperCubeDefinition The definition of the hyper cube that we need a coordinate for.
+     * @return The coordinate of the given item in the hyper cube.
+     */
+    protected HyperCoord extractItemCoordinate(TItem item, HyperCubeDefinition hyperCubeDefinition)
     {
-        // Get the content for the item:
-        TContent itemContent = createContentForItem(item);
+        // Get the number of dimensions:
+        int dimensionCount = hyperCubeDefinition.getDimensionCount();
 
+        // Create the coordinate:
+        Object[] coords = new Object[dimensionCount];
+        for (int dimIndex = 0; dimIndex < dimensionCount; dimIndex++)
+        {
+            // Get the value at this coordinate:
+            Object value = this.extractor.extractDimensionalValue(item, dimIndex);
+
+            // Add this to the coordinate:
+            coords[dimIndex] = value;
+        }
+        return new HyperCoord(coords);
+    }
+
+    /**
+     * Recursively adds the given item at the coordinate by adding to or building the KD-Tree.
+     * @param item The item to add.
+     * @param itemCoord The coordinate of the item.
+     * @param node The node that we are walking.
+     * @return The replacement node to use in place of the inputted one. This is in case the node is replaced with another one.
+     */
+    protected KDNode addItemToKDNode(TItem item, HyperCoord itemCoord, KDNode node)
+    {
         // Check what type of node this is:
         switch (node)
         {
@@ -296,16 +331,57 @@ public abstract class RepoIndexKDBase<
                     Dimension<Object> dimension = this.hyperCubeDefinition.getDimension(dimensionIndex);
                     newNode.dimension = dimension;
 
-                    // Work out the value to split the dimension range in:
-                    //newNode.cutValue = dimension.(
+                    // Get the range calculator so that we can work out new ranges:
+                    RangeCalculator<Object> rangeCalculator = dimension.getRangeCalculator();
 
+                    // Get the range of the bucket that we came from:
+                    Range<Object> bucketRange = bucketNode.hyperCube.getRangeForDimension(dimensionIndex);
+
+                    // Work out the value to split the dimension range in:
+                    newNode.cutValue = rangeCalculator.midPoint(bucketRange);
+
+                    // Work out the range split:
+                    newNode.rangeSplit = rangeCalculator.splitRange(bucketRange, newNode.cutValue, RangeSplitInclusion.Lower);
+
+                    // Create the child node for the lower range:
+                    KDBucketNode<TContent> lowerNode = new KDBucketNode<>();
+                    newNode.lowerNode = lowerNode;
+                    lowerNode.level = newNode.level + 1;
+                    lowerNode.parent = newNode;
+                    lowerNode.hyperCube = bucketNode.hyperCube.createHyperCubeWithChangedRange(dimensionIndex, newNode.rangeSplit.lower());
+
+                    // Create the child node for the higher range:
+                    KDBucketNode<TContent> higherNode = new KDBucketNode<>();
+                    newNode.higherNode = higherNode;
+                    higherNode.level = newNode.level + 1;
+                    higherNode.parent = newNode;
+                    higherNode.hyperCube = bucketNode.hyperCube.createHyperCubeWithChangedRange(dimensionIndex, newNode.rangeSplit.higher());
+
+                    // Keep track of the node to return as we iterate recursively:
+                    KDNode nodeToReturn = newNode;
+
+                    // Recursively update the new node with the items in the bucket:
+                    for (TContent content : bucketNode.contentList)
+                    {
+                        // Get the item from the content:
+                        TItem bucketItem = readItemFromContent(content);
+
+                        // Recursively add the bucket item:
+                        nodeToReturn = addItemToKDNode(bucketItem, itemCoord, newNode);
+                    }
+
+                    // Recursively update the new node with the items that was added (which triggered this re-indexing):
+                    nodeToReturn = addItemToKDNode(item, itemCoord, newNode);
 
                     // Replace the previous node with the new node:
-                    return newNode;
+                    return nodeToReturn;
                 }
                 else
                 {
                     // We are still within the allowed bucket threshold.
+
+                    // Get the content for the item:
+                    TContent itemContent = createContentForItem(item);
 
                     // Just add the content to the bucket:
                     bucketNode.contentList.add(itemContent);
@@ -314,9 +390,40 @@ public abstract class RepoIndexKDBase<
                     return bucketNode;
                 }
             }
-            case KDIntermediateNode<?> intermediateNode ->
+            case KDIntermediateNode<?> intermediateNodeUntyped ->
             {
+                //noinspection unchecked
+                KDIntermediateNode<Object> intermediateNode = (KDIntermediateNode<Object>) intermediateNodeUntyped;
 
+                // Get the dimension that we are splitting by:
+                Dimension<Object> dimension = intermediateNode.dimension;
+
+                // Get the split for this node:
+                RangeSplit<Object> rangeSplit = intermediateNode.rangeSplit;
+
+                // Get the range calculator:
+                RangeCalculator<Object> rangeCalculator = dimension.getRangeCalculator();
+
+                // Get the coordinate for the item:
+                Object value = itemCoord.getValue(intermediateNode.dimension);
+
+                // Check whether to index the item in the lower branch:
+                if (rangeCalculator.isInRange(value, intermediateNode.rangeSplit.lower()))
+                {
+                    // This item belongs in the lower range.
+
+                    // Recursively add the item to that branch:
+                    intermediateNode.lowerNode = addItemToKDNode(item, itemCoord, intermediateNode.lowerNode);
+                }
+
+                // Check whether to index the item in the higher branch:
+                if (rangeCalculator.isInRange(value, intermediateNode.rangeSplit.higher()))
+                {
+                    // This item belongs in the higher range.
+
+                    // Recursively add the item to that branch:
+                    intermediateNode.higherNode = addItemToKDNode(item, itemCoord, intermediateNode.higherNode);
+                }
             }
             default -> throw new IllegalStateException("Unexpected value: " + node);
         }

@@ -149,7 +149,7 @@ public record X(int x)
     public static HyperCubeDefinition defineHyperCube(Range<Integer> xRange)
     {
         HyperCubeDefinition cube = new HyperCubeDefinition();
-        cube.addDimension(IntegerArithmetic.instance(), "X", xRange);
+        cube.addDimension(IntegerArithmetic.instance(), "X", 1, xRange);
         return cube;
     }
 }

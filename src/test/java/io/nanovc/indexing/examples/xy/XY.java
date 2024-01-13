@@ -210,8 +210,8 @@ public record XY(double x, double y)
     public static HyperCubeDefinition defineHyperCube(Range<Double> xRange, Range<Double> yRange)
     {
         HyperCubeDefinition cube = new HyperCubeDefinition();
-        cube.addDimension(DoubleArithmetic.instance(), "X", xRange);
-        cube.addDimension(DoubleArithmetic.instance(), "Y", yRange);
+        cube.addDimension(DoubleArithmetic.instance(), "X", 0.01, xRange);
+        cube.addDimension(DoubleArithmetic.instance(), "Y", 0.01, yRange);
         return cube;
     }
 }

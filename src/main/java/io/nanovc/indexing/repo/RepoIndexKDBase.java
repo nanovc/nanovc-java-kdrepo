@@ -571,6 +571,10 @@ public abstract class RepoIndexKDBase<
                     // Work out the range split:
                     newNode.rangeSplit = rangeCalculator.splitRange(bucketRange, newNode.cutValue, RangeSplitInclusion.Lower);
 
+                    // Work out the new path for this node:
+                    String newNodeName = newNode.dimension.getName() + ":" + newNode.cutValue.toString();
+                    newNode.repoPathNode = newNode.divisionCell.repoPathTree.getOrCreateChildNode(bucketNode.repoPathNode, newNodeName);
+
                     // Create the child node for the lower range:
                     KDBucketNode<TContent, TArea> lowerNode = new KDBucketNode<>();
                     newNode.lowerNode = lowerNode;
@@ -578,7 +582,7 @@ public abstract class RepoIndexKDBase<
                     lowerNode.parent = newNode;
                     lowerNode.divisionCell = newNode.divisionCell;
                     lowerNode.hyperCube = bucketNode.hyperCube.createHyperCubeWithChangedRange(dimensionIndex, newNode.rangeSplit.lower());
-                    lowerNode.repoPathNode = lowerNode.divisionCell.repoPathTree.getChildNode(newNode.repoPathNode, "<");
+                    lowerNode.repoPathNode = lowerNode.divisionCell.repoPathTree.getOrCreateChildNode(newNode.repoPathNode, "<");
                     lowerNode.bucketItemsRepoPathNode = lowerNode.divisionCell.repoPathTree.getOrCreateChildNode(lowerNode.repoPathNode, BUCKET_ITEMS_PATH_NAME);
 
                     // Create the child node for the higher range:
@@ -588,17 +592,31 @@ public abstract class RepoIndexKDBase<
                     higherNode.parent = newNode;
                     higherNode.divisionCell = newNode.divisionCell;
                     higherNode.hyperCube = bucketNode.hyperCube.createHyperCubeWithChangedRange(dimensionIndex, newNode.rangeSplit.higher());
-                    higherNode.repoPathNode = higherNode.divisionCell.repoPathTree.getChildNode(newNode.repoPathNode, ">");
+                    higherNode.repoPathNode = higherNode.divisionCell.repoPathTree.getOrCreateChildNode(newNode.repoPathNode, ">");
                     higherNode.bucketItemsRepoPathNode = higherNode.divisionCell.repoPathTree.getOrCreateChildNode(higherNode.repoPathNode, BUCKET_ITEMS_PATH_NAME);
 
                     // Keep track of the node to return as we iterate recursively:
                     KDNode<TContent, TArea> nodeToReturn = newNode;
 
                     // Recursively update the new node with the items in the bucket:
-                    for (TContent content : bucketNode.contentMap.values())
+                    for (Map.Entry<RepoPathNode, TContent> entry : bucketNode.contentMap.entrySet())
                     {
+                        // Get the content:
+                        TContent bucketItemContent = entry.getValue();
+
                         // Get the item from the content:
-                        TItem bucketItem = readItemFromContent(content);
+                        TItem bucketItem = readItemFromContent(bucketItemContent);
+
+                        // Get the repo path for the item:
+                        RepoPathNode bucketItemRepoPathNode = entry.getKey();
+                        RepoPath bucketItemRepoPath = bucketItemRepoPathNode.getRepoPath();
+
+                        // Remove the item from the content area:
+                        bucketNode.divisionCell.contentArea.removeContent(bucketItemRepoPath);
+
+                        // Remove the item from the repo path tree:
+                        // TODO: This needs to stop sooner than when all the paths are cleaned up. Intermediate nodes don't have content.
+                        cleanUpRepoPathTreeUntilWeHaveContent(bucketItemRepoPathNode, bucketNode.divisionCell.contentArea, bucketNode.divisionCell.repoPathTree);
 
                         // Get the coordinate for this item:
                         HyperCoord bucketItemCoord = extractItemCoordinate(bucketItem, this.hyperCubeDefinition);
@@ -677,6 +695,67 @@ public abstract class RepoIndexKDBase<
             }
             default -> throw new IllegalStateException("Unexpected value: " + node);
         }
+    }
+
+    /**
+     * This walks up from the given node and cleans up the nodes until it finds content in the given content area.
+     * This is useful for cleaning up when removing content deeper in the tree.
+     *
+     * @param currentNode The current node we are on.
+     * @param contentArea The content area to check while we walk.
+     * @param repoPathTree The repo path tree that we are walking.
+     */
+    protected void cleanUpRepoPathTreeUntilWeHaveContent(RepoPathNode currentNode, TArea contentArea, RepoPathTree repoPathTree)
+    {
+        // Check whether this node or any of its children have content:
+        if (currentNode == null || hasAnySubContentInContentArea(currentNode, contentArea)) return;
+        else
+        {
+            // The current node doesn't have any sub-content in the content area.
+
+            // Clean up child nodes:
+            //repoPathTree.iterateAndRemoveEachDescendant(currentNode, (node) -> {});
+
+            // Check whether we have a parent to walk up to:
+            RepoPathNode parent = currentNode.getParent();
+            if (parent != null)
+            {
+                // Walk up to the parent and repeat:
+                cleanUpRepoPathTreeUntilWeHaveContent(parent, contentArea, repoPathTree);
+            }
+        }
+    }
+
+    /**
+     * Recursively checks whether the current node or any descendants contain content in the content area.
+     *
+     * @param currentNode The current node to explore.
+     * @param contentArea The content area to check for content.
+     * @return True if this currentNode or any of its descendants contain content in the content area.
+     */
+    protected boolean hasAnySubContentInContentArea(RepoPathNode currentNode, TArea contentArea)
+    {
+        // Check whether the content area has content at this node:
+        if (contentArea.hasContent(currentNode.getRepoPath())) return true;
+        else
+        {
+            // The current node doesn't exist in the content area.
+
+            // Check whether there are any children and check those recursively:
+            if (currentNode.hasChildren())
+            {
+                for (RepoPathNode childNode : currentNode.getChildrenByName().values())
+                {
+                    // Check if it has sub content:
+                    boolean hasContent = hasAnySubContentInContentArea(childNode, contentArea);
+
+                    // Break out early:
+                    if (hasContent) return true;
+                }
+            }
+        }
+        // If we get here then we don't have sub content.
+        return false;
     }
 
     /**
@@ -881,7 +960,6 @@ public abstract class RepoIndexKDBase<
         // Search for the item in this division:
         MeasuredItem<TItem, TDistance> measuredItem = searchNearestInDivisionCell(item, divisionCell);
         if (measuredItem != null) return measuredItem.item;
-
 
 
         // OLD ALGORITHM:

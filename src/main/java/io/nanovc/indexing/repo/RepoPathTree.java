@@ -143,7 +143,11 @@ public class RepoPathTree
         }
 
         // Delete the node from the parent:
-        node.getParent().getChildrenByName().remove(node.getName());
+        RepoPathNode parent = node.getParent();
+        if (parent != null)
+        {
+            parent.getChildrenByName().remove(node.getName());
+        }
     }
 
     /**

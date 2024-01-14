@@ -37,7 +37,8 @@ public class XYRepoIndexKDTests
             "X:[0.0,0.2)\n" +
             "Y:[0.0,0.2)\n" +
             ".\n" +
-            "└───0'0.0|0.0'\n";
+            "└───📁\n" +
+            "    └───0'0.0|0.0'\n";
         assertIndex(expectedIndex, index);
 
         // Query the item:

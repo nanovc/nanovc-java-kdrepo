@@ -38,6 +38,12 @@ public abstract class RepoIndexKDBase<
     public final static String CONTENT_PATH_NAME = "📄";
 
     /**
+     * The path name for bucket items.
+     * Yes, it's an emoji. It looks cool and we can.
+     */
+    public final static String BUCKET_ITEMS_PATH_NAME = "📁";
+
+    /**
      * The number of dimensions that this index supports.
      * This is defined by the type of content of TItem that is being indexed.
      */
@@ -269,6 +275,9 @@ public abstract class RepoIndexKDBase<
 
             // Set the content path root:
             root.repoPathNode = divisionCell.repoPathTree.getRootNode();
+
+            // Define the path where bucket items go:
+            root.bucketItemsRepoPathNode = divisionCell.repoPathTree.getOrCreateChildNode(root.repoPathNode, BUCKET_ITEMS_PATH_NAME);
 
             // Save the root node:
             divisionCell.kdTreeRoot = root;
@@ -569,6 +578,8 @@ public abstract class RepoIndexKDBase<
                     lowerNode.parent = newNode;
                     lowerNode.divisionCell = newNode.divisionCell;
                     lowerNode.hyperCube = bucketNode.hyperCube.createHyperCubeWithChangedRange(dimensionIndex, newNode.rangeSplit.lower());
+                    lowerNode.repoPathNode = lowerNode.divisionCell.repoPathTree.getChildNode(newNode.repoPathNode, "<");
+                    lowerNode.bucketItemsRepoPathNode = lowerNode.divisionCell.repoPathTree.getOrCreateChildNode(lowerNode.repoPathNode, BUCKET_ITEMS_PATH_NAME);
 
                     // Create the child node for the higher range:
                     KDBucketNode<TContent, TArea> higherNode = new KDBucketNode<>();
@@ -577,6 +588,8 @@ public abstract class RepoIndexKDBase<
                     higherNode.parent = newNode;
                     higherNode.divisionCell = newNode.divisionCell;
                     higherNode.hyperCube = bucketNode.hyperCube.createHyperCubeWithChangedRange(dimensionIndex, newNode.rangeSplit.higher());
+                    higherNode.repoPathNode = higherNode.divisionCell.repoPathTree.getChildNode(newNode.repoPathNode, ">");
+                    higherNode.bucketItemsRepoPathNode = higherNode.divisionCell.repoPathTree.getOrCreateChildNode(higherNode.repoPathNode, BUCKET_ITEMS_PATH_NAME);
 
                     // Keep track of the node to return as we iterate recursively:
                     KDNode<TContent, TArea> nodeToReturn = newNode;
@@ -611,7 +624,7 @@ public abstract class RepoIndexKDBase<
                     int itemIndex = bucketNode.contentMap.size();
 
                     // Get the repo path for the content:
-                    RepoPathNode itemRepoPathNode = bucketNode.divisionCell.repoPathTree.getOrCreateChildNode(bucketNode.repoPathNode, Integer.toString(itemIndex));
+                    RepoPathNode itemRepoPathNode = bucketNode.divisionCell.repoPathTree.getOrCreateChildNode(bucketNode.bucketItemsRepoPathNode, Integer.toString(itemIndex));
                     RepoPath itemRepoPath = itemRepoPathNode.getRepoPath();
 
                     // Add the content to our content map:

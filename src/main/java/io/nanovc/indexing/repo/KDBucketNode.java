@@ -24,6 +24,12 @@ public final class KDBucketNode<
     public Map<RepoPathNode, TContent> contentMap = new LinkedHashMap<>();
 
     /**
+     * The path where bucket items are added.
+     * This gives us a sub-path where the bucket content is kept.
+     */
+    public RepoPathNode bucketItemsRepoPathNode;
+
+    /**
      * The {@link HyperCube} that defines the ranges for each dimension of the volume that this bucket encloses.
      */
     public HyperCube hyperCube;

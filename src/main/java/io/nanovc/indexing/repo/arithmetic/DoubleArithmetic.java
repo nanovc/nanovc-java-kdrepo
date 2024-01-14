@@ -150,7 +150,7 @@ public class DoubleArithmetic extends Arithmetic<Double>
      */
     @Override public Double quantize(Double value, Double smallestStep)
     {
-        return Math.floor(value / smallestStep) * smallestStep;
+        return Math.round(value / smallestStep) * smallestStep;
     }
 
     /**

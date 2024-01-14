@@ -150,7 +150,7 @@ public class IntegerArithmetic extends Arithmetic<Integer>
      */
     @Override public Integer quantize(Integer value, Integer smallestStep)
     {
-        return (value / smallestStep) * smallestStep;
+        return (int) (Math.round((double)value / (double)smallestStep) * smallestStep);
     }
 
     /**

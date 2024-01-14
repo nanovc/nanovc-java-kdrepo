@@ -867,6 +867,25 @@ public abstract class RepoIndexKDBase<
      */
     public TItem searchNearest(TItem item)
     {
+        // Get the coordinate of the given item:
+        HyperCoord itemCoord = extractItemCoordinate(item, hyperCubeDefinition);
+
+        // Find the right division for this item at the given coordinate:
+        DivisionCell<TContent, TArea> divisionCell = getOrCreateDivisionCell(itemCoord);
+
+        // Check whether we found the division cell:
+        if (divisionCell == null) return null;
+
+        // Now we know that the item is in one of the divisions for the cube.
+
+        // Search for the item in this division:
+        MeasuredItem<TItem, TDistance> measuredItem = searchNearestInDivisionCell(item, divisionCell);
+        if (measuredItem != null) return measuredItem.item;
+
+
+
+        // OLD ALGORITHM:
+
         // We search through the division where the queried item is found,
         // along with the neighbouring divisions around it.
 
@@ -908,7 +927,7 @@ public abstract class RepoIndexKDBase<
             for (Division<TItem, TContent, TArea> division : divisionsToSearch)
             {
                 // Search for the item in this division:
-                MeasuredItem<TItem, TDistance> measuredItem = searchNearestInDivision(item, division);
+                measuredItem = searchNearestInDivision(item, division);
 
                 // Check whether we found an item in this division:
                 if (measuredItem != null)
@@ -937,6 +956,95 @@ public abstract class RepoIndexKDBase<
         }
 
         return bestItemSoFar;
+    }
+
+    /**
+     * Searches for the nearest item in the given division.
+     *
+     * @param item         The item to search for.
+     * @param divisionCell The division cell to search in.
+     * @return The nearest item in that division cell. Null if there is no item in this division.
+     */
+    protected MeasuredItem<TItem, TDistance> searchNearestInDivisionCell(TItem item, DivisionCell<TContent, TArea> divisionCell)
+    {
+        return searchNearestInKDNode(item, divisionCell.kdTreeRoot);
+    }
+
+    /**
+     * Searches for the nearest item for this kd-node.
+     *
+     * @param itemToSearchFor The item to search for.
+     * @param currentNode     The current node that we are searching.
+     * @return The nearest item. Null if there is no item that can be found.
+     */
+    protected MeasuredItem<TItem, TDistance> searchNearestInKDNode(TItem itemToSearchFor, KDNode<TContent, TArea> currentNode)
+    {
+        // Keep track of the best result so far:
+        TItem bestItemSoFar = null;
+        TDistance bestDistanceSoFar = null;
+
+        // Perform the search based on what type of node it is:
+        switch (currentNode)
+        {
+            case KDBucketNode<TContent, TArea> bucketNode ->
+            {
+                // Search through the bucket:
+                for (TContent itemContent : bucketNode.contentMap.values())
+                {
+                    // Get the item from the content:
+                    TItem item = readItemFromContent(itemContent);
+
+                    // Check whether the existing item is equal to the item:
+                    if (item.equals(itemToSearchFor))
+                    {
+                        // This item is equal.
+
+                        // Create the measured item:
+                        MeasuredItem<TItem, TDistance> measuredItem = new MeasuredItem<>();
+                        measuredItem.item = item;
+
+                        return measuredItem;
+                    }
+                    // Now we know that the items are not equal.
+
+                    // Get the distance to the item:
+                    TDistance distance = measureDistanceBetween(item, itemToSearchFor);
+
+                    // Check whether this distance is the best so far:
+                    if (bestDistanceSoFar == null || this.distanceComparator.compare(distance, bestDistanceSoFar) < 0)
+                    {
+                        // This item is closer.
+
+                        // Flag this as the best item so far:
+                        bestItemSoFar = item;
+                        bestDistanceSoFar = distance;
+                    }
+                }
+            }
+            case KDIntermediateNode<?, TContent, TArea> intermediateNodeUntyped ->
+            {
+                //noinspection unchecked
+                KDIntermediateNode<Object, TContent, TArea> intermediateNode = (KDIntermediateNode<Object, TContent, TArea>) intermediateNodeUntyped;
+
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + currentNode);
+        }
+
+        // Check whether we found an item:
+        if (bestItemSoFar != null)
+        {
+            // Create the measured item:
+            MeasuredItem<TItem, TDistance> measuredItem = new MeasuredItem<>();
+            measuredItem.item = bestItemSoFar;
+            measuredItem.distance = bestDistanceSoFar;
+
+            return measuredItem;
+        }
+        else
+        {
+            // We didn't find an item.
+            return null;
+        }
     }
 
     /**

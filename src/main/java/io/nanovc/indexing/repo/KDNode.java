@@ -1,9 +1,18 @@
 package io.nanovc.indexing.repo;
 
+import io.nanovc.AreaAPI;
+import io.nanovc.ContentAPI;
+
 /**
  * A node in the KD-Tree
+ *
+ * @param <TContent> The specific type of content that the repo commits.
+ * @param <TArea>    The specific type of content area that the repo commits.
  */
-public sealed class KDNode
+public sealed class KDNode<
+    TContent extends ContentAPI,
+    TArea extends AreaAPI<TContent>
+    >
     permits KDIntermediateNode, KDBucketNode
 {
     /**
@@ -17,6 +26,12 @@ public sealed class KDNode
      * Null if this is a root node.
      */
     public KDNode parent;
+
+    /**
+     * The {@link DivisionCell division cell} that we are in.
+     * This allows us to get broader context for this node.
+     */
+    public DivisionCell<TContent, TArea> divisionCell;
 
     /**
      * The repo path node that keeps track of where in the content area this node belongs.

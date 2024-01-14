@@ -1,5 +1,7 @@
 package io.nanovc.indexing.repo;
 
+import io.nanovc.AreaAPI;
+import io.nanovc.ContentAPI;
 import io.nanovc.indexing.repo.ranges.Range;
 
 import java.util.List;
@@ -12,20 +14,30 @@ import java.util.TreeMap;
  * When there are 3 or more {@link Dimension dimensions} in a {@link HyperCubeDefinition hyper cube definition}
  * then the chain will look like this:
  * {@link First} -> {@link Intermediate} -> ... -> {@link Last}
- *
+ * <p>
  * If there are only 2 dimensions then it looks like this:
  * {@link First} -> {@link Last}
- *
+ * <p>
  * If there is only 1 dimension then it looks like this:
  * {@link Last}
  *
+ * @param <TContent> The specific type of content that the repo commits.
+ * @param <TArea>    The specific type of content area that the repo commits.
  */
-public abstract sealed class DivisionDimension
+public abstract sealed class DivisionDimension<
+    TContent extends ContentAPI,
+    TArea extends AreaAPI<TContent>
+    >
     permits
     DivisionDimension.First,
     DivisionDimension.Intermediate,
     DivisionDimension.Last
 {
+    /**
+     * The {@link DivisionCube division cube } that this {@link DivisionDimension division dimension} belongs to.
+     */
+    public DivisionCube<TContent, TArea> divisionCube;
+
     /**
      * The {@link HyperCube} of kd-space that this node of the chain (tree) represents.
      */
@@ -45,29 +57,43 @@ public abstract sealed class DivisionDimension
     /**
      * This is the first {@link DivisionDimension} in the chain.
      * This corresponds to the first {@link Dimension} in the {@link HyperCubeDefinition}.
+     *
+     * @param <TContent> The specific type of content that the repo commits.
+     * @param <TArea>    The specific type of content area that the repo commits.
      */
-    public static final class First extends DivisionDimension
+    public static final class First<
+        TContent extends ContentAPI,
+        TArea extends AreaAPI<TContent>
+        >
+        extends DivisionDimension<TContent, TArea>
     {
         /**
          * A pointer to the next dimension that we point to.
          */
-        public DivisionDimension nextDivisionDimension;
+        public DivisionDimension<TContent, TArea> nextDivisionDimension;
     }
 
     /**
      * This is an intermediate (middle) {@link DivisionDimension} in the chain.
+     *
+     * @param <TContent> The specific type of content that the repo commits.
+     * @param <TArea>    The specific type of content area that the repo commits.
      */
-    public static final class Intermediate extends DivisionDimension
+    public static final class Intermediate<
+        TContent extends ContentAPI,
+        TArea extends AreaAPI<TContent>
+        >
+        extends DivisionDimension<TContent, TArea>
     {
         /**
          * A pointer to the previous dimension that we point to.
          */
-        public DivisionDimension previousDivisionDimension;
+        public DivisionDimension<TContent, TArea> previousDivisionDimension;
 
         /**
          * A pointer to the next dimension that we point to.
          */
-        public DivisionDimension nextDivisionDimension;
+        public DivisionDimension<TContent, TArea> nextDivisionDimension;
     }
 
     /**
@@ -75,21 +101,27 @@ public abstract sealed class DivisionDimension
      * This corresponds to the last {@link Dimension} in the {@link HyperCubeDefinition}.
      * If a {@link HyperCubeDefinition} only has one {@link Dimension},\
      * then we go straight to using the {@link Last} division dimension.
+     *
+     * @param <TContent> The specific type of content that the repo commits.
+     * @param <TArea>    The specific type of content area that the repo commits.
      */
-    public static final class Last extends DivisionDimension
+    public static final class Last<
+        TContent extends ContentAPI,
+        TArea extends AreaAPI<TContent>
+        >
+        extends DivisionDimension<TContent, TArea>
     {
         /**
          * A pointer to the previous dimension that we point to.
          * If this is null then there is only one dimension in this chain.
          */
-        public DivisionDimension previousDivisionDimension;
-
+        public DivisionDimension<TContent, TArea> previousDivisionDimension;
 
         /**
          * The cells where we have indexed data.
          * We only have cells when we are in the last dimension.
          */
-        public TreeMap<Integer, DivisionCell<?,?>> cellsByIndex = new TreeMap<>();
+        public TreeMap<Integer, DivisionCell<?, ?>> cellsByIndex = new TreeMap<>();
     }
 
     @Override public String toString()

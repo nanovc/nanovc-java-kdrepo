@@ -7,7 +7,8 @@ import io.nanovc.ContentAPI;
  * A cell of a {@link DivisionCube}.
  * This gives us a specific volume of the kd-space that we are looking at.
  * It also contains the {@link io.nanovc.AreaAPI content area} where the content is indexed.
- * @param <TArea> The specific type of content area that this {@link DivisionCell} holds.
+ * @param <TContent> The specific type of content that the repo commits.
+ * @param <TArea>    The specific type of content area that the repo commits.
  */
 public class DivisionCell<
     TContent extends ContentAPI,
@@ -17,7 +18,7 @@ public class DivisionCell<
     /**
      * The parent dimension in the chain that we walked to get to this {@link DivisionCell}.
      */
-    public DivisionDimension parentDimension;
+    public DivisionDimension<TContent, TArea> parentDimension;
 
     /**
      * The hyper cube of the kd-space that this {@link DivisionCell cell} represents.
@@ -28,7 +29,7 @@ public class DivisionCell<
     /**
      * The root of the kd-tree.
      */
-    public KDNode kdTreeRoot;
+    public KDNode<TContent, TArea> kdTreeRoot;
 
     /**
      * The content area for this division.
@@ -40,6 +41,11 @@ public class DivisionCell<
      * It matches up with the paths in the {@link #contentArea}
      */
     public RepoPathTree repoPathTree;
+
+    /**
+     * The name of the branch for this {@link DivisionCell division cell}.
+     */
+    public String branchName;
 
     @Override public String toString()
     {

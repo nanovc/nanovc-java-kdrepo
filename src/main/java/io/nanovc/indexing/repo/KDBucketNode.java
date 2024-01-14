@@ -1,28 +1,27 @@
 package io.nanovc.indexing.repo;
 
-import io.nanovc.RepoPath;
+import io.nanovc.AreaAPI;
+import io.nanovc.ContentAPI;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
  * A node in the KD-Tree
- * @param <TContent> The type of content that this bucket holds.
+ * @param <TContent> The specific type of content that the repo commits.
+ * @param <TArea>    The specific type of content area that the repo commits.
  */
-public final class KDBucketNode<TContent> extends KDNode
+public final class KDBucketNode<
+    TContent extends ContentAPI,
+    TArea extends AreaAPI<TContent>
+    >
+    extends KDNode<TContent, TArea>
 {
-    /**
-     * The list of content stored at this bucket.
-     */
-    public List<TContent> contentList = new ArrayList<>();
-
     /**
      * The map of content stored in this bucket.
      */
-    public Map<RepoPath, TContent> contentMap = new LinkedHashMap<>();
+    public Map<RepoPathNode, TContent> contentMap = new LinkedHashMap<>();
 
     /**
      * The {@link HyperCube} that defines the ranges for each dimension of the volume that this bucket encloses.
@@ -33,11 +32,11 @@ public final class KDBucketNode<TContent> extends KDNode
     {
         return "Bucket Node at level " + level +
                " with " +
-               contentList.size() + " item" + (contentList.size() == 1 ? "" : "s") + "\n" +
+               contentMap.size() + " item" + (contentMap.size() == 1 ? "" : "s") + "\n" +
                "Bucket range:" + "\n" +
                hyperCube + "\n" +
                "Items:" + "\n" +
-               contentList.stream().map(Object::toString).collect(Collectors.joining("\n"))
+               contentMap.values().stream().map(Object::toString).collect(Collectors.joining("\n"))
                ;
     }
 }

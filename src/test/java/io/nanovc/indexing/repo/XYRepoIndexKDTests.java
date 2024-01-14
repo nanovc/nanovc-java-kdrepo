@@ -33,9 +33,6 @@ Index:  from XY[x=-1.0, y=-1.0] to XY[x=1.0, y=1.0] with 10 divisions:
 Division Cell Branch Name:
 X:[0.0,0.2)
 Y:[0.0,0.2)
-Hyper Cube:
-X:[0.0,0.2)
-Y:[0.0,0.2)
 .
 └───📁
     └───0'0.0|0.0'
@@ -67,17 +64,11 @@ Index:  from XY[x=-1.0, y=-1.0] to XY[x=1.0, y=1.0] with 10 divisions:
 Division Cell Branch Name:
 X:[0.0,0.2)
 Y:[0.0,0.2)
-Hyper Cube:
-X:[0.0,0.2)
-Y:[0.0,0.2)
 .
 └───📁
     └───0'0.0|0.0'
 
 Division Cell Branch Name:
-X:[0.0,0.2)
-Y:[0.8,1.0]
-Hyper Cube:
 X:[0.0,0.2)
 Y:[0.8,1.0]
 .
@@ -113,9 +104,6 @@ Index:  from XY[x=-1.0, y=-1.0] to XY[x=1.0, y=1.0] with 10 divisions:
 Division Cell Branch Name:
 X:[0.0,0.2)
 Y:[0.0,0.2)
-Hyper Cube:
-X:[0.0,0.2)
-Y:[0.0,0.2)
 .
 └───📁
     └───0'0.0|0.0'
@@ -123,17 +111,11 @@ Y:[0.0,0.2)
 Division Cell Branch Name:
 X:[0.0,0.2)
 Y:[0.2,0.4)
-Hyper Cube:
-X:[0.0,0.2)
-Y:[0.2,0.4)
 .
 └───📁
     └───0'0.3|0.3'
 
 Division Cell Branch Name:
-X:[0.0,0.2)
-Y:[0.8,1.0]
-Hyper Cube:
 X:[0.0,0.2)
 Y:[0.8,1.0]
 .
@@ -171,9 +153,6 @@ Index:  from XY[x=-1.0, y=-1.0] to XY[x=1.0, y=1.0] with 10 divisions:
 Division Cell Branch Name:
 X:[0.0,0.2)
 Y:[0.0,0.2)
-Hyper Cube:
-X:[0.0,0.2)
-Y:[0.0,0.2)
 .
 └───X:0.1
     └───<
@@ -192,9 +171,6 @@ Y:[0.0,0.2)
                                             └───0'0.03|0.03'
 
 Division Cell Branch Name:
-X:[0.0,0.2)
-Y:[0.8,1.0]
-Hyper Cube:
 X:[0.0,0.2)
 Y:[0.8,1.0]
 .

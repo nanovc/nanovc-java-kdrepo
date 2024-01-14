@@ -66,10 +66,10 @@ public class DivisionCell<
         stringBuilder.append("\n");
         stringBuilder.append(this.branchName);
         stringBuilder.append("\n");
-        stringBuilder.append("Hyper Cube:");
-        stringBuilder.append("\n");
-        stringBuilder.append(this.hyperCube);
-        stringBuilder.append("\n");
+        // stringBuilder.append("Hyper Cube:");
+        // stringBuilder.append("\n");
+        // stringBuilder.append(this.hyperCube);
+        // stringBuilder.append("\n");
 
         // Check whether there is too much content to render:
         if (this.contentArea.getContentStream().count() > 1_000)

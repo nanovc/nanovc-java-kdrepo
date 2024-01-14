@@ -624,8 +624,11 @@ public abstract class RepoIndexKDBase<
                     return bucketNode;
                 }
             }
-            case KDIntermediateNode<Object, TContent, TArea> intermediateNode ->
+            case KDIntermediateNode<?, TContent, TArea> intermediateNodeUntyped ->
             {
+                //noinspection unchecked
+                KDIntermediateNode<Object, TContent, TArea> intermediateNode = (KDIntermediateNode<Object, TContent, TArea>) intermediateNodeUntyped;
+
                 // Get the dimension that we are splitting by:
                 Dimension<Object> dimension = intermediateNode.dimension;
 

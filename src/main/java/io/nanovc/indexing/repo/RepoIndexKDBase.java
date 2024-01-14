@@ -1306,11 +1306,11 @@ public abstract class RepoIndexKDBase<
         if (this.getDivisions() != 1) stringBuilder.append("s");
         stringBuilder.append(":");
 
-        // Go through each division:
-        for (Division<TItem, TContent, TArea> division : this.divisionsByIndex.values())
+        // Go through each division cell:
+        for (DivisionCell<TContent, TArea> divisionCell : this.divisionCube.cellsByBranchName.values())
         {
-            // Write the division details:
-            division.toString(stringBuilder);
+            // Write the division cell details:
+            divisionCell.toString(stringBuilder);
         }
 
         return stringBuilder.toString();

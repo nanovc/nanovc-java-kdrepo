@@ -30,10 +30,14 @@ public class XYRepoIndexKDTests
         // Make sure the index is as expected:
         String expectedIndex =
             "Index:  from XY[x=-1.0, y=-1.0] to XY[x=1.0, y=1.0] with 10 divisions:\n" +
-            "Division: 5 from XY[x=-5.551115123125783E-17, y=-5.551115123125783E-17] to XY[x=0.19999999999999996, y=0.19999999999999996]:\n" +
+            "Division Cell Branch Name: \n" +
+            "X:[-5.551115123125783E-17,0.19999999999999996)\n" +
+            "Y:[-5.551115123125783E-17,0.19999999999999996)\n" +
+            "Hyper Cube:\n" +
+            "X:[-5.551115123125783E-17,0.19999999999999996)\n" +
+            "Y:[-5.551115123125783E-17,0.19999999999999996)\n" +
             ".\n" +
-            "└───0\n" +
-            "    └───📄'0.0|0.0'\n";
+            "└───0'0.0|0.0'\n";
         assertIndex(expectedIndex, index);
 
         // Query the item:
@@ -58,15 +62,23 @@ public class XYRepoIndexKDTests
         // Make sure the index is as expected:
         String expectedIndex =
             "Index:  from XY[x=-1.0, y=-1.0] to XY[x=1.0, y=1.0] with 10 divisions:\n" +
-            "Division: 5 from XY[x=-5.551115123125783E-17, y=-5.551115123125783E-17] to XY[x=0.19999999999999996, y=0.19999999999999996]:\n" +
+            "Division Cell Branch Name: \n" +
+            "X:[-5.551115123125783E-17,0.19999999999999996)\n" +
+            "Y:[-5.551115123125783E-17,0.19999999999999996)\n" +
+            "Hyper Cube:\n" +
+            "X:[-5.551115123125783E-17,0.19999999999999996)\n" +
+            "Y:[-5.551115123125783E-17,0.19999999999999996)\n" +
             ".\n" +
-            "└───0\n" +
-            "    └───📄'0.0|0.0'\n" +
+            "└───0'0.0|0.0'\n" +
             "\n" +
-            "Division: 9 from XY[x=0.8, y=0.8] to XY[x=1.0, y=1.0]:\n" +
+            "Division Cell Branch Name: \n" +
+            "X:[-5.551115123125783E-17,0.19999999999999996)\n" +
+            "Y:[0.8,1.0]\n" +
+            "Hyper Cube:\n" +
+            "X:[-5.551115123125783E-17,0.19999999999999996)\n" +
+            "Y:[0.8,1.0]\n" +
             ".\n" +
-            "└───1\n" +
-            "    └───📄'1.0|1.0'\n";
+            "└───0'1.0|1.0'\n";
         assertIndex(expectedIndex, index);
 
         // Query the item:

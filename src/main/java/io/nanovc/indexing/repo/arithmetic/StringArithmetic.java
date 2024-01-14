@@ -154,6 +154,18 @@ public class StringArithmetic extends Arithmetic<String>
     }
 
     /**
+     * Gets the distance between the two values.
+     *
+     * @param left  The left value to measure between.
+     * @param right The right value to measure between.
+     * @return The distance between the two values.
+     */
+    @Override public String distanceBetween(String left, String right)
+    {
+        throw new UnsupportedOperationException("Cannot measure distance between strings");
+    }
+
+    /**
      * The singleton reusable instance.
      */
     private final static StringArithmetic instance = new StringArithmetic();

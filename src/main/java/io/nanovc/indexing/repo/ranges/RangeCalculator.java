@@ -58,6 +58,159 @@ public class RangeCalculator<TUnit>
     }
 
     /**
+     * @param value                   The value to check.
+     * @param distance                The distance within which we should check. If this is null then it implies infinity and should probably return true.
+     * @param returnForAmbiguousCases The return value for ambiguous cases or when we can't determine exactly. This is helpful if we prefer to search more ranges than is strictly needed, just to be sure.
+     * @param range                   The range to check in. If the value is in the range then it should return true.
+     * @return True if the given value is within the given distance from the range.
+     */
+    public boolean isWithinDistanceOfRange(TUnit value, TUnit distance, boolean returnForAmbiguousCases, Range<TUnit> range)
+    {
+        // First check whether it is within the range:
+        boolean isInRange = isInRange(value, range);
+        if (isInRange) return true;
+        // Now we know that it is not in the range.
+
+        // Check the extents of the range in regard to infinity:
+        switch (range)
+        {
+            case NeverInRange<TUnit> r ->
+            {
+                // Never in range no matter what distance.
+                return false;
+            }
+            case MultiValueRange<TUnit> r -> {if (distance == null) return true;}
+            case NotMultiValueRange<TUnit> r -> {if (distance == null) return true;}
+            case MinInclusiveRange<TUnit> r -> {if (distance == null) return true;}
+            case MinExclusiveRange<TUnit> r -> {if (distance == null) return true;}
+            case MaxInclusiveRange<TUnit> r -> {if (distance == null) return true;}
+            case MaxExclusiveRange<TUnit> r -> {if (distance == null) return true;}
+            case MinInclusiveMaxInclusiveRange<TUnit> r -> {if (distance == null) return true;}
+            default -> {}
+        }
+        // Now we know that the distance is not null for cases that we handle.
+
+        // Check the extents of the range:
+        switch (range)
+        {
+            case MinInclusiveRange<TUnit> r ->
+            {
+                // Get the distance to the range:
+                TUnit rangeDistance = arithmetic.distanceBetween(r.min(), value);
+
+                // Check whether it is in range:
+                return arithmetic.compare(rangeDistance, distance) <= 0;
+            }
+            case MinExclusiveRange<TUnit> r ->
+            {
+                // Get the distance to the range:
+                TUnit rangeDistance = arithmetic.distanceBetween(r.min(), value);
+
+                // Check whether it is in range:
+                return arithmetic.compare(rangeDistance, distance) < 0;
+            }
+            case MaxInclusiveRange<TUnit> r ->
+            {
+                // Get the distance to the range:
+                TUnit rangeDistance = arithmetic.distanceBetween(r.max(), value);
+
+                // Check whether it is in range:
+                return arithmetic.compare(rangeDistance, distance) <= 0;
+            }
+            case MaxExclusiveRange<TUnit> r ->
+            {
+                // Get the distance to the range:
+                TUnit rangeDistance = arithmetic.distanceBetween(r.max(), value);
+
+                // Check whether it is in range:
+                return arithmetic.compare(rangeDistance, distance) < 0;
+            }
+            case MinInclusiveMaxInclusiveRange<TUnit> r ->
+            {
+                TUnit rangeDistance;
+
+                // Get the distance to the range:
+                rangeDistance = arithmetic.distanceBetween(r.min(), value);
+
+                // Check whether it is in range:
+                if (arithmetic.compare(rangeDistance, distance) <= 0) return true;
+
+                // Get the distance to the range:
+                rangeDistance = arithmetic.distanceBetween(r.max(), value);
+
+                // Check whether it is in range:
+                if (arithmetic.compare(rangeDistance, distance) <= 0) return true;
+
+                // If we get here then we are not within the distance:
+                return false;
+            }
+            case MinInclusiveMaxExclusiveRange<TUnit> r ->
+            {
+                TUnit rangeDistance;
+
+                // Get the distance to the range:
+                rangeDistance = arithmetic.distanceBetween(r.min(), value);
+
+                // Check whether it is in range:
+                if (arithmetic.compare(rangeDistance, distance) <= 0) return true;
+
+                // Get the distance to the range:
+                rangeDistance = arithmetic.distanceBetween(r.max(), value);
+
+                // Check whether it is in range:
+                if (arithmetic.compare(rangeDistance, distance) < 0) return true;
+
+                // If we get here then we are not within the distance:
+                return false;
+            }
+            case MinExclusiveMaxInclusiveRange<TUnit> r ->
+            {
+                TUnit rangeDistance;
+
+                // Get the distance to the range:
+                rangeDistance = arithmetic.distanceBetween(r.min(), value);
+
+                // Check whether it is in range:
+                if (arithmetic.compare(rangeDistance, distance) < 0) return true;
+
+                // Get the distance to the range:
+                rangeDistance = arithmetic.distanceBetween(r.max(), value);
+
+                // Check whether it is in range:
+                if (arithmetic.compare(rangeDistance, distance) <= 0) return true;
+
+                // If we get here then we are not within the distance:
+                return false;
+            }
+            case MinExclusiveMaxExclusiveRange<TUnit> r ->
+            {
+                TUnit rangeDistance;
+
+                // Get the distance to the range:
+                rangeDistance = arithmetic.distanceBetween(r.min(), value);
+
+                // Check whether it is in range:
+                if (arithmetic.compare(rangeDistance, distance) < 0) return true;
+
+                // Get the distance to the range:
+                rangeDistance = arithmetic.distanceBetween(r.max(), value);
+
+                // Check whether it is in range:
+                if (arithmetic.compare(rangeDistance, distance) < 0) return true;
+
+                // If we get here then we are not within the distance:
+                return false;
+            }
+            default ->
+            {
+                // For all cases that we don't explicitly define,
+                // use the preferred result:
+                return returnForAmbiguousCases;
+            }
+        }
+    }
+
+    /**
      * Splits the range at the given point.
      *
      * @param range      The range to split.
@@ -295,12 +448,17 @@ public class RangeCalculator<TUnit>
 
                     switch (range)
                     {
-                        case MinInclusiveMaxInclusiveRange<TUnit> r -> splitsToAddTo.add(new MinInclusiveMaxInclusiveRange<>(previousValue, currentValue));
-                        case MinInclusiveMaxExclusiveRange<TUnit> r -> splitsToAddTo.add(new MinInclusiveMaxExclusiveRange<>(previousValue, currentValue));
-                        case MinExclusiveMaxInclusiveRange<TUnit> r -> splitsToAddTo.add(new MinExclusiveMaxInclusiveRange<>(previousValue, currentValue));
-                        case MinExclusiveMaxExclusiveRange<TUnit> r -> splitsToAddTo.add(new MinExclusiveMaxExclusiveRange<>(previousValue, currentValue));
+                        case MinInclusiveMaxInclusiveRange<TUnit> r ->
+                            splitsToAddTo.add(new MinInclusiveMaxInclusiveRange<>(previousValue, currentValue));
+                        case MinInclusiveMaxExclusiveRange<TUnit> r ->
+                            splitsToAddTo.add(new MinInclusiveMaxExclusiveRange<>(previousValue, currentValue));
+                        case MinExclusiveMaxInclusiveRange<TUnit> r ->
+                            splitsToAddTo.add(new MinExclusiveMaxInclusiveRange<>(previousValue, currentValue));
+                        case MinExclusiveMaxExclusiveRange<TUnit> r ->
+                            splitsToAddTo.add(new MinExclusiveMaxExclusiveRange<>(previousValue, currentValue));
 
-                        default -> throw new UnsupportedOperationException("Cannot split the given range into divisions");
+                        default ->
+                            throw new UnsupportedOperationException("Cannot split the given range into divisions");
                     }
                 }
                 else
@@ -309,12 +467,17 @@ public class RangeCalculator<TUnit>
 
                     switch (range)
                     {
-                        case MinInclusiveMaxInclusiveRange<TUnit> r -> splitsToAddTo.add(new MinInclusiveMaxExclusiveRange<>(previousValue, currentValue));
-                        case MinInclusiveMaxExclusiveRange<TUnit> r -> splitsToAddTo.add(new MinInclusiveMaxExclusiveRange<>(previousValue, currentValue));
-                        case MinExclusiveMaxInclusiveRange<TUnit> r -> splitsToAddTo.add(new MinExclusiveMaxExclusiveRange<>(previousValue, currentValue));
-                        case MinExclusiveMaxExclusiveRange<TUnit> r -> splitsToAddTo.add(new MinExclusiveMaxExclusiveRange<>(previousValue, currentValue));
+                        case MinInclusiveMaxInclusiveRange<TUnit> r ->
+                            splitsToAddTo.add(new MinInclusiveMaxExclusiveRange<>(previousValue, currentValue));
+                        case MinInclusiveMaxExclusiveRange<TUnit> r ->
+                            splitsToAddTo.add(new MinInclusiveMaxExclusiveRange<>(previousValue, currentValue));
+                        case MinExclusiveMaxInclusiveRange<TUnit> r ->
+                            splitsToAddTo.add(new MinExclusiveMaxExclusiveRange<>(previousValue, currentValue));
+                        case MinExclusiveMaxExclusiveRange<TUnit> r ->
+                            splitsToAddTo.add(new MinExclusiveMaxExclusiveRange<>(previousValue, currentValue));
 
-                        default -> throw new UnsupportedOperationException("Cannot split the given range into divisions");
+                        default ->
+                            throw new UnsupportedOperationException("Cannot split the given range into divisions");
                     }
                 }
             }
@@ -324,10 +487,14 @@ public class RangeCalculator<TUnit>
 
                 switch (range)
                 {
-                    case MinInclusiveMaxInclusiveRange<TUnit> r -> splitsToAddTo.add(new MinInclusiveMaxInclusiveRange<>(previousValue, currentValue));
-                    case MinInclusiveMaxExclusiveRange<TUnit> r -> splitsToAddTo.add(new MinInclusiveMaxExclusiveRange<>(previousValue, currentValue));
-                    case MinExclusiveMaxInclusiveRange<TUnit> r -> splitsToAddTo.add(new MinInclusiveMaxInclusiveRange<>(previousValue, currentValue));
-                    case MinExclusiveMaxExclusiveRange<TUnit> r -> splitsToAddTo.add(new MinInclusiveMaxExclusiveRange<>(previousValue, currentValue));
+                    case MinInclusiveMaxInclusiveRange<TUnit> r ->
+                        splitsToAddTo.add(new MinInclusiveMaxInclusiveRange<>(previousValue, currentValue));
+                    case MinInclusiveMaxExclusiveRange<TUnit> r ->
+                        splitsToAddTo.add(new MinInclusiveMaxExclusiveRange<>(previousValue, currentValue));
+                    case MinExclusiveMaxInclusiveRange<TUnit> r ->
+                        splitsToAddTo.add(new MinInclusiveMaxInclusiveRange<>(previousValue, currentValue));
+                    case MinExclusiveMaxExclusiveRange<TUnit> r ->
+                        splitsToAddTo.add(new MinInclusiveMaxExclusiveRange<>(previousValue, currentValue));
 
                     default -> throw new UnsupportedOperationException("Cannot split the given range into divisions");
                 }
@@ -338,10 +505,14 @@ public class RangeCalculator<TUnit>
 
                 switch (range)
                 {
-                    case MinInclusiveMaxInclusiveRange<TUnit> r -> splitsToAddTo.add(new MinInclusiveMaxExclusiveRange<>(previousValue, currentValue));
-                    case MinInclusiveMaxExclusiveRange<TUnit> r -> splitsToAddTo.add(new MinInclusiveMaxExclusiveRange<>(previousValue, currentValue));
-                    case MinExclusiveMaxInclusiveRange<TUnit> r -> splitsToAddTo.add(new MinInclusiveMaxExclusiveRange<>(previousValue, currentValue));
-                    case MinExclusiveMaxExclusiveRange<TUnit> r -> splitsToAddTo.add(new MinInclusiveMaxExclusiveRange<>(previousValue, currentValue));
+                    case MinInclusiveMaxInclusiveRange<TUnit> r ->
+                        splitsToAddTo.add(new MinInclusiveMaxExclusiveRange<>(previousValue, currentValue));
+                    case MinInclusiveMaxExclusiveRange<TUnit> r ->
+                        splitsToAddTo.add(new MinInclusiveMaxExclusiveRange<>(previousValue, currentValue));
+                    case MinExclusiveMaxInclusiveRange<TUnit> r ->
+                        splitsToAddTo.add(new MinInclusiveMaxExclusiveRange<>(previousValue, currentValue));
+                    case MinExclusiveMaxExclusiveRange<TUnit> r ->
+                        splitsToAddTo.add(new MinInclusiveMaxExclusiveRange<>(previousValue, currentValue));
 
                     default -> throw new UnsupportedOperationException("Cannot split the given range into divisions");
                 }

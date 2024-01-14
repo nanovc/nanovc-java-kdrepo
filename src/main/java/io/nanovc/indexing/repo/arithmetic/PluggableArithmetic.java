@@ -22,7 +22,8 @@ public class PluggableArithmetic<TUnit> extends Arithmetic<TUnit>
         Function<TUnit, TUnit> doubler,
         BiFunction<TUnit, Double, TUnit> scalerByMultiplication,
         BiFunction<TUnit, Double, TUnit> scalerByDivision,
-        BiFunction<TUnit, TUnit, TUnit> quantizer
+        BiFunction<TUnit, TUnit, TUnit> quantizer,
+        BiFunction<TUnit, TUnit, TUnit> distanceMeasurer
     )
     {
         this.comparator = comparator;
@@ -36,6 +37,7 @@ public class PluggableArithmetic<TUnit> extends Arithmetic<TUnit>
         this.scalerByMultiplication = scalerByMultiplication;
         this.scalerByDivision = scalerByDivision;
         this.quantizer = quantizer;
+        this.distanceMeasurer = distanceMeasurer;
     }
 
     /**
@@ -94,6 +96,11 @@ public class PluggableArithmetic<TUnit> extends Arithmetic<TUnit>
      * The second argument is the smallest step size to quantize by.
      */
     private final BiFunction<TUnit, TUnit, TUnit> quantizer;
+
+    /**
+     * The logic for measuring distance between values.
+     */
+    private final BiFunction<TUnit, TUnit, TUnit> distanceMeasurer;
 
     /**
      * Compares the left value to the right value.
@@ -241,5 +248,17 @@ public class PluggableArithmetic<TUnit> extends Arithmetic<TUnit>
     @Override public TUnit quantize(TUnit value, TUnit smallestStep)
     {
         return quantizer.apply(value, smallestStep);
+    }
+
+    /**
+     * Gets the distance between the two values.
+     *
+     * @param left  The left value to measure between.
+     * @param right The right value to measure between.
+     * @return The distance between the two values.
+     */
+    @Override public TUnit distanceBetween(TUnit left, TUnit right)
+    {
+        return distanceMeasurer.apply(left, right);
     }
 }

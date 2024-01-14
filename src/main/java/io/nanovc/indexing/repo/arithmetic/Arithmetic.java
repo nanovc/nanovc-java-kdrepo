@@ -121,4 +121,13 @@ public abstract class Arithmetic<TUnit>
      * @return The result of quantizing the value.
      */
     public abstract TUnit quantize(TUnit value, TUnit smallestStep);
+
+    /**
+     * Gets the distance between the two values.
+     *
+     * @param left  The left value to measure between.
+     * @param right The right value to measure between.
+     * @return The distance between the two values.
+     */
+    public abstract TUnit distanceBetween(TUnit left, TUnit right);
 }

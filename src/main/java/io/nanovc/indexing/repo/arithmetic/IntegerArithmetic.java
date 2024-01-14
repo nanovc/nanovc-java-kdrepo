@@ -154,6 +154,18 @@ public class IntegerArithmetic extends Arithmetic<Integer>
     }
 
     /**
+     * Gets the distance between the two values.
+     *
+     * @param left  The left value to measure between.
+     * @param right The right value to measure between.
+     * @return The distance between the two values.
+     */
+    @Override public Integer distanceBetween(Integer left, Integer right)
+    {
+        return Math.abs(left - right);
+    }
+
+    /**
      * The singleton reusable instance.
      */
     private final static IntegerArithmetic instance = new IntegerArithmetic();

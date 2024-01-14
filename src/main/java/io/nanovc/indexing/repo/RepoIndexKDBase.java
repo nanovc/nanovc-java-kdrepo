@@ -1071,65 +1071,77 @@ public abstract class RepoIndexKDBase<
                 RangeCalculator<Object> rangeCalculator = intermediateNode.dimension.getRangeCalculator();
 
                 // Check whether to go down the lower node:
-                if (intermediateNode.lowerNode != null && rangeCalculator.isInRange(value, intermediateNode.rangeSplit.lower()))
+                if (intermediateNode.lowerNode != null)
                 {
-                    // This item is in the lower range.
+                    // We have a lower node.
 
-                    // Walk down the lower node recursively:
-                    MeasuredItem<TItem, TDistance> measuredItem = searchNearestInKDNode(itemToSearchFor, itemCoord, intermediateNode.lowerNode);
-
-                    // Check whether we found an item in this range:
-                    if (measuredItem != null)
+                    // Check whether the item is within the current best distance from the lower range:
+                    if (rangeCalculator.isWithinDistanceOfRange(value, bestDistanceSoFar, true, intermediateNode.rangeSplit.lower()))
                     {
-                        // We found an item in this range.
+                        // This item is either in the range or within the distance of the range that we must check.
 
-                        // Check for an exact match (no distance):
-                        if (measuredItem.hasExactMatch())
+                        // Walk down the lower node recursively:
+                        MeasuredItem<TItem, TDistance> measuredItem = searchNearestInKDNode(itemToSearchFor, itemCoord, intermediateNode.lowerNode);
+
+                        // Check whether we found an item in this range:
+                        if (measuredItem != null)
                         {
-                            // We got an exact match.
-                            return measuredItem;
-                        }
+                            // We found an item in this range.
 
-                        // Check whether this distance is the best so far:
-                        if (bestDistanceSoFar == null || this.distanceComparator.compare(measuredItem.distance, bestDistanceSoFar) < 0)
-                        {
-                            // This item is closer.
+                            // Check for an exact match (no distance):
+                            if (measuredItem.hasExactMatch())
+                            {
+                                // We got an exact match.
+                                return measuredItem;
+                            }
 
-                            // Flag this as the best item so far:
-                            bestItemSoFar = measuredItem.item;
-                            bestDistanceSoFar = measuredItem.distance;
+                            // Check whether this distance is the best so far:
+                            if (bestDistanceSoFar == null || this.distanceComparator.compare(measuredItem.distance, bestDistanceSoFar) < 0)
+                            {
+                                // This item is closer.
+
+                                // Flag this as the best item so far:
+                                bestItemSoFar = measuredItem.item;
+                                bestDistanceSoFar = measuredItem.distance;
+                            }
                         }
                     }
                 }
 
                 // Check whether to go down the higher node:
-                if (intermediateNode.higherNode != null && rangeCalculator.isInRange(value, intermediateNode.rangeSplit.higher()))
+                if (intermediateNode.higherNode != null)
                 {
-                    // This item is in the higher range.
+                    // We have a higher node.
 
-                    // Walk down the higher node recursively:
-                    MeasuredItem<TItem, TDistance> measuredItem = searchNearestInKDNode(itemToSearchFor, itemCoord, intermediateNode.higherNode);
-
-                    // Check whether we found an item in this range:
-                    if (measuredItem != null)
+                    // Check whether the item is within the current best distance from the higher range:
+                    if (rangeCalculator.isWithinDistanceOfRange(value, bestDistanceSoFar, true, intermediateNode.rangeSplit.higher()))
                     {
-                        // We found an item in this range.
+                        // This item is either in the range or within the distance of the range that we must check.
 
-                        // Check for an exact match (no distance):
-                        if (measuredItem.hasExactMatch())
+                        // Walk down the higher node recursively:
+                        MeasuredItem<TItem, TDistance> measuredItem = searchNearestInKDNode(itemToSearchFor, itemCoord, intermediateNode.higherNode);
+
+                        // Check whether we found an item in this range:
+                        if (measuredItem != null)
                         {
-                            // We got an exact match.
-                            return measuredItem;
-                        }
+                            // We found an item in this range.
 
-                        // Check whether this distance is the best so far:
-                        if (bestDistanceSoFar == null || this.distanceComparator.compare(measuredItem.distance, bestDistanceSoFar) < 0)
-                        {
-                            // This item is closer.
+                            // Check for an exact match (no distance):
+                            if (measuredItem.hasExactMatch())
+                            {
+                                // We got an exact match.
+                                return measuredItem;
+                            }
 
-                            // Flag this as the best item so far:
-                            bestItemSoFar = measuredItem.item;
-                            bestDistanceSoFar = measuredItem.distance;
+                            // Check whether this distance is the best so far:
+                            if (bestDistanceSoFar == null || this.distanceComparator.compare(measuredItem.distance, bestDistanceSoFar) < 0)
+                            {
+                                // This item is closer.
+
+                                // Flag this as the best item so far:
+                                bestItemSoFar = measuredItem.item;
+                                bestDistanceSoFar = measuredItem.distance;
+                            }
                         }
                     }
                 }

@@ -16,4 +16,13 @@ public class MeasuredItem<TItem, TDistance>
      * If this is null then the item is an exact match so the distance was not measured explicitly.
      */
     public TDistance distance;
+
+    /**
+     * Checks whether we have an exact match for the measurement.
+     * @return True if we have an exact match for this item. False if it has a distance measurement.
+     */
+    public boolean hasExactMatch()
+    {
+        return distance == null;
+    }
 }

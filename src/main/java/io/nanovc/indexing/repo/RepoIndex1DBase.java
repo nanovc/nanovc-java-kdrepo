@@ -444,7 +444,7 @@ public abstract class RepoIndex1DBase<
                     // We found an item in this division.
 
                     // Check for an exact match (no distance):
-                    if (measuredItem.distance == null)
+                    if (measuredItem.hasExactMatch())
                     {
                         // We got an exact match.
                         return measuredItem.item;

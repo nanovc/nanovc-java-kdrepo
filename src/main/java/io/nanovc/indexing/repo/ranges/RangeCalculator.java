@@ -241,7 +241,7 @@ public class RangeCalculator<TUnit>
         ArrayList<TUnit> values = new ArrayList<>();
         TUnit currentValue = startingValue;
         int stepIndex = 0;
-        while ((stepIndex <= divisions) && (arithmetic.compare(currentValue, endingValue) <= 0)) // NOTE: We limit by the requested divisions.
+        while (arithmetic.compare(currentValue, endingValue) <= 0)
         {
             // We need to keep stepping.
 

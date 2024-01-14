@@ -3,7 +3,7 @@ package io.nanovc.indexing.repo;
 import io.nanovc.AreaAPI;
 import io.nanovc.ContentAPI;
 
-import java.util.HashMap;
+import java.util.TreeMap;
 
 /**
  * A cube of divisions.
@@ -32,7 +32,7 @@ public class DivisionCube<
      * This makes it easy to go through each cell.
      * This is especially useful when we have a sparse amount of data.
      */
-    public final HashMap<String, DivisionCell<TContent, TArea>> cellsByBranchName = new HashMap<>();
+    public final TreeMap<String, DivisionCell<TContent, TArea>> cellsByBranchName = new TreeMap<>();
 
     @Override public String toString()
     {

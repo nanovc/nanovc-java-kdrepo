@@ -29,11 +29,6 @@ public final class KDBucketNode<
      */
     public RepoPathNode bucketItemsRepoPathNode;
 
-    /**
-     * The {@link HyperCube} that defines the ranges for each dimension of the volume that this bucket encloses.
-     */
-    public HyperCube hyperCube;
-
     @Override public String toString()
     {
         return "Bucket Node at level " + level +

@@ -34,6 +34,11 @@ public sealed class KDNode<
     public DivisionCell<TContent, TArea> divisionCell;
 
     /**
+     * The {@link HyperCube} that defines the ranges for each dimension of the volume that this node encloses.
+     */
+    public HyperCube hyperCube;
+
+    /**
      * The repo path node that keeps track of where in the content area this node belongs.
      */
     public RepoPathNode repoPathNode;

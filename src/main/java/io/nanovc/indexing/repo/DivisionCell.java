@@ -62,7 +62,7 @@ public class DivisionCell<
     {
         // Write the division details:
         stringBuilder.append("\n");
-        stringBuilder.append("Division Cell Branch Name: ");
+        stringBuilder.append("Division Cell Branch Name:");
         stringBuilder.append("\n");
         stringBuilder.append(this.branchName);
         stringBuilder.append("\n");

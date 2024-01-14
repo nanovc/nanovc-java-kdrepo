@@ -553,6 +553,7 @@ public abstract class RepoIndexKDBase<
                     newNode.parent = bucketNode.parent;
                     newNode.divisionCell = bucketNode.divisionCell;
                     newNode.level = bucketNode.level;
+                    newNode.hyperCube = bucketNode.hyperCube;
 
                     // Get the dimension index that we want to index by:
                     int dimensionIndex = bucketNode.level % this.hyperCubeDefinition.getDimensionCount();
@@ -575,26 +576,6 @@ public abstract class RepoIndexKDBase<
                     String newNodeName = newNode.dimension.getName() + ":" + newNode.cutValue.toString();
                     newNode.repoPathNode = newNode.divisionCell.repoPathTree.getOrCreateChildNode(bucketNode.repoPathNode, newNodeName);
 
-                    // Create the child node for the lower range:
-                    KDBucketNode<TContent, TArea> lowerNode = new KDBucketNode<>();
-                    newNode.lowerNode = lowerNode;
-                    lowerNode.level = newNode.level + 1;
-                    lowerNode.parent = newNode;
-                    lowerNode.divisionCell = newNode.divisionCell;
-                    lowerNode.hyperCube = bucketNode.hyperCube.createHyperCubeWithChangedRange(dimensionIndex, newNode.rangeSplit.lower());
-                    lowerNode.repoPathNode = lowerNode.divisionCell.repoPathTree.getOrCreateChildNode(newNode.repoPathNode, "<");
-                    lowerNode.bucketItemsRepoPathNode = lowerNode.divisionCell.repoPathTree.getOrCreateChildNode(lowerNode.repoPathNode, BUCKET_ITEMS_PATH_NAME);
-
-                    // Create the child node for the higher range:
-                    KDBucketNode<TContent, TArea> higherNode = new KDBucketNode<>();
-                    newNode.higherNode = higherNode;
-                    higherNode.level = newNode.level + 1;
-                    higherNode.parent = newNode;
-                    higherNode.divisionCell = newNode.divisionCell;
-                    higherNode.hyperCube = bucketNode.hyperCube.createHyperCubeWithChangedRange(dimensionIndex, newNode.rangeSplit.higher());
-                    higherNode.repoPathNode = higherNode.divisionCell.repoPathTree.getOrCreateChildNode(newNode.repoPathNode, ">");
-                    higherNode.bucketItemsRepoPathNode = higherNode.divisionCell.repoPathTree.getOrCreateChildNode(higherNode.repoPathNode, BUCKET_ITEMS_PATH_NAME);
-
                     // Keep track of the node to return as we iterate recursively:
                     KDNode<TContent, TArea> nodeToReturn = newNode;
 
@@ -614,9 +595,14 @@ public abstract class RepoIndexKDBase<
                         // Remove the item from the content area:
                         bucketNode.divisionCell.contentArea.removeContent(bucketItemRepoPath);
 
+                        // Get the repo path tree that we can use for navigating:
+                        RepoPathTree repoPathTree = bucketNode.divisionCell.repoPathTree;
+
                         // Remove the item from the repo path tree:
-                        // TODO: This needs to stop sooner than when all the paths are cleaned up. Intermediate nodes don't have content.
-                        cleanUpRepoPathTreeUntilWeHaveContent(bucketItemRepoPathNode, bucketNode.divisionCell.contentArea, bucketNode.divisionCell.repoPathTree);
+                        repoPathTree.removeFromParent(bucketItemRepoPathNode);
+
+                        // Remove the bucket path if it is empty:
+                        repoPathTree.removeIfHasNoChildren(bucketItemRepoPathNode.getParent());
 
                         // Get the coordinate for this item:
                         HyperCoord bucketItemCoord = extractItemCoordinate(bucketItem, this.hyperCubeDefinition);
@@ -677,6 +663,22 @@ public abstract class RepoIndexKDBase<
                 {
                     // This item belongs in the lower range.
 
+                    // Check whether we need to create the node for the lower range:
+                    if (intermediateNode.lowerNode == null)
+                    {
+                        // This is the first time we are walking down the lower node.
+
+                        // Create the child node for the lower range:
+                        KDBucketNode<TContent, TArea> lowerNode = new KDBucketNode<>();
+                        intermediateNode.lowerNode = lowerNode;
+                        lowerNode.level = intermediateNode.level + 1;
+                        lowerNode.parent = intermediateNode;
+                        lowerNode.divisionCell = intermediateNode.divisionCell;
+                        lowerNode.hyperCube = intermediateNode.hyperCube.createHyperCubeWithChangedRange(dimension.getDimensionIndex(), intermediateNode.rangeSplit.lower());
+                        lowerNode.repoPathNode = lowerNode.divisionCell.repoPathTree.getOrCreateChildNode(intermediateNode.repoPathNode, "<");
+                        lowerNode.bucketItemsRepoPathNode = lowerNode.divisionCell.repoPathTree.getOrCreateChildNode(lowerNode.repoPathNode, BUCKET_ITEMS_PATH_NAME);
+                    }
+
                     // Recursively add the item to that branch:
                     intermediateNode.lowerNode = addItemToKDNode(item, itemCoord, intermediateNode.lowerNode);
                 }
@@ -685,6 +687,22 @@ public abstract class RepoIndexKDBase<
                 if (rangeCalculator.isInRange(value, rangeSplit.higher()))
                 {
                     // This item belongs in the higher range.
+
+                    // Check whether we need to create the node for the higher range:
+                    if (intermediateNode.higherNode == null)
+                    {
+                        // This is the first time we are walking down the higher node.
+
+                        // Create the child node for the higher range:
+                        KDBucketNode<TContent, TArea> higherNode = new KDBucketNode<>();
+                        intermediateNode.higherNode = higherNode;
+                        higherNode.level = intermediateNode.level + 1;
+                        higherNode.parent = intermediateNode;
+                        higherNode.divisionCell = intermediateNode.divisionCell;
+                        higherNode.hyperCube = intermediateNode.hyperCube.createHyperCubeWithChangedRange(dimension.getDimensionIndex(), intermediateNode.rangeSplit.higher());
+                        higherNode.repoPathNode = higherNode.divisionCell.repoPathTree.getOrCreateChildNode(intermediateNode.repoPathNode, ">");
+                        higherNode.bucketItemsRepoPathNode = higherNode.divisionCell.repoPathTree.getOrCreateChildNode(higherNode.repoPathNode, BUCKET_ITEMS_PATH_NAME);
+                    }
 
                     // Recursively add the item to that branch:
                     intermediateNode.higherNode = addItemToKDNode(item, itemCoord, intermediateNode.higherNode);
@@ -695,67 +713,6 @@ public abstract class RepoIndexKDBase<
             }
             default -> throw new IllegalStateException("Unexpected value: " + node);
         }
-    }
-
-    /**
-     * This walks up from the given node and cleans up the nodes until it finds content in the given content area.
-     * This is useful for cleaning up when removing content deeper in the tree.
-     *
-     * @param currentNode The current node we are on.
-     * @param contentArea The content area to check while we walk.
-     * @param repoPathTree The repo path tree that we are walking.
-     */
-    protected void cleanUpRepoPathTreeUntilWeHaveContent(RepoPathNode currentNode, TArea contentArea, RepoPathTree repoPathTree)
-    {
-        // Check whether this node or any of its children have content:
-        if (currentNode == null || hasAnySubContentInContentArea(currentNode, contentArea)) return;
-        else
-        {
-            // The current node doesn't have any sub-content in the content area.
-
-            // Clean up child nodes:
-            //repoPathTree.iterateAndRemoveEachDescendant(currentNode, (node) -> {});
-
-            // Check whether we have a parent to walk up to:
-            RepoPathNode parent = currentNode.getParent();
-            if (parent != null)
-            {
-                // Walk up to the parent and repeat:
-                cleanUpRepoPathTreeUntilWeHaveContent(parent, contentArea, repoPathTree);
-            }
-        }
-    }
-
-    /**
-     * Recursively checks whether the current node or any descendants contain content in the content area.
-     *
-     * @param currentNode The current node to explore.
-     * @param contentArea The content area to check for content.
-     * @return True if this currentNode or any of its descendants contain content in the content area.
-     */
-    protected boolean hasAnySubContentInContentArea(RepoPathNode currentNode, TArea contentArea)
-    {
-        // Check whether the content area has content at this node:
-        if (contentArea.hasContent(currentNode.getRepoPath())) return true;
-        else
-        {
-            // The current node doesn't exist in the content area.
-
-            // Check whether there are any children and check those recursively:
-            if (currentNode.hasChildren())
-            {
-                for (RepoPathNode childNode : currentNode.getChildrenByName().values())
-                {
-                    // Check if it has sub content:
-                    boolean hasContent = hasAnySubContentInContentArea(childNode, contentArea);
-
-                    // Break out early:
-                    if (hasContent) return true;
-                }
-            }
-        }
-        // If we get here then we don't have sub content.
-        return false;
     }
 
     /**

@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Scanner;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * A tree of {@link io.nanovc.RepoPath repo paths}.
@@ -71,8 +72,9 @@ public class RepoPathTree
 
     /**
      * This either gets the existing child node or creates a new one if necessary.
+     *
      * @param nodeToAddTo The node of the tree to add a child to.
-     * @param childName The name of the child to add to the node.
+     * @param childName   The name of the child to add to the node.
      * @return The child node with the given name.
      */
     public RepoPathNode getOrCreateChildNode(RepoPathNode nodeToAddTo, String childName)
@@ -97,8 +99,9 @@ public class RepoPathTree
 
     /**
      * This gets the existing child node or returns null if one doesn't exist.
+     *
      * @param nodeToQuery The node to check for a child node with the given name.
-     * @param childName The name of the child to add to the node.
+     * @param childName   The name of the child to add to the node.
      * @return The child node with the given name. Null if it wasn't found.
      */
     public RepoPathNode getChildNode(RepoPathNode nodeToQuery, String childName)
@@ -114,7 +117,8 @@ public class RepoPathTree
      * It then calls the nodeConsumer to process the node.
      * It then deletes the node immediately after it has been processed.
      * It does a depth first traversal.
-     * @param node The node to start iterating at. It includes this node in the iteration.
+     *
+     * @param node         The node to start iterating at. It includes this node in the iteration.
      * @param nodeConsumer The logic to process each node that is iterated.
      */
     public void iterateAndRemoveEachDescendant(RepoPathNode node, Consumer<RepoPathNode> nodeConsumer)
@@ -148,6 +152,99 @@ public class RepoPathTree
         {
             parent.getChildrenByName().remove(node.getName());
         }
+    }
+
+    /**
+     * This iterates through the given node and ALL leaf descendants.
+     * It then calls the nodeConsumer to process the node.
+     * It does a depth first traversal.
+     *
+     * @param node         The node to start iterating at. It includes this node in the iteration.
+     * @param nodeConsumer The logic to process each node that is iterated.
+     */
+    public void iterateOverEachLeafDescendant(RepoPathNode node, Consumer<RepoPathNode> nodeConsumer)
+    {
+        // Check whether we are at a leaf node:
+        if (node.hasChildren())
+        {
+            // This node is not a leaf and it has children.
+
+            // Go through the snapshot of children:
+            for (RepoPathNode childNode : node.getChildrenByName().values())
+            {
+                // Walk each child recursively:
+                iterateAndRemoveEachDescendant(childNode, nodeConsumer);
+            }
+        }
+        else
+        {
+            // There are no children. This is a leaf node.
+
+            // Process the node:
+            nodeConsumer.accept(node);
+        }
+    }
+
+    /**
+     * Removes the given node from its parent.
+     * If it has no parent then it does nothing.
+     *
+     * @param nodeToRemoveFromParent The node to remove from its parent.
+     */
+    public void removeFromParent(RepoPathNode nodeToRemoveFromParent)
+    {
+        // Check if it has a parent:
+        RepoPathNode parent = nodeToRemoveFromParent.getParent();
+        if (parent != null)
+        {
+            // Remove the node from the parent:
+            parent.getChildrenByName().remove(nodeToRemoveFromParent.getName());
+        }
+    }
+
+    /**
+     * Removes the given node from its parent if it has no children.
+     * If it has no parent then it does nothing.
+     *
+     * @param nodeToRemoveIfEmpty The node to remove from its parent if it is empty (has no children).
+     */
+    public void removeIfHasNoChildren(RepoPathNode nodeToRemoveIfEmpty)
+    {
+        // Check whether the node is empty:
+        if (!nodeToRemoveIfEmpty.hasChildren())
+            removeFromParent(nodeToRemoveIfEmpty);
+    }
+
+    /**
+     * Recursively checks whether the current node or any descendants contain content in the content area.
+     *
+     * @param currentNode The current node to explore.
+     * @param filter      The filter logic that determines whether we are interested in a node.
+     * @return True if this currentNode or any of its descendants contain content in the content area.
+     */
+    public boolean hasAnySubContentThatMatches(RepoPathNode currentNode, Function<RepoPathNode, Boolean> filter)
+    {
+        // Check whether the content area has content at this node:
+        if (filter.apply(currentNode)) return true;
+        else
+        {
+            // The current node doesn't match the filter criteria.
+
+            // Check whether there are any children and check those recursively:
+            if (currentNode.hasChildren())
+            {
+                for (RepoPathNode childNode : currentNode.getChildrenByName().values())
+                {
+                    // Check if it matches:
+                    boolean childMatches = hasAnySubContentThatMatches(childNode, filter);
+
+                    // Break out early:
+                    if (childMatches) return true;
+                }
+            }
+        }
+        // If we get here then we don't match the filter.
+        return false;
     }
 
     /**

@@ -28,17 +28,18 @@ public class XYRepoIndexKDTests
         index.add(itemZero);
 
         // Make sure the index is as expected:
-        String expectedIndex =
-            "Index:  from XY[x=-1.0, y=-1.0] to XY[x=1.0, y=1.0] with 10 divisions:\n" +
-            "Division Cell Branch Name: \n" +
-            "X:[0.0,0.2)\n" +
-            "Y:[0.0,0.2)\n" +
-            "Hyper Cube:\n" +
-            "X:[0.0,0.2)\n" +
-            "Y:[0.0,0.2)\n" +
-            ".\n" +
-            "└───📁\n" +
-            "    └───0'0.0|0.0'\n";
+        String expectedIndex = """
+Index:  from XY[x=-1.0, y=-1.0] to XY[x=1.0, y=1.0] with 10 divisions:
+Division Cell Branch Name:
+X:[0.0,0.2)
+Y:[0.0,0.2)
+Hyper Cube:
+X:[0.0,0.2)
+Y:[0.0,0.2)
+.
+└───📁
+    └───0'0.0|0.0'
+""";
         assertIndex(expectedIndex, index);
 
         // Query the item:
@@ -61,27 +62,28 @@ public class XYRepoIndexKDTests
         index.add(itemOne);
 
         // Make sure the index is as expected:
-        String expectedIndex =
-            "Index:  from XY[x=-1.0, y=-1.0] to XY[x=1.0, y=1.0] with 10 divisions:\n" +
-            "Division Cell Branch Name: \n" +
-            "X:[0.0,0.2)\n" +
-            "Y:[0.0,0.2)\n" +
-            "Hyper Cube:\n" +
-            "X:[0.0,0.2)\n" +
-            "Y:[0.0,0.2)\n" +
-            ".\n" +
-            "└───📁\n" +
-            "    └───0'0.0|0.0'\n" +
-            "\n" +
-            "Division Cell Branch Name: \n" +
-            "X:[0.0,0.2)\n" +
-            "Y:[0.8,1.0]\n" +
-            "Hyper Cube:\n" +
-            "X:[0.0,0.2)\n" +
-            "Y:[0.8,1.0]\n" +
-            ".\n" +
-            "└───📁\n" +
-            "    └───0'1.0|1.0'\n";
+        String expectedIndex = """
+Index:  from XY[x=-1.0, y=-1.0] to XY[x=1.0, y=1.0] with 10 divisions:
+Division Cell Branch Name:
+X:[0.0,0.2)
+Y:[0.0,0.2)
+Hyper Cube:
+X:[0.0,0.2)
+Y:[0.0,0.2)
+.
+└───📁
+    └───0'0.0|0.0'
+
+Division Cell Branch Name:
+X:[0.0,0.2)
+Y:[0.8,1.0]
+Hyper Cube:
+X:[0.0,0.2)
+Y:[0.8,1.0]
+.
+└───📁
+    └───0'1.0|1.0'
+""";
         assertIndex(expectedIndex, index);
 
         // Query the item:
@@ -106,37 +108,38 @@ public class XYRepoIndexKDTests
         index.add(itemOne);
 
         // Make sure the index is as expected:
-        String expectedIndex =
-            "Index:  from XY[x=-1.0, y=-1.0] to XY[x=1.0, y=1.0] with 10 divisions:\n" +
-            "Division Cell Branch Name: \n" +
-            "X:[0.0,0.2)\n" +
-            "Y:[0.0,0.2)\n" +
-            "Hyper Cube:\n" +
-            "X:[0.0,0.2)\n" +
-            "Y:[0.0,0.2)\n" +
-            ".\n" +
-            "└───📁\n" +
-            "    └───0'0.0|0.0'\n" +
-            "\n" +
-            "Division Cell Branch Name: \n" +
-            "X:[0.0,0.2)\n" +
-            "Y:[0.2,0.4)\n" +
-            "Hyper Cube:\n" +
-            "X:[0.0,0.2)\n" +
-            "Y:[0.2,0.4)\n" +
-            ".\n" +
-            "└───📁\n" +
-            "    └───0'0.3|0.3'\n" +
-            "\n" +
-            "Division Cell Branch Name: \n" +
-            "X:[0.0,0.2)\n" +
-            "Y:[0.8,1.0]\n" +
-            "Hyper Cube:\n" +
-            "X:[0.0,0.2)\n" +
-            "Y:[0.8,1.0]\n" +
-            ".\n" +
-            "└───📁\n" +
-            "    └───0'1.0|1.0'\n";
+        String expectedIndex = """
+Index:  from XY[x=-1.0, y=-1.0] to XY[x=1.0, y=1.0] with 10 divisions:
+Division Cell Branch Name:
+X:[0.0,0.2)
+Y:[0.0,0.2)
+Hyper Cube:
+X:[0.0,0.2)
+Y:[0.0,0.2)
+.
+└───📁
+    └───0'0.0|0.0'
+
+Division Cell Branch Name:
+X:[0.0,0.2)
+Y:[0.2,0.4)
+Hyper Cube:
+X:[0.0,0.2)
+Y:[0.2,0.4)
+.
+└───📁
+    └───0'0.3|0.3'
+
+Division Cell Branch Name:
+X:[0.0,0.2)
+Y:[0.8,1.0]
+Hyper Cube:
+X:[0.0,0.2)
+Y:[0.8,1.0]
+.
+└───📁
+    └───0'1.0|1.0'
+""";
         assertIndex(expectedIndex, index);
 
         // Query the item:
@@ -163,57 +166,41 @@ public class XYRepoIndexKDTests
 
         // Make sure the index is as expected:
         String expectedIndex =
-            "Index:  from XY[x=-1.0, y=-1.0] to XY[x=1.0, y=1.0] with 10 divisions:\n" +
-            "Division Cell Branch Name: \n" +
-            "X:[0.0,0.2)\n" +
-            "Y:[0.0,0.2)\n" +
-            "Hyper Cube:\n" +
-            "X:[0.0,0.2)\n" +
-            "Y:[0.0,0.2)\n" +
-            ".\n" +
-            "├───\uD83D\uDCC1\n" +
-            "│   └───0\n" +
-            "└───X:0.1\n" +
-            "    ├───<\n" +
-            "    │   ├───\uD83D\uDCC1\n" +
-            "    │   │   └───0\n" +
-            "    │   └───Y:0.1\n" +
-            "    │       ├───<\n" +
-            "    │       │   ├───\uD83D\uDCC1\n" +
-            "    │       │   │   └───0\n" +
-            "    │       │   └───X:0.05\n" +
-            "    │       │       ├───<\n" +
-            "    │       │       │   ├───\uD83D\uDCC1\n" +
-            "    │       │       │   │   └───0\n" +
-            "    │       │       │   └───Y:0.05\n" +
-            "    │       │       │       ├───<\n" +
-            "    │       │       │       │   ├───\uD83D\uDCC1\n" +
-            "    │       │       │       │   │   └───0\n" +
-            "    │       │       │       │   └───X:0.025\n" +
-            "    │       │       │       │       ├───<\n" +
-            "    │       │       │       │       │   └───\uD83D\uDCC1\n" +
-            "    │       │       │       │       │       └───0'0.0|0.0'\n" +
-            "    │       │       │       │       └───>\n" +
-            "    │       │       │       │           └───\uD83D\uDCC1\n" +
-            "    │       │       │       │               └───0'0.03|0.03'\n" +
-            "    │       │       │       └───>\n" +
-            "    │       │       │           └───\uD83D\uDCC1\n" +
-            "    │       │       └───>\n" +
-            "    │       │           └───\uD83D\uDCC1\n" +
-            "    │       └───>\n" +
-            "    │           └───\uD83D\uDCC1\n" +
-            "    └───>\n" +
-            "        └───\uD83D\uDCC1\n" +
-            "\n" +
-            "Division Cell Branch Name: \n" +
-            "X:[0.0,0.2)\n" +
-            "Y:[0.8,1.0]\n" +
-            "Hyper Cube:\n" +
-            "X:[0.0,0.2)\n" +
-            "Y:[0.8,1.0]\n" +
-            ".\n" +
-            "└───\uD83D\uDCC1\n" +
-            "    └───0'1.0|1.0'\n";
+            """
+Index:  from XY[x=-1.0, y=-1.0] to XY[x=1.0, y=1.0] with 10 divisions:
+Division Cell Branch Name:
+X:[0.0,0.2)
+Y:[0.0,0.2)
+Hyper Cube:
+X:[0.0,0.2)
+Y:[0.0,0.2)
+.
+└───X:0.1
+    └───<
+        └───Y:0.1
+            └───<
+                └───X:0.05
+                    └───<
+                        └───Y:0.05
+                            └───<
+                                └───X:0.025
+                                    ├───<
+                                    │   └───📁
+                                    │       └───0'0.0|0.0'
+                                    └───>
+                                        └───📁
+                                            └───0'0.03|0.03'
+
+Division Cell Branch Name:
+X:[0.0,0.2)
+Y:[0.8,1.0]
+Hyper Cube:
+X:[0.0,0.2)
+Y:[0.8,1.0]
+.
+└───📁
+    └───0'1.0|1.0'
+""";
         assertIndex(expectedIndex, index);
 
         // Query the item:

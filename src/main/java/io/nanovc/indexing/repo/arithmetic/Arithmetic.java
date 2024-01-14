@@ -9,7 +9,7 @@ public abstract class Arithmetic<TUnit>
 {
     /**
      * Compares the left value to the right value.
-     *
+     * <p>
      * You can use it like this:
      * compare(left, right) <  0 // for left <= right
      * compare(left, right) <= 0 // for left <= right
@@ -18,7 +18,7 @@ public abstract class Arithmetic<TUnit>
      * compare(left, right) >= 0 // for left >= right
      * compare(left, right) >  0 // for left >  right
      *
-     * @param leftValue The left value to compare.
+     * @param leftValue  The left value to compare.
      * @param rightValue The right value to compare.
      * @return A negative integer, zero, or a positive integer as the first argument is less than, equal to, or greater than the second.
      */
@@ -95,6 +95,7 @@ public abstract class Arithmetic<TUnit>
     /**
      * Gets the scaled value.
      * result = value * scale
+     *
      * @param value The value to scale.
      * @param scale The amount to scale by.
      * @return The result of scaling the given value. result = value * scale
@@ -104,9 +105,20 @@ public abstract class Arithmetic<TUnit>
     /**
      * Gets the scaled value.
      * result = value / scale
+     *
      * @param value The value to scale.
      * @param scale The amount to scale by.
      * @return The result of scaling the given value. result = value / scale
      */
     public abstract TUnit scaleByDivisor(TUnit value, double scale);
+
+    /**
+     * Quantizes the value to the smallest steps size given.
+     * This is the same as rounding to multiples of a base unit.
+     *
+     * @param value        The value to quantize.
+     * @param smallestStep The smallest size to quantize at.
+     * @return The result of quantizing the value.
+     */
+    public abstract TUnit quantize(TUnit value, TUnit smallestStep);
 }

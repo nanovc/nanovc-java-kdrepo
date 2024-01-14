@@ -251,6 +251,9 @@ public class RangeCalculator<TUnit>
             // Take the next step:
             stepIndex++;
             currentValue = arithmetic.add(currentValue, step);
+
+            // Quantize the value to the smallest step size:
+            currentValue = arithmetic.quantize(currentValue, smallestStep);
         }
         // Now we know what the values are.
 

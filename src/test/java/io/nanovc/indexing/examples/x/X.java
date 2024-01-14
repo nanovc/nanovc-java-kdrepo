@@ -143,7 +143,6 @@ public record X(int x)
     /**
      * Defines the hyper cube for this data structure.
      * @param xRange The range of X values for this cube.
-     * @param yRange The range of Y values for this cube.
      * @return The hyper cube for this data structure.
      */
     public static HyperCubeDefinition defineHyperCube(Range<Integer> xRange)

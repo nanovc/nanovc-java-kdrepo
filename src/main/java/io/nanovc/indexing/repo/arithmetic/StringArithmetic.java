@@ -141,6 +141,19 @@ public class StringArithmetic extends Arithmetic<String>
     }
 
     /**
+     * Quantizes the value to the smallest steps size given.
+     * This is the same as rounding to multiples of a base unit.
+     *
+     * @param value        The value to quantize.
+     * @param smallestStep The smallest size to quantize at.
+     * @return The result of quantizing the value.
+     */
+    @Override public String quantize(String value, String smallestStep)
+    {
+        throw new UnsupportedOperationException("Cannot quantize strings");
+    }
+
+    /**
      * The singleton reusable instance.
      */
     private final static StringArithmetic instance = new StringArithmetic();

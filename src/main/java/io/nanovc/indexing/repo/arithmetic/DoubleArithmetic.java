@@ -141,6 +141,19 @@ public class DoubleArithmetic extends Arithmetic<Double>
     }
 
     /**
+     * Quantizes the value to the smallest steps size given.
+     * This is the same as rounding to multiples of a base unit.
+     *
+     * @param value        The value to quantize.
+     * @param smallestStep The smallest size to quantize at.
+     * @return The result of quantizing the value.
+     */
+    @Override public Double quantize(Double value, Double smallestStep)
+    {
+        return Math.floor(value / smallestStep) * smallestStep;
+    }
+
+    /**
      * The singleton reusable instance.
      */
     private final static DoubleArithmetic instance = new DoubleArithmetic();

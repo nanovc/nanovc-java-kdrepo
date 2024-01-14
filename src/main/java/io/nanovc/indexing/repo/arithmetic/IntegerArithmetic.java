@@ -141,6 +141,19 @@ public class IntegerArithmetic extends Arithmetic<Integer>
     }
 
     /**
+     * Quantizes the value to the smallest steps size given.
+     * This is the same as rounding to multiples of a base unit.
+     *
+     * @param value        The value to quantize.
+     * @param smallestStep The smallest size to quantize at.
+     * @return The result of quantizing the value.
+     */
+    @Override public Integer quantize(Integer value, Integer smallestStep)
+    {
+        return (value / smallestStep) * smallestStep;
+    }
+
+    /**
      * The singleton reusable instance.
      */
     private final static IntegerArithmetic instance = new IntegerArithmetic();

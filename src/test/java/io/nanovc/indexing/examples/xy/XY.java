@@ -26,9 +26,9 @@ public record XY(double x, double y)
         return switch (dimension)
         {
             case 0 -> //noinspection unchecked
-                (TUnit)(Double)item.x();
+                (TUnit) (Double) item.x();
             case 1 -> //noinspection unchecked
-                (TUnit)(Double)item.y();
+                (TUnit) (Double) item.y();
             default -> throw new IllegalStateException("Unexpected value: " + dimension);
         };
     }
@@ -42,7 +42,7 @@ public record XY(double x, double y)
      * <p>
      * The 1-norm is simply the sum of the absolute values of the columns.
      * <p>
-     * https://en.wikipedia.org/wiki/Norm_(mathematics)#Taxicab_norm_or_Manhattan_norm
+     * <a href="https://en.wikipedia.org/wiki/Norm_(mathematics)#Taxicab_norm_or_Manhattan_norm">Taxicab_norm_or_Manhattan_norm</a>
      */
     public static double measureDistanceL1NormManhattanTaxicabNorm(XY item1, XY item2)
     {
@@ -58,14 +58,14 @@ public record XY(double x, double y)
      * <p>
      * The 2-norm is square root of the sum of the square of the columns.
      * <p>
-     * https://en.wikipedia.org/wiki/Norm_(mathematics)#Euclidean_norm
-     * https://en.wikipedia.org/wiki/Euclidean_distance
+     * <a href="https://en.wikipedia.org/wiki/Norm_(mathematics)#Euclidean_norm">Euclidean_norm</a>
+     * <a href="https://en.wikipedia.org/wiki/Euclidean_distance">Euclidean_distance</a>
      */
     public static double measureDistanceL2NormEuclidean(XY item1, XY item2)
     {
         double diffX = item2.x() - item1.x();
         double diffY = item2.y() - item1.y();
-        return Math.sqrt( (diffX * diffX) + (diffY * diffY) );
+        return Math.sqrt((diffX * diffX) + (diffY * diffY));
     }
 
     /**
@@ -77,9 +77,9 @@ public record XY(double x, double y)
      * <p>
      * The 2-norm squared is the sum of the square of the columns.
      * <p>
-     * https://en.wikipedia.org/wiki/Euclidean_distance#Squared_Euclidean_distance
-     * https://en.wikipedia.org/wiki/Norm_(mathematics)#Euclidean_norm
-     * https://en.wikipedia.org/wiki/Euclidean_distance
+     * <a href="https://en.wikipedia.org/wiki/Euclidean_distance#Squared_Euclidean_distance">Squared_Euclidean_distance</a>
+     * <a href="https://en.wikipedia.org/wiki/Norm_(mathematics)#Euclidean_norm">Euclidean_norm</a>
+     * <a href="https://en.wikipedia.org/wiki/Euclidean_distance">Euclidean_distance</a>
      */
     public static double measureDistanceL2NormEuclideanSquared(XY item1, XY item2)
     {
@@ -97,8 +97,8 @@ public record XY(double x, double y)
      * <p>
      * The 2-norm squared is the sum of the square of the columns.
      * <p>
-     * https://en.wikipedia.org/wiki/Norm_(mathematics)#Maximum_norm_(special_case_of:_infinity_norm,_uniform_norm,_or_supremum_norm)
-     * https://en.wikipedia.org/wiki/Norm_(mathematics)#p-norm
+     * <a href="https://en.wikipedia.org/wiki/Norm_(mathematics)#Maximum_norm_(special_case_of:_infinity_norm,_uniform_norm,_or_supremum_norm)">Maximum_norm</a>
+     * <a href="https://en.wikipedia.org/wiki/Norm_(mathematics)#p-norm">p-norm</a>
      */
     public static double measureDistanceLInfNormMaximumInfinity(XY item1, XY item2)
     {
@@ -140,7 +140,7 @@ public record XY(double x, double y)
 
         // Create the splits:
         XY currentValue = new XY(startingValues[0], startingValues[1]);
-        for (int i = 0;i < divisions;i++)
+        for (int i = 0; i < divisions; i++)
         {
             // Add the item to the splits:
             splitsToAddTo.add(currentValue);
@@ -187,8 +187,10 @@ public record XY(double x, double y)
 
         return index;
     }
+
     /**
      * Defines the hyper cube for this data structure.
+     *
      * @param minRange The minimum range value. Inclusive.
      * @param maxRange The maximum range value. Inclusive.
      * @return The hyper cube for this data structure.
@@ -203,6 +205,7 @@ public record XY(double x, double y)
 
     /**
      * Defines the hyper cube for this data structure.
+     *
      * @param xRange The range of X values for this cube.
      * @param yRange The range of Y values for this cube.
      * @return The hyper cube for this data structure.
@@ -210,8 +213,8 @@ public record XY(double x, double y)
     public static HyperCubeDefinition defineHyperCube(Range<Double> xRange, Range<Double> yRange)
     {
         HyperCubeDefinition cube = new HyperCubeDefinition();
-        cube.addDimension(DoubleArithmetic.instance(), "X", 0.01, xRange);
-        cube.addDimension(DoubleArithmetic.instance(), "Y", 0.01, yRange);
+        cube.addDimension(DoubleArithmetic.instance(), "X", 0.1, xRange);
+        cube.addDimension(DoubleArithmetic.instance(), "Y", 0.1, yRange);
         return cube;
     }
 }

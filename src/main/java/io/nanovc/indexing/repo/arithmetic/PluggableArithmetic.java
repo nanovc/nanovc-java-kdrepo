@@ -21,7 +21,8 @@ public class PluggableArithmetic<TUnit> extends Arithmetic<TUnit>
         Function<TUnit, TUnit> halver,
         Function<TUnit, TUnit> doubler,
         BiFunction<TUnit, Double, TUnit> scalerByMultiplication,
-        BiFunction<TUnit, Double, TUnit> scalerByDivision
+        BiFunction<TUnit, Double, TUnit> scalerByDivision,
+        BiFunction<TUnit, TUnit, TUnit> quantizer
     )
     {
         this.comparator = comparator;
@@ -34,6 +35,7 @@ public class PluggableArithmetic<TUnit> extends Arithmetic<TUnit>
         this.doubler = doubler;
         this.scalerByMultiplication = scalerByMultiplication;
         this.scalerByDivision = scalerByDivision;
+        this.quantizer = quantizer;
     }
 
     /**
@@ -86,6 +88,12 @@ public class PluggableArithmetic<TUnit> extends Arithmetic<TUnit>
      */
     private final BiFunction<TUnit, Double, TUnit> scalerByDivision;
 
+    /**
+     * The logic for quantizing values.
+     * The first argument is the value to quanitize.
+     * The second argument is the smallest step size to quantize by.
+     */
+    private final BiFunction<TUnit, TUnit, TUnit> quantizer;
 
     /**
      * Compares the left value to the right value.
@@ -220,5 +228,18 @@ public class PluggableArithmetic<TUnit> extends Arithmetic<TUnit>
     @Override public TUnit scaleByDivisor(TUnit value, double scale)
     {
         return scalerByDivision.apply(value, scale);
+    }
+
+    /**
+     * Quantizes the value to the smallest steps size given.
+     * This is the same as rounding to multiples of a base unit.
+     *
+     * @param value        The value to quantize.
+     * @param smallestStep The smallest size to quantize at.
+     * @return The result of quantizing the value.
+     */
+    @Override public TUnit quantize(TUnit value, TUnit smallestStep)
+    {
+        return quantizer.apply(value, smallestStep);
     }
 }

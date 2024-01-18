@@ -354,8 +354,22 @@ public abstract class RepoIndexKDBase<
             // Save the previous division dimension that we came from:
             last.previousDivisionDimension = previousDivisionDimension;
 
-            // Set the division cube that we came from:
-            last.divisionCube = previousDivisionDimension.divisionCube;
+            // Check if this is just one dimension:
+            if (dimensionIndexToCreate == 0)
+            {
+                // This is the first and last dimension.
+                // Set the division cube that we came from:
+                last.divisionCube = this.divisionCube;
+            }
+            else
+            {
+                // We have more than one dimension.
+                // Set the division cube that we came from:
+                last.divisionCube = previousDivisionDimension.divisionCube;
+            }
+
+            // Set the hyper cube:
+            last.hyperCube = last.divisionCube.hyperCube;
         }
         else if (dimensionIndexToCreate == 0)
         {
@@ -543,8 +557,21 @@ public abstract class RepoIndexKDBase<
         {
             case KDBucketNode<TContent, TArea> bucketNode ->
             {
+                // Get the dimension index that we want to index by:
+                int dimensionIndex = bucketNode.level % this.hyperCubeDefinition.getDimensionCount();
+                Dimension<Object> dimension = this.hyperCubeDefinition.getDimension(dimensionIndex);
+
+                // Get the range calculator so that we can work out new ranges:
+                RangeCalculator<Object> rangeCalculator = dimension.getRangeCalculator();
+
+                // Get the range of the bucket that we came from:
+                Range<Object> bucketRange = bucketNode.hyperCube.getRangeForDimension(dimensionIndex);
+
+                // Work out the value to split the dimension range in:
+                Object midPoint = rangeCalculator.midPoint(bucketRange);
+
                 // Check whether we have exceeded our bucket threshold:
-                if (bucketNode.contentMap.size() == this.bucketThreshold)
+                if (bucketNode.contentMap.size() == this.bucketThreshold && rangeCalculator.canSplitRange(bucketRange, midPoint))
                 {
                     // We have exceeded the bucket size for this node.
 
@@ -555,19 +582,11 @@ public abstract class RepoIndexKDBase<
                     newNode.level = bucketNode.level;
                     newNode.hyperCube = bucketNode.hyperCube;
 
-                    // Get the dimension index that we want to index by:
-                    int dimensionIndex = bucketNode.level % this.hyperCubeDefinition.getDimensionCount();
-                    Dimension<Object> dimension = this.hyperCubeDefinition.getDimension(dimensionIndex);
+                    // Set the dimension index that we want to index by:
                     newNode.dimension = dimension;
 
-                    // Get the range calculator so that we can work out new ranges:
-                    RangeCalculator<Object> rangeCalculator = dimension.getRangeCalculator();
-
-                    // Get the range of the bucket that we came from:
-                    Range<Object> bucketRange = bucketNode.hyperCube.getRangeForDimension(dimensionIndex);
-
                     // Work out the value to split the dimension range in:
-                    newNode.cutValue = rangeCalculator.midPoint(bucketRange);
+                    newNode.cutValue = midPoint;
 
                     // Work out the range split:
                     newNode.rangeSplit = rangeCalculator.splitRange(bucketRange, newNode.cutValue, RangeSplitInclusion.Lower);

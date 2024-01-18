@@ -129,7 +129,7 @@ public abstract sealed class DivisionDimension<
         return "DivisionDimension{" + "\n" +
                "hyperCube=\n" + hyperCube + ",\n" +
                "dimension=\n" + dimension + ",\n" +
-               "splits=" + splits.size() + "\n" +
+               "splits=" + (splits == null ? "0" : splits.size()) + "\n" +
                '}';
     }
 }

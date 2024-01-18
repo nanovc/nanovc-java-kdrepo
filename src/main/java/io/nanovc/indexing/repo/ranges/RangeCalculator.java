@@ -86,6 +86,9 @@ public class RangeCalculator<TUnit>
             case MaxInclusiveRange<TUnit> r -> {if (distance == null) return true;}
             case MaxExclusiveRange<TUnit> r -> {if (distance == null) return true;}
             case MinInclusiveMaxInclusiveRange<TUnit> r -> {if (distance == null) return true;}
+            case MinInclusiveMaxExclusiveRange<TUnit> r -> {if (distance == null) return true;}
+            case MinExclusiveMaxInclusiveRange<TUnit> r -> {if (distance == null) return true;}
+            case MinExclusiveMaxExclusiveRange<TUnit> r -> {if (distance == null) return true;}
             default -> {}
         }
         // Now we know that the distance is not null for cases that we handle.
@@ -208,6 +211,42 @@ public class RangeCalculator<TUnit>
                 return returnForAmbiguousCases;
             }
         }
+    }
+
+    /**
+     * Checks whether the range can still be split into a smaller range.
+     *
+     * @param range      The range to split.
+     * @param splitValue The value to divide the range at. It is assumed to be in the middle of the range.
+     * @return True if the range can still be split. False if it can't be split further.
+     */
+    public boolean canSplitRange(Range<TUnit> range, TUnit splitValue)
+    {
+        return switch (range)
+        {
+            //case NotRange<TUnit>                      r -> null;
+            //case OrRange<TUnit>                       r -> null;
+            //case AndRange<TUnit>                      r -> null;
+            //case UnBoundedRange<TUnit>                r -> null;
+            //case NeverInRange<TUnit>                  r -> null;
+            //case SingleValueRange<TUnit>              r -> null;
+            //case NotSingleValueRange<TUnit>           r -> null;
+            //case MultiValueRange<TUnit>               r -> null;
+            //case NotMultiValueRange<TUnit>            r -> null;
+
+            case MinInclusiveRange<TUnit> r -> getArithmetic().compare(splitValue, r.min()) > 0;
+            case MinExclusiveRange<TUnit> r -> getArithmetic().compare(splitValue, r.min()) > 0;
+            case MaxInclusiveRange<TUnit> r -> getArithmetic().compare(splitValue, r.max()) < 0;
+            case MaxExclusiveRange<TUnit> r -> getArithmetic().compare(splitValue, r.max()) < 0;
+
+
+            case MinInclusiveMaxInclusiveRange<TUnit> r -> getArithmetic().compare(splitValue, r.min()) > 0 && getArithmetic().compare(splitValue, r.max()) < 0;
+            case MinInclusiveMaxExclusiveRange<TUnit> r -> getArithmetic().compare(splitValue, r.min()) > 0 && getArithmetic().compare(splitValue, r.max()) < 0;
+            case MinExclusiveMaxInclusiveRange<TUnit> r -> getArithmetic().compare(splitValue, r.min()) > 0 && getArithmetic().compare(splitValue, r.max()) < 0;
+            case MinExclusiveMaxExclusiveRange<TUnit> r -> getArithmetic().compare(splitValue, r.min()) > 0 && getArithmetic().compare(splitValue, r.max()) < 0;
+
+            default -> throw new UnsupportedOperationException("Cannot split the given range");
+        };
     }
 
     /**

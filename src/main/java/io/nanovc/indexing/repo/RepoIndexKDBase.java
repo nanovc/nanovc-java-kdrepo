@@ -933,33 +933,132 @@ public abstract class RepoIndexKDBase<
         // Get the coordinate of the given item:
         HyperCoord itemCoordinate = extractItemCoordinate(item, hyperCubeDefinition);
 
-        // Find the right division for this item at the given coordinate:
-        DivisionCell<TContent, TArea> divisionCell = getOrCreateDivisionCell(itemCoordinate);
+        // Create the list of division cells to search:
+        List<DivisionCell<TContent, TArea>> divisionCellsToSearch = new ArrayList<>();
+        {
+            // Find the right division for this item at the given coordinate:
+            DivisionCell<TContent, TArea> divisionCell = getOrCreateDivisionCell(itemCoordinate);
 
-        // Check whether we found the division cell:
-        if (divisionCell == null) return null;
+            // Check whether we found the division cell:
+            if (divisionCell == null)
+            {
+                // We are not within the extents that we have indexed.
 
-        // Now we know that the item is in one of the divisions for the cube.
+                // Search ALL the division cells that we have:
+                divisionCellsToSearch.addAll(this.divisionCube.cellsByBranchName.values());
+            }
+            else
+            {
+                // We know that the item is in one of the divisions for the cube.
 
-        // Search for the item in this division:
-        MeasuredItem<TItem, TDistance> measuredItem = searchNearestInDivisionCell(item, itemCoordinate, divisionCell);
-        if (measuredItem != null) return measuredItem.item;
-        else return null;
+                // Add the specific division cell that we are in:
+                divisionCellsToSearch.add(divisionCell);
+
+                // Get all the neighbours of the specific division cell so that we can search those:
+                // TODO
+            }
+        }
+        // Now we know all the division cells that we want to search.
+
+        // Search each division cell and find the nearest item:
+        MeasuredItem<TItem, TDistance> bestResult = null;
+        for (DivisionCell<TContent, TArea> divisionCellToSearch : divisionCellsToSearch)
+        {
+            // Search for the item in this division cell:
+            MeasuredItem<TItem, TDistance> measuredItem = null;
+
+            // Check whether we even want to search this division cell or if it's too far away:
+            if (bestResult == null)
+            {
+                // We don't have a best result so far, so we can just perform the search.
+
+                // Search within the division cell:
+                measuredItem = searchNearestInDivisionCell(item, itemCoordinate, divisionCellToSearch);
+            }
+            else
+            {
+                // We do have a best result so far.
+
+                // Check whether the extents of the hyper-cube for the division cell are within our best measurement so far:
+                {
+                    // Search each of the dimensions:
+                    boolean isWithinRange = true;
+                    for (int dimensionIndex = 0; dimensionIndex < this.hyperCubeDefinition.getDimensionCount(); dimensionIndex++)
+                    {
+                        // Get the dimension:
+                        Dimension<Object> dimension = this.hyperCubeDefinition.getDimension(dimensionIndex);
+
+                        // Get the coordinate in this dimension:
+                        Object coordOfItemInDimension = itemCoordinate.getValue(dimensionIndex);
+                        Object coordOfNearestInDimension = bestResult.coordinate.getValue(dimensionIndex);
+
+                        // Get the range of this divisions cell for this dimension:
+                        Range<Object> dimensionRange = divisionCellToSearch.hyperCube.getRangeForDimension(dimensionIndex);
+
+                        // Check whether the point we are searching for is within the best distance of this range:
+                        if (!dimension.getRangeCalculator().isWithinDistanceOfRange(coordOfItemInDimension, coordOfNearestInDimension, true, dimensionRange))
+                        {
+                            // This division cell is not within range of the nearest distance to the item for this dimension.
+
+                            // Flag that we are not within range and break out early:
+                            isWithinRange = false;
+                            break;
+                        }
+                    }
+                    // Now we know whether the division cell is within the nearest range to the item.
+
+                    // Check whether the division cell is within range across all dimensions:
+                    if (isWithinRange)
+                    {
+                        // This division cell is within range of the nearest distance to the item.
+                        // Search within the division cell:
+                        measuredItem = searchNearestInDivisionCell(item, itemCoordinate, divisionCellToSearch);
+                    }
+                }
+            }
+
+            // Check whether we have a measured item:
+            if (measuredItem != null)
+            {
+                // We measured an item for this division cell.
+
+                // Check whether we have an exact match:
+                if (measuredItem.hasExactMatch())
+                {
+                    // We got an exact match.
+
+                    // Break out early:
+                    return measuredItem.item;
+                }
+                // Now we know that it wasn't an exact match.
+
+                // Check if it is better than the best result so far:
+                if (bestResult == null)
+                {
+                    // We don't have a best yet.
+
+                    // This is our new best:
+                    bestResult = measuredItem;
+                }
+                else
+                {
+                    // We have a best result so far.
+
+                    // Check whether this distance is the best so far:
+                    if (this.distanceComparator.compare(measuredItem.distance, bestResult.distance) < 0)
+                    {
+                        // This item is closer.
+
+                        // Flag this as the best item so far:
+                        bestResult = measuredItem;
+                    }
+                }
+            }
+        }
+        // Return the result:
+        return bestResult == null ? null : bestResult.item;
     }
 
-    /**
-     * Searches for the nearest item in the given division.
-     *
-     * @param item           The item to search for.
-     * @param itemCoordinate The coordinate of the item in the hyper cube.
-     * @param divisionCell   The division cell to search in.
-     * @return The nearest item in that division cell. Null if there is no item in this division.
-     */
-    protected MeasuredItem<TItem, TDistance> searchNearestInDivisionCell(TItem item, HyperCoord itemCoordinate, DivisionCell<TContent, TArea> divisionCell)
-    {
-        // Search for the nearest item in this division recursively:
-        return searchNearestInKDNode(item, itemCoordinate, divisionCell.kdTreeRoot);
-    }
 
     /**
      * Searches for the nearest item for this kd-node.
@@ -994,6 +1093,7 @@ public abstract class RepoIndexKDBase<
                         // Create the measured item:
                         MeasuredItem<TItem, TDistance> measuredItem = new MeasuredItem<>();
                         measuredItem.item = item;
+                        measuredItem.coordinate = itemCoord;
 
                         return measuredItem;
                     }
@@ -1109,6 +1209,7 @@ public abstract class RepoIndexKDBase<
             // Create the measured item:
             MeasuredItem<TItem, TDistance> measuredItem = new MeasuredItem<>();
             measuredItem.item = bestItemSoFar;
+            measuredItem.coordinate = extractItemCoordinate(bestItemSoFar, this.hyperCubeDefinition);
             measuredItem.distance = bestDistanceSoFar;
 
             return measuredItem;
@@ -1118,6 +1219,21 @@ public abstract class RepoIndexKDBase<
             // We didn't find an item.
             return null;
         }
+    }
+
+    /**
+     * Searches for the nearest item in all the division cells.
+     * CAUTION: Slow Performance
+     *
+     * @param item           The item to search for.
+     * @param itemCoordinate The coordinate of the item in the hyper cube.
+     * @param divisionCell   The division cell to search in.
+     * @return The nearest item in that division cell. Null if there is no item in this division.
+     */
+    protected MeasuredItem<TItem, TDistance> searchNearestInDivisionCell(TItem item, HyperCoord itemCoordinate, DivisionCell<TContent, TArea> divisionCell)
+    {
+        // Search for the nearest item in this division recursively:
+        return searchNearestInKDNode(item, itemCoordinate, divisionCell.kdTreeRoot);
     }
 
     /**

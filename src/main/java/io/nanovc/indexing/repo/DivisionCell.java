@@ -71,18 +71,22 @@ public class DivisionCell<
         // stringBuilder.append(this.hyperCube);
         // stringBuilder.append("\n");
 
-        // Check whether there is too much content to render:
-        if (this.contentArea.getContentStream().count() > 1_000)
+        // Render the content area:
+        if (this.contentArea != null)
         {
-            // There is too much content.
-            stringBuilder.append("Too Large to Render");
-        }
-        else
-        {
-            // Now we know that we have small enough content to render.
+            // Check whether there is too much content to render:
+            if (this.contentArea.getContentStream().count() > 1_000)
+            {
+                // There is too much content.
+                stringBuilder.append("Too Large to Render");
+            }
+            else
+            {
+                // Now we know that we have small enough content to render.
 
-            // Write out the content for this division:
-            printNodeToStringRecursively(this.repoPathTree.getRootNode(), false, stringBuilder, "", this.contentArea);
+                // Write out the content for this division:
+                printNodeToStringRecursively(this.repoPathTree.getRootNode(), false, stringBuilder, "", this.contentArea);
+            }
         }
         stringBuilder.append("\n");
     }

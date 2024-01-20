@@ -47,13 +47,13 @@ public class RangeCalculator<TUnit>
             case MaxInclusiveRange<TUnit> r -> this.arithmetic.compare(value, r.max()) <= 0;
             case MaxExclusiveRange<TUnit> r -> this.arithmetic.compare(value, r.max()) < 0;
             case MinInclusiveMaxInclusiveRange<TUnit> r ->
-                this.arithmetic.compare(r.min(), value) <= 0 && this.arithmetic.compare(value, r.max()) <= 0;
+                this.arithmetic.compare(value, r.min()) >= 0 && this.arithmetic.compare(value, r.max()) <= 0;
             case MinInclusiveMaxExclusiveRange<TUnit> r ->
-                this.arithmetic.compare(r.min(), value) <= 0 && this.arithmetic.compare(value, r.max()) < 0;
+                this.arithmetic.compare(value, r.min()) >= 0 && this.arithmetic.compare(value, r.max()) < 0;
             case MinExclusiveMaxInclusiveRange<TUnit> r ->
-                this.arithmetic.compare(r.min(), value) < 0 && this.arithmetic.compare(value, r.max()) <= 0;
+                this.arithmetic.compare(value, r.min()) > 0 && this.arithmetic.compare(value, r.max()) <= 0;
             case MinExclusiveMaxExclusiveRange<TUnit> r ->
-                this.arithmetic.compare(r.min(), value) < 0 && this.arithmetic.compare(value, r.max()) < 0;
+                this.arithmetic.compare(value, r.min()) > 0 && this.arithmetic.compare(value, r.max()) < 0;
         };
     }
 

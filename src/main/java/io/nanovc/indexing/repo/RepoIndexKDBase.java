@@ -443,32 +443,40 @@ public abstract class RepoIndexKDBase<
                     case DivisionDimension.First<TContent, TArea> firstDivisionDimension ->
                     {
                         // Make sure we have the next dimension to walk down:
-                        if (firstDivisionDimension.nextDivisionDimension == null)
+                        DivisionDimension<TContent, TArea> nextDivisionDimension = firstDivisionDimension.nextDivisionDimensionByIndex.get(divisionIndex);
+                        if (nextDivisionDimension == null)
                         {
                             // Create the next dimension:
-                            firstDivisionDimension.nextDivisionDimension = createDivisionDimension(dimensionIndex + 1, firstDivisionDimension);
+                            nextDivisionDimension = createDivisionDimension(dimensionIndex + 1, firstDivisionDimension);
 
                             // Set the hyper cube for this split range:
-                            firstDivisionDimension.nextDivisionDimension.hyperCube = firstDivisionDimension.hyperCube.createHyperCubeWithChangedRange(dimensionIndex, splitRange);
+                            nextDivisionDimension.hyperCube = firstDivisionDimension.hyperCube.createHyperCubeWithChangedRange(dimensionIndex, splitRange);
+
+                            // Index the next dimension:
+                            firstDivisionDimension.nextDivisionDimensionByIndex.put(divisionIndex, nextDivisionDimension);
                         }
 
                         // Walk to the next dimension until we find the division cell:
-                        return getOrCreateDivisionCellRecursively(itemCoord, firstDivisionDimension.nextDivisionDimension);
+                        return getOrCreateDivisionCellRecursively(itemCoord, nextDivisionDimension);
                     }
                     case DivisionDimension.Intermediate<TContent, TArea> intermediateDivisionDimension ->
                     {
                         // Make sure we have the next dimension to walk down:
-                        if (intermediateDivisionDimension.nextDivisionDimension == null)
+                        DivisionDimension<TContent, TArea> nextDivisionDimension = intermediateDivisionDimension.nextDivisionDimensionByIndex.get(divisionIndex);
+                        if (nextDivisionDimension == null)
                         {
                             // Create the next dimension:
-                            intermediateDivisionDimension.nextDivisionDimension = createDivisionDimension(dimensionIndex + 1, intermediateDivisionDimension);
+                            nextDivisionDimension = createDivisionDimension(dimensionIndex + 1, intermediateDivisionDimension);
 
                             // Set the hyper cube for this split range:
-                            intermediateDivisionDimension.nextDivisionDimension.hyperCube = intermediateDivisionDimension.hyperCube.createHyperCubeWithChangedRange(dimensionIndex, splitRange);
+                            nextDivisionDimension.hyperCube = intermediateDivisionDimension.hyperCube.createHyperCubeWithChangedRange(dimensionIndex, splitRange);
+
+                            // Index the next dimension:
+                            intermediateDivisionDimension.nextDivisionDimensionByIndex.put(divisionIndex, nextDivisionDimension);
                         }
 
                         // Walk to the next dimension until we find the division cell:
-                        return getOrCreateDivisionCellRecursively(itemCoord, intermediateDivisionDimension.nextDivisionDimension);
+                        return getOrCreateDivisionCellRecursively(itemCoord, nextDivisionDimension);
                     }
                     case DivisionDimension.Last<TContent, TArea> lastDivisionDimension ->
                     {

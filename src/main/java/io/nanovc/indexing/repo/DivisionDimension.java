@@ -4,7 +4,9 @@ import io.nanovc.AreaAPI;
 import io.nanovc.ContentAPI;
 import io.nanovc.indexing.repo.ranges.Range;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
 /**
@@ -68,9 +70,10 @@ public abstract sealed class DivisionDimension<
         extends DivisionDimension<TContent, TArea>
     {
         /**
-         * A pointer to the next dimension that we point to.
+         * The next dimension node, indexed by the division index.
+         * This makes up the tree structure for the KD-Repo.
          */
-        public DivisionDimension<TContent, TArea> nextDivisionDimension;
+        public final Map<Integer, DivisionDimension<TContent, TArea>> nextDivisionDimensionByIndex = new HashMap<>();
     }
 
     /**
@@ -91,9 +94,10 @@ public abstract sealed class DivisionDimension<
         public DivisionDimension<TContent, TArea> previousDivisionDimension;
 
         /**
-         * A pointer to the next dimension that we point to.
+         * The next dimension node, indexed by the division index.
+         * This makes up the tree structure for the KD-Repo.
          */
-        public DivisionDimension<TContent, TArea> nextDivisionDimension;
+        public final Map<Integer, DivisionDimension<TContent, TArea>> nextDivisionDimensionByIndex = new HashMap<>();
     }
 
     /**

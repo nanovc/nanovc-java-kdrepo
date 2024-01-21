@@ -414,7 +414,7 @@ X:[0,1]
         assertEquals(new X(1), nearest);
 
         nearest = index.searchNearest(new X(5));
-        assertEquals(new X(1), nearest);
+        assertEquals(new X(9), nearest); // 1 and 9 are the same distance away from 5, but 5 falls into the same bucket at 9, therefore it wins.
 
         nearest = index.searchNearest(new X(6));
         assertEquals(new X(9), nearest);
@@ -862,7 +862,7 @@ X:[600,700)
         assertEquals(new X(210), nearest);
 
         nearest = index.searchNearest(new X(215));
-        assertEquals(new X(220), nearest); // 210 is the same distance as 220 but 220 was added first so it wins.
+        assertEquals(new X(210), nearest); // 210 is the same distance as 220 but 210 is in the same bucket as 215 so it wins.
 
         nearest = index.searchNearest(new X(216));
         assertEquals(new X(220), nearest);

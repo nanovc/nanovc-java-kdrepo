@@ -61,6 +61,10 @@ public class XRepoIndexKDCorrectnessTests
             repoIndex.add(item);
         }
 
+        // Allow the indexes to index themselves:
+        linearIndex.index();
+        repoIndex.index();
+
         // Query the items:
         X nearest;
         for (int i = 0; i < searchCount; i++)
@@ -72,20 +76,41 @@ public class XRepoIndexKDCorrectnessTests
             X nearestLinear = linearIndex.searchNearest(item);
             X nearestRepo = repoIndex.searchNearest(item);
 
-            // For debugging when the values are different, put a breakpoint in the next line:
+            // Check whether the results were the same:
             if (!nearestLinear.equals(nearestRepo))
             {
-                repoIndex.searchNearest(item);
-            }
+                System.out.println("The index implementations had different results when searching for " + item);
+                System.out.println("The linear index returned " + nearestLinear);
+                System.out.println("The repo index returned " + nearestRepo);
 
-            // Make sure that the results are the same:
-            assertEquals(
-                nearestLinear, nearestRepo,
-                () ->
-                    "Scenario: " + scenario + (comment.isEmpty() ? "" : " [" + comment + "]") + "\n"+
-                    "Input was: " + item + "\n" +
-                    "Repo Index was:\n" + repoIndex
-            );
+                // Measure the actual distance between the items:
+                var linearDistance = repoIndex.measureDistanceBetween(item, nearestLinear);
+                var repoDistance = repoIndex.measureDistanceBetween(item, nearestRepo);
+
+                // Check whether they match:
+                if (repoIndex.getDistanceComparator().compare(linearDistance, repoDistance) != 0)
+                {
+                    // The distances were not the same.
+
+                    // For debugging when the values are different, put a breakpoint in the next line:
+                    repoIndex.searchNearest(item);
+
+                    // Make sure that the results are the same:
+                    assertEquals(
+                        linearDistance, repoDistance,
+                        () ->
+                            "The nearest item from the repo index was not the same as the linear index, and the distance was different" + "\n" +
+                            "Scenario: " + scenario + (comment.isEmpty() ? "" : " [" + comment + "]") + "\n"+
+                            "Input was: " + item + "\n" +
+                            "Repo Index was:\n" + repoIndex
+                    );
+                }
+                else
+                {
+                    // Their distances were the same.
+                    System.out.println("But their distances were the same, so it doesn't matter: " + repoDistance);
+                }
+            }
         }
     }
 

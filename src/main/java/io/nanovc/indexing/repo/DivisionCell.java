@@ -3,6 +3,7 @@ package io.nanovc.indexing.repo;
 import io.nanovc.AreaAPI;
 import io.nanovc.ContentAPI;
 
+import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 
@@ -30,6 +31,11 @@ public class DivisionCell<
     public HyperCube hyperCube;
 
     /**
+     * The coordinate of this division cell in the outer {@link DivisionCube division cube}.
+     */
+    public DivisionCoord divisionCellCoordinate;
+
+    /**
      * The root of the kd-tree.
      */
     public KDNode<TContent, TArea> kdTreeRoot;
@@ -49,6 +55,11 @@ public class DivisionCell<
      * The name of the branch for this {@link DivisionCell division cell}.
      */
     public String branchName;
+
+    /**
+     * The nearest cells to this one.
+     */
+    public List<DivisionCell<TContent, TArea>> nearestCells;
 
     @Override
     public String toString()

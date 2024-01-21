@@ -327,7 +327,22 @@ public abstract class RepoIndexKDBase<
         }
 
         // Walk the tree recursively until we find the division cell:
-        return getOrCreateDivisionCellRecursively(itemCoord, this.divisionCube.rootDimension);
+        return getOrCreateDivisionCellRecursively(itemCoord, this.divisionCube.rootDimension, null);
+    }
+
+    /**
+     * This walks the {@link #divisionCube} and gets the {@link DivisionCell} that we need for the given coordinate.
+     *
+     * @param itemCoord The coordinate of the item that we want to find the cell of.
+     * @return The {@link DivisionCell} that corresponds to the given {@link HyperCoord hyper coordinate}. Null if there is no division cell for that coordinate.
+     */
+    protected DivisionCell<TContent, TArea> getDivisionCell(HyperCoord itemCoord)
+    {
+        // Make sure we have a division cube:
+        if (this.divisionCube == null) return null;
+
+        // Walk the tree recursively until we find the division cell:
+        return getDivisionCellRecursively(itemCoord, this.divisionCube.rootDimension);
     }
 
     /**
@@ -408,6 +423,16 @@ public abstract class RepoIndexKDBase<
         divisionDimension.dimension.calculateRangeSplitsForDimension(this.divisions, divisionDimension.splits);
         // NOTE: The number of splits MIGHT be different to what was requested because of the smallest step size for the dimension.
         //       Therefore, it's important to use the size of the splits array to know what index is appropriate.
+        //       We also create additional ranges for the values that are out of bounds.
+
+        // Check whether this is our first set of splits that we are calculating for this dimension:
+        if (!divisionDimension.divisionCube.rangeSplitsByDimensionIndex.containsKey(dimensionIndexToCreate))
+        {
+            // We have not worked out these splits before for the division cube.
+
+            // Add these splits to the division cube:
+            divisionDimension.divisionCube.rangeSplitsByDimensionIndex.put(dimensionIndexToCreate, divisionDimension.splits);
+        }
 
         return divisionDimension;
     }
@@ -415,10 +440,129 @@ public abstract class RepoIndexKDBase<
     /**
      * This walks the {@link #divisionCube} and gets or creates the {@link DivisionCell} that we need for the given coordinate.
      *
-     * @param itemCoord The coordinate of the item that we want to find the cell of.
+     * @param itemCoord            The coordinate of the item that we want to find the cell of.
+     * @param currentDimensionNode The dimension node that we are currently traversing.
+     * @param parentDivisionCoord  The (partial) division coordinate of the parent. This used to create the division coordinate once we create the division cell. If this is null then this is the first dimension we are processing.
      * @return The {@link DivisionCell} that corresponds to the given {@link HyperCoord hyper coordinate}.
      */
-    private DivisionCell<TContent, TArea> getOrCreateDivisionCellRecursively(HyperCoord itemCoord, DivisionDimension<TContent, TArea> currentDimensionNode)
+    private DivisionCell<TContent, TArea> getOrCreateDivisionCellRecursively(HyperCoord itemCoord, DivisionDimension<TContent, TArea> currentDimensionNode, DivisionCoord parentDivisionCoord)
+    {
+        // Get the dimensionIndex that we are processing:
+        int dimensionIndex = currentDimensionNode.dimension.getDimensionIndex();
+
+        // Get the value of the coordinate for this dimension:
+        Object value = itemCoord.getValue(dimensionIndex);
+
+        // Find the range split that this coordinate falls into:
+        for (int divisionIndex = 0; divisionIndex < currentDimensionNode.splits.size(); divisionIndex++)
+        {
+            // Get the range for this split:
+            Range<Object> splitRange = currentDimensionNode.splits.get(divisionIndex);
+
+            // Check whether the coordinate is in this range:
+            if (currentDimensionNode.dimension.getRangeCalculator().isInRange(value, splitRange))
+            {
+                // This item is in this split range.
+
+                // Create the division coordinate for this step:
+                DivisionCoord currentDivisionCoordinate = parentDivisionCoord == null ? new DivisionCoord(divisionIndex) : parentDivisionCoord.withNextValue(divisionIndex);
+
+                // Check where we are in the dimension chain to decide how to walk next:
+                switch (currentDimensionNode)
+                {
+                    case DivisionDimension.First<TContent, TArea> firstDivisionDimension ->
+                    {
+                        // Make sure we have the next dimension to walk down:
+                        DivisionDimension<TContent, TArea> nextDivisionDimension = firstDivisionDimension.nextDivisionDimensionByIndex.get(divisionIndex);
+                        if (nextDivisionDimension == null)
+                        {
+                            // Create the next dimension:
+                            nextDivisionDimension = createDivisionDimension(dimensionIndex + 1, firstDivisionDimension);
+
+                            // Set the hyper cube for this split range:
+                            nextDivisionDimension.hyperCube = firstDivisionDimension.hyperCube.createHyperCubeWithChangedRange(dimensionIndex, splitRange);
+
+                            // Index the next dimension:
+                            firstDivisionDimension.nextDivisionDimensionByIndex.put(divisionIndex, nextDivisionDimension);
+                        }
+
+                        // Walk to the next dimension until we find the division cell:
+                        return getOrCreateDivisionCellRecursively(itemCoord, nextDivisionDimension, currentDivisionCoordinate);
+                    }
+                    case DivisionDimension.Intermediate<TContent, TArea> intermediateDivisionDimension ->
+                    {
+                        // Make sure we have the next dimension to walk down:
+                        DivisionDimension<TContent, TArea> nextDivisionDimension = intermediateDivisionDimension.nextDivisionDimensionByIndex.get(divisionIndex);
+                        if (nextDivisionDimension == null)
+                        {
+                            // Create the next dimension:
+                            nextDivisionDimension = createDivisionDimension(dimensionIndex + 1, intermediateDivisionDimension);
+
+                            // Set the hyper cube for this split range:
+                            nextDivisionDimension.hyperCube = intermediateDivisionDimension.hyperCube.createHyperCubeWithChangedRange(dimensionIndex, splitRange);
+
+                            // Index the next dimension:
+                            intermediateDivisionDimension.nextDivisionDimensionByIndex.put(divisionIndex, nextDivisionDimension);
+                        }
+
+                        // Walk to the next dimension until we find the division cell:
+                        return getOrCreateDivisionCellRecursively(itemCoord, nextDivisionDimension, currentDivisionCoordinate);
+                    }
+                    case DivisionDimension.Last<TContent, TArea> lastDivisionDimension ->
+                    {
+                        // We are at the last dimension.
+
+                        // Search for the division cell:
+                        //noinspection unchecked
+                        DivisionCell<TContent, TArea> divisionCell = (DivisionCell<TContent, TArea>) lastDivisionDimension.cellsByIndex.get(divisionIndex);
+                        if (divisionCell == null)
+                        {
+                            // This is the first time we are accessing this division cell.
+
+                            // Create the division cell:
+                            divisionCell = new DivisionCell<>();
+                            lastDivisionDimension.cellsByIndex.put(divisionIndex, divisionCell);
+                            divisionCell.parentDimension = lastDivisionDimension;
+                            divisionCell.hyperCube = lastDivisionDimension.hyperCube.createHyperCubeWithChangedRange(
+                                lastDivisionDimension.dimension.getDimensionIndex(),
+                                splitRange
+                            );
+                            divisionCell.divisionCellCoordinate = currentDivisionCoordinate;
+
+                            // Create the content area:
+                            //noinspection UnnecessaryLocalVariable
+                            TArea contentArea = getRepoHandler().createArea();
+                            divisionCell.contentArea = contentArea;
+
+                            // Initialise the repo path tree:
+                            //noinspection UnnecessaryLocalVariable
+                            RepoPathTree repoPathTree = new RepoPathTree();
+                            divisionCell.repoPathTree = repoPathTree;
+
+                            // Define the branch name for this cell:
+                            divisionCell.branchName = divisionCell.hyperCube.toString();
+
+                            // Register this division cell with the division cube:
+                            divisionCell.parentDimension.divisionCube.cellsByBranchName.put(divisionCell.branchName, divisionCell);
+
+                        }
+                        // Now we have the division cell.
+                        return divisionCell;
+                    }
+                }
+            }
+        }
+        // If we get here then the coordinate was not in any of the ranges.
+        return null;
+    }
+
+    /**
+     * This walks the {@link #divisionCube} and gets the {@link DivisionCell} that we need for the given coordinate.
+     *
+     * @param itemCoord The coordinate of the item that we want to find the cell of.
+     * @return The {@link DivisionCell} that corresponds to the given {@link HyperCoord hyper coordinate}. Null if there is not division cell for this coordinate.
+     */
+    private DivisionCell<TContent, TArea> getDivisionCellRecursively(HyperCoord itemCoord, DivisionDimension<TContent, TArea> currentDimensionNode)
     {
         // Get the dimensionIndex that we are processing:
         int dimensionIndex = currentDimensionNode.dimension.getDimensionIndex();
@@ -446,18 +590,12 @@ public abstract class RepoIndexKDBase<
                         DivisionDimension<TContent, TArea> nextDivisionDimension = firstDivisionDimension.nextDivisionDimensionByIndex.get(divisionIndex);
                         if (nextDivisionDimension == null)
                         {
-                            // Create the next dimension:
-                            nextDivisionDimension = createDivisionDimension(dimensionIndex + 1, firstDivisionDimension);
-
-                            // Set the hyper cube for this split range:
-                            nextDivisionDimension.hyperCube = firstDivisionDimension.hyperCube.createHyperCubeWithChangedRange(dimensionIndex, splitRange);
-
-                            // Index the next dimension:
-                            firstDivisionDimension.nextDivisionDimensionByIndex.put(divisionIndex, nextDivisionDimension);
+                            // Flag that we don't have a division cell for this coordinate by breaking out early:
+                            return null;
                         }
 
                         // Walk to the next dimension until we find the division cell:
-                        return getOrCreateDivisionCellRecursively(itemCoord, nextDivisionDimension);
+                        return getDivisionCellRecursively(itemCoord, nextDivisionDimension);
                     }
                     case DivisionDimension.Intermediate<TContent, TArea> intermediateDivisionDimension ->
                     {
@@ -465,18 +603,12 @@ public abstract class RepoIndexKDBase<
                         DivisionDimension<TContent, TArea> nextDivisionDimension = intermediateDivisionDimension.nextDivisionDimensionByIndex.get(divisionIndex);
                         if (nextDivisionDimension == null)
                         {
-                            // Create the next dimension:
-                            nextDivisionDimension = createDivisionDimension(dimensionIndex + 1, intermediateDivisionDimension);
-
-                            // Set the hyper cube for this split range:
-                            nextDivisionDimension.hyperCube = intermediateDivisionDimension.hyperCube.createHyperCubeWithChangedRange(dimensionIndex, splitRange);
-
-                            // Index the next dimension:
-                            intermediateDivisionDimension.nextDivisionDimensionByIndex.put(divisionIndex, nextDivisionDimension);
+                            // Flag that we don't have a division cell for this coordinate by breaking out early:
+                            return null;
                         }
 
                         // Walk to the next dimension until we find the division cell:
-                        return getOrCreateDivisionCellRecursively(itemCoord, nextDivisionDimension);
+                        return getDivisionCellRecursively(itemCoord, nextDivisionDimension);
                     }
                     case DivisionDimension.Last<TContent, TArea> lastDivisionDimension ->
                     {
@@ -487,33 +619,8 @@ public abstract class RepoIndexKDBase<
                         DivisionCell<TContent, TArea> divisionCell = (DivisionCell<TContent, TArea>) lastDivisionDimension.cellsByIndex.get(divisionIndex);
                         if (divisionCell == null)
                         {
-                            // This is the first time we are accessing this division cell.
-
-                            // Create the division cell:
-                            divisionCell = new DivisionCell<>();
-                            lastDivisionDimension.cellsByIndex.put(divisionIndex, divisionCell);
-                            divisionCell.parentDimension = lastDivisionDimension;
-                            divisionCell.hyperCube = lastDivisionDimension.hyperCube.createHyperCubeWithChangedRange(
-                                lastDivisionDimension.dimension.getDimensionIndex(),
-                                splitRange
-                            );
-
-                            // Create the content area:
-                            //noinspection UnnecessaryLocalVariable
-                            TArea contentArea = getRepoHandler().createArea();
-                            divisionCell.contentArea = contentArea;
-
-                            // Initialise the repo path tree:
-                            //noinspection UnnecessaryLocalVariable
-                            RepoPathTree repoPathTree = new RepoPathTree();
-                            divisionCell.repoPathTree = repoPathTree;
-
-                            // Define the branch name for this cell:
-                            divisionCell.branchName = divisionCell.hyperCube.toString();
-
-                            // Register this division cell with the division cube:
-                            divisionCell.parentDimension.divisionCube.cellsByBranchName.put(divisionCell.branchName, divisionCell);
-
+                            // Flag that we don't have a division cell for this coordinate by breaking out early:
+                            return null;
                         }
                         // Now we have the division cell.
                         return divisionCell;
@@ -575,14 +682,26 @@ public abstract class RepoIndexKDBase<
                 // Get the range of the bucket that we came from:
                 Range<Object> bucketRange = bucketNode.hyperCube.getRangeForDimension(dimensionIndex);
 
-                // Work out the value to split the dimension range in:
-                Object midPoint = rangeCalculator.midPoint(bucketRange);
+                // Work out whether we need to split our range:
+                boolean shouldSplit = false;
+                Object midPoint = null;
 
                 // Check whether we have exceeded our bucket threshold:
-                if (bucketNode.contentMap.size() == this.bucketThreshold && rangeCalculator.canSplitRange(bucketRange, midPoint))
+                if (bucketNode.contentMap.size() == this.bucketThreshold)
                 {
                     // We have exceeded the bucket size for this node.
 
+                    // Work out the value to split the dimension range in:
+                    midPoint = rangeCalculator.midPoint(bucketRange);
+
+                    // Check whether this range can be split at this midpoint:
+                    shouldSplit = rangeCalculator.canSplitRange(bucketRange, midPoint);
+                }
+                // Now we know whether to split the node.
+
+                // Split the node if we need to:
+                if (shouldSplit)
+                {
                     // Create a new intermediate node:
                     KDIntermediateNode<Object, TContent, TArea> newNode = new KDIntermediateNode<>();
                     newNode.parent = bucketNode.parent;
@@ -919,7 +1038,102 @@ public abstract class RepoIndexKDBase<
      */
     @Override public void index()
     {
-        // Do nothing for this index.
+        // We need to work out nearest neighbors for divisions in k-dimensions:
+        workOutNearestNeighborsForDivisionCells(this.divisionCube);
+    }
+
+    /**
+     * The division cube to update with links to nearest neighbour division cells for each cell that actually exists.
+     *
+     * @param divisionCube The division cube to update with nearest neighbour information.
+     */
+    protected void workOutNearestNeighborsForDivisionCells(DivisionCube<TContent, TArea> divisionCube)
+    {
+        // NOTE: The algorithm is to ripple out for each cell where we have a division cell in concentric multidimensional spheres.
+        //       If we come across any existing division cells within that sphere radius, we need to search all items in that cell.
+
+        // Get the number of dimensions that we have:
+        int dimensionCount = divisionCube.hyperCube.getDefinition().getDimensionCount();
+
+        // Index each of the cells by their coordinates so that we can look them up easily:
+        HashMap<DivisionCoord, DivisionCell<TContent, TArea>> cellsByCoord = new HashMap<>();
+        for (DivisionCell<TContent, TArea> existingDivisionCell : divisionCube.cellsByBranchName.values())
+        {
+            cellsByCoord.put(existingDivisionCell.divisionCellCoordinate, existingDivisionCell);
+        }
+        // Now we have each of the cells indexed by their coordinates.
+
+        // Define the coordinate that we are going to be navigating:
+        int[] currentCoord = new int[dimensionCount];
+
+        // Go through each division cell that we actually have:
+        for (DivisionCell<TContent, TArea> existingDivisionCell : divisionCube.cellsByBranchName.values())
+        {
+            // Create the list of cells that are the nearest for this existing cell:
+            List<DivisionCell<TContent, TArea>> nearestCells = new ArrayList<>();
+
+            // Start off searching for other cells.
+            // NOTE: We have a special case where there is only one cell, so we don't have to search:
+            boolean hasFoundAnyCells = cellsByCoord.size() == 1;
+
+            // Keep increasing the sphere radius until we find something:
+            int sphereRadius = 0;
+            search: while (!hasFoundAnyCells)
+            {
+                // Increase the radius of the sphere for this iteration:
+                sphereRadius++;
+
+                // Go through each dimension as the anchor dimension:
+                for (int anchorDimensionIndex = 0; anchorDimensionIndex < dimensionCount; anchorDimensionIndex++)
+                {
+                    // Get the dimension range information:
+                    var anchorDimensionRangeSplits = divisionCube.rangeSplitsByDimensionIndex.get(anchorDimensionIndex);
+
+                    // Check whether the sphere radius is larger than all the splits in the dimension (meaning that we are too far):
+                    if (sphereRadius > anchorDimensionRangeSplits.size()) break search;
+
+                    // Get the coordinate for this dimension as the anchor value:
+                    int anchorCoordinateValue = existingDivisionCell.divisionCellCoordinate.getValue(anchorDimensionIndex);
+
+                    // Work out the lowest index at the sphere distance for this dimension:
+                    int anchorLowestValue = Math.max(anchorCoordinateValue - sphereRadius, 0);
+
+                    // Work out the highest index at the sphere distance for this dimension:
+                    int anchorHighestValue = Math.min(anchorCoordinateValue + sphereRadius, anchorDimensionRangeSplits.size()-1);
+
+                    // Check if we must search the lowest position:
+                    if (anchorLowestValue != anchorCoordinateValue)
+                    {
+                        // Update the anchor position to the lowest value:
+                        currentCoord[anchorDimensionIndex] = anchorLowestValue;
+
+                        // Check whether we have a cell at the lowest value:
+                        var sphereLowestValueCell = cellsByCoord.get(new DivisionCoord(currentCoord));
+                        if (sphereLowestValueCell != null) nearestCells.add(sphereLowestValueCell);
+                    }
+
+                    // Check if we must search the highest position:
+                    if (anchorHighestValue != anchorCoordinateValue)
+                    {
+                        // Update the anchor position to the highest value:
+                        currentCoord[anchorDimensionIndex] = anchorHighestValue;
+
+                        // Check whether we have a cell at the highest value:
+                        var sphereHighestValueCell = cellsByCoord.get(new DivisionCoord(currentCoord));
+                        if (sphereHighestValueCell != null) nearestCells.add(sphereHighestValueCell);
+                    }
+                }
+
+                // Flag whether we have found any cells:
+                hasFoundAnyCells = !nearestCells.isEmpty();
+
+            }
+            // Now we know we have found some cells.
+
+            // Save the nearest cells for this existing cells:
+            existingDivisionCell.nearestCells = nearestCells;
+        }
+
     }
 
     /**
@@ -937,7 +1151,7 @@ public abstract class RepoIndexKDBase<
         List<DivisionCell<TContent, TArea>> divisionCellsToSearch = new ArrayList<>();
         {
             // Find the right division for this item at the given coordinate:
-            DivisionCell<TContent, TArea> divisionCell = getOrCreateDivisionCell(itemCoordinate);
+            DivisionCell<TContent, TArea> divisionCell = getDivisionCell(itemCoordinate);
 
             // Check whether we found the division cell:
             if (divisionCell == null)
@@ -955,7 +1169,11 @@ public abstract class RepoIndexKDBase<
                 divisionCellsToSearch.add(divisionCell);
 
                 // Get all the neighbours of the specific division cell so that we can search those:
-                // TODO
+                if (divisionCell.nearestCells != null && !divisionCell.nearestCells.isEmpty())
+                {
+                    // We have nearest cells to search too:
+                    divisionCellsToSearch.addAll(divisionCell.nearestCells);
+                }
             }
         }
         // Now we know all the division cells that we want to search.
@@ -992,11 +1210,14 @@ public abstract class RepoIndexKDBase<
                         Object coordOfItemInDimension = itemCoordinate.getValue(dimensionIndex);
                         Object coordOfNearestInDimension = bestResult.coordinate.getValue(dimensionIndex);
 
+                        // Get the distance between the two coordinates in this dimension:
+                        Object distanceBetween = dimension.getArithmetic().distanceBetween(coordOfItemInDimension, coordOfNearestInDimension);
+
                         // Get the range of this divisions cell for this dimension:
                         Range<Object> dimensionRange = divisionCellToSearch.hyperCube.getRangeForDimension(dimensionIndex);
 
                         // Check whether the point we are searching for is within the best distance of this range:
-                        if (!dimension.getRangeCalculator().isWithinDistanceOfRange(coordOfItemInDimension, coordOfNearestInDimension, true, dimensionRange))
+                        if (!dimension.getRangeCalculator().isWithinDistanceOfRange(coordOfItemInDimension, distanceBetween, true, dimensionRange))
                         {
                             // This division cell is not within range of the nearest distance to the item for this dimension.
 

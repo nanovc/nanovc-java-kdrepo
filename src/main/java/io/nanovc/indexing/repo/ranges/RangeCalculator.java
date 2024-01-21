@@ -369,10 +369,11 @@ public class RangeCalculator<TUnit>
             //case NotSingleValueRange<TUnit>           r -> null;
             //case MultiValueRange<TUnit>               r -> null;
             //case NotMultiValueRange<TUnit>            r -> null;
-            //case MinInclusiveRange<TUnit>             r -> null;
-            //case MinExclusiveRange<TUnit>             r -> null;
-            //case MaxInclusiveRange<TUnit>             r -> null;
-            //case MaxExclusiveRange<TUnit>             r -> null;
+
+            case MinInclusiveRange<TUnit>             r -> r.min();
+            case MinExclusiveRange<TUnit>             r -> r.min();
+            case MaxInclusiveRange<TUnit>             r -> r.max();
+            case MaxExclusiveRange<TUnit>             r -> r.max();
 
             case MinInclusiveMaxInclusiveRange<TUnit> r -> arithmetic.midPoint(r.min(), r.max());
             case MinInclusiveMaxExclusiveRange<TUnit> r -> arithmetic.midPoint(r.min(), r.max());

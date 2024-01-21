@@ -2,7 +2,10 @@ package io.nanovc.indexing.repo;
 
 import io.nanovc.AreaAPI;
 import io.nanovc.ContentAPI;
+import io.nanovc.indexing.repo.ranges.Range;
 
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.TreeMap;
 
 /**
@@ -33,6 +36,12 @@ public class DivisionCube<
      * This is especially useful when we have a sparse amount of data.
      */
     public final TreeMap<String, DivisionCell<TContent, TArea>> cellsByBranchName = new TreeMap<>();
+
+    /**
+     * This contains the range splits that exist for each dimension of this cube.
+     * This is useful so that we can understand the size of this division cube.
+     */
+    public final LinkedHashMap<Integer, List<Range<Object>>> rangeSplitsByDimensionIndex = new LinkedHashMap<>();
 
     @Override public String toString()
     {

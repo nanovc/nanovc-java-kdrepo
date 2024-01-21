@@ -76,6 +76,9 @@ public class XRepoIndexKDTests
         index.add(item10);
         index.add(item11);
 
+        // Index the items:
+        index.index();
+
         // Query the items:
         X nearest;
 
@@ -108,22 +111,25 @@ public class XRepoIndexKDTests
         index.add(item10);
         index.add(item11);
 
-        var expectedIndex =
-            """
-            Index:  from X[x=-1] to X[x=1] with 10 divisions:
-            Division: 2 from X[x=1] to X[x=1]:
-            .
-            └───1
-                └───📄'1'
+        var expectedIndex = """
+Index:  from X[x=-1] to X[x=1] with 10 divisions:
+Division Cell Branch Name:
+X:>1
+.
+└───📁
+    ├───0'10'
+    └───1'11'
 
-            Division: 9 from X[x=1] to X[x=1]:
-            .
-            └───1
-                ├───📄'10'
-                └───1
-                    └───📄'11'
-            """;
+Division Cell Branch Name:
+X:[0,1]
+.
+└───📁
+    └───0'1'
+""";
         assertRepoIndex(expectedIndex, index);
+
+        // Index the items:
+        index.index();
 
         // Query the items:
         X nearest;
@@ -166,6 +172,9 @@ X:[0,1]
 """;
         assertRepoIndex(expectedIndex, index);
 
+        // Index the items:
+        index.index();
+
         // Query the items:
         X nearest;
 
@@ -207,6 +216,9 @@ X:[0,1]
 """;
         assertRepoIndex(expectedIndex, index);
 
+        // Index the items:
+        index.index();
+
         // Query the items:
         X nearest;
 
@@ -247,20 +259,24 @@ X:[0,1]
         }
 
         // Make sure the index is as expected:
-        var expectedIndex =
-            """
-            Index:  from X[x=-1] to X[x=1] with 10 divisions:
-            Division: 2 from X[x=1] to X[x=1]:
-            .
-            └───1
-                └───📄'1'
+        var expectedIndex = """
+Index:  from X[x=-1] to X[x=1] with 10 divisions:
+Division Cell Branch Name:
+X:>1
+.
+└───📁
+    └───0'10'
 
-            Division: 9 from X[x=1] to X[x=1]:
-            .
-            └───1
-                └───📄'10'
-            """;
+Division Cell Branch Name:
+X:[0,1]
+.
+└───📁
+    └───0'1'
+""";
         assertRepoIndex(expectedIndex, index);
+
+        // Index the items:
+        index.index();
 
         // Query the items:
         X nearest;
@@ -344,22 +360,25 @@ X:[0,1]
         }
 
         // Make sure the index is as expected:
-        var expectedIndex =
-            """
-            Index:  from X[x=-1] to X[x=1] with 10 divisions:
-            Division: 2 from X[x=1] to X[x=1]:
-            .
-            └───1
-                └───📄'1'
+        var expectedIndex = """
+Index:  from X[x=-1] to X[x=1] with 10 divisions:
+Division Cell Branch Name:
+X:>1
+.
+└───📁
+    ├───0'9'
+    └───1'10'
 
-            Division: 9 from X[x=1] to X[x=1]:
-            .
-            ├───1
-            │   └───📄'10'
-            └───9
-                └───📄'9'
-            """;
+Division Cell Branch Name:
+X:[0,1]
+.
+└───📁
+    └───0'1'
+""";
         assertRepoIndex(expectedIndex, index);
+
+        // Index the items:
+        index.index();
 
         // Query the items:
         X nearest;
@@ -429,7 +448,7 @@ X:[0,1]
     public void test_NearMisses_1_2_9_10()
     {
         // Create the index:
-        XRepoIndexKD index = new XRepoIndexKD(new X(-1), new X(1), 10);
+        XRepoIndexKD index = new XRepoIndexKD(new X(0), new X(10), 10);
 
         // Define the items of interest:
         int[] itemsOfInterest = {
@@ -443,27 +462,31 @@ X:[0,1]
         }
 
         // Make sure the index is as expected:
-        var expectedIndex =
-            """
-            Index:  from X[x=-1] to X[x=1] with 10 divisions:
-            Division: 2 from X[x=1] to X[x=1]:
-            .
-            └───1
-                └───📄'1'
+        var expectedIndex = """
+Index:  from X[x=0] to X[x=10] with 10 divisions:
+Division Cell Branch Name:
+X:[1,2)
+.
+└───📁
+    └───0'1'
 
-            Division: 3 from X[x=1] to X[x=1]:
-            .
-            └───2
-                └───📄'2'
+Division Cell Branch Name:
+X:[2,3)
+.
+└───📁
+    └───0'2'
 
-            Division: 9 from X[x=1] to X[x=1]:
-            .
-            ├───1
-            │   └───📄'10'
-            └───9
-                └───📄'9'
-            """;
+Division Cell Branch Name:
+X:[9,10]
+.
+└───📁
+    ├───0'9'
+    └───1'10'
+""";
         assertRepoIndex(expectedIndex, index);
+
+        // Index the items:
+        index.index();
 
         // Query the items:
         X nearest;
@@ -707,7 +730,7 @@ X:[0,1]
     public void test_Index_Random_1234()
     {
         // Create the index:
-        XRepoIndexKD index = new XRepoIndexKD(new X(-1), new X(1), 10);
+        XRepoIndexKD index = new XRepoIndexKD(new X(0), new X(1000), 10);
 
         // Add the items to the index:
         Random random = new Random(1234);
@@ -718,33 +741,77 @@ X:[0,1]
             index.add(new X(random.nextInt(RANGE)));
         }
 
-        var expectedIndex =
-            """
-            Index:  from X[x=-1] to X[x=1] with 10 divisions:
-            Division: 9 from X[x=1] to X[x=1]:
-            .
-            ├───1
-            │   └───📄'133'
-            ├───2
-            │   ├───📄'220'
-            │   ├───1
-            │   │   └───📄'210'
-            │   └───9
-            │       └───📄'297'
-            ├───3
-            │   ├───📄'37'
-            │   └───9
-            │       └───📄'393'
-            ├───4
-            │   └───📄'449'
-            ├───5
-            │   └───📄'529'
-            └───6
-                ├───📄'628'
-                └───3
-                    └───📄'633'
-            """;
+        var expectedIndex = """
+Index:  from X[x=0] to X[x=1000] with 10 divisions:
+Division Cell Branch Name:
+X:[0,100)
+.
+└───📁
+    └───0'37'
+
+Division Cell Branch Name:
+X:[100,200)
+.
+└───📁
+    └───0'133'
+
+Division Cell Branch Name:
+X:[200,300)
+.
+└───X:250
+    ├───<
+    │   └───X:225
+    │       └───<
+    │           └───X:212
+    │               ├───<
+    │               │   └───📁
+    │               │       └───0'210'
+    │               └───>
+    │                   └───📁
+    │                       └───0'220'
+    └───>
+        └───📁
+            └───0'297'
+
+Division Cell Branch Name:
+X:[300,400)
+.
+└───📁
+    └───0'393'
+
+Division Cell Branch Name:
+X:[400,500)
+.
+└───📁
+    └───0'449'
+
+Division Cell Branch Name:
+X:[500,600)
+.
+└───📁
+    └───0'529'
+
+Division Cell Branch Name:
+X:[600,700)
+.
+└───X:650
+    └───<
+        └───X:625
+            └───>
+                └───X:637
+                    └───<
+                        └───X:631
+                            ├───<
+                            │   └───📁
+                            │       └───0'628'
+                            └───>
+                                └───📁
+                                    └───0'633'
+""";
         assertRepoIndex(expectedIndex, index);
+
+        // Index the items:
+        index.index();
 
         // Query the items:
         X nearest;
@@ -850,6 +917,9 @@ X:[0,10]
 """;
         assertRepoIndex(expectedIndex, index);
 
+        // Index the items:
+        index.index();
+
         // Query the items:
         X nearest;
 
@@ -909,6 +979,9 @@ X:[0,1000]
 """;
         assertRepoIndex(expectedIndex, index);
 
+        // Index the items:
+        index.index();
+
         // Query the items:
         X nearest;
 
@@ -950,35 +1023,49 @@ X:[0,10]
         index.add(item11);
 
         // Make sure the index is as expected:
-        expectedIndex =
-            """
-            Index:  from X[x=0] to X[x=10] with 1 division:
-            Division: 0 from X[x=0] to X[x=10]:
-            .
-            └───1
-                ├───📄'10'
-                └───1
-                    └───📄'11'
-            """;
+        expectedIndex = """
+Index:  from X[x=0] to X[x=10] with 1 division:
+Division Cell Branch Name:
+X:>10
+.
+└───📁
+    └───0'11'
+
+Division Cell Branch Name:
+X:[0,10]
+.
+└───📁
+    └───0'10'
+""";
         assertRepoIndex(expectedIndex, index);
 
         // Add the third item:
         index.add(item1); // NOTE: 1 is specifically after 10 and 11 to make sure we re-index it correctly.
 
         // Make sure the index is as expected:
-        expectedIndex =
-            """
-            Index:  from X[x=0] to X[x=10] with 1 division:
-            Division: 0 from X[x=0] to X[x=10]:
-            .
-            └───1
-                ├───📄'1'
-                ├───0
-                │   └───📄'10'
-                └───1
-                    └───📄'11'
-            """;
+        expectedIndex = """
+Index:  from X[x=0] to X[x=10] with 1 division:
+Division Cell Branch Name:
+X:>10
+.
+└───📁
+    └───0'11'
+
+Division Cell Branch Name:
+X:[0,10]
+.
+└───X:5
+    ├───<
+    │   └───📁
+    │       └───0'1'
+    └───>
+        └───📁
+            └───0'10'
+""";
         assertRepoIndex(expectedIndex, index);
+
+        // Index the items:
+        index.index();
 
         // Query the items:
         X nearest;
@@ -1024,35 +1111,49 @@ X:[0,10]
         index.add(item11);
 
         // Make sure the index is as expected:
-        expectedIndex =
-            """
-            Index:  from X[x=0] to X[x=10] with 1 division:
-            Division: 0 from X[x=0] to X[x=10]:
-            .
-            └───1
-                ├───📄'10'
-                └───1
-                    └───📄'11'
-            """;
+        expectedIndex = """
+Index:  from X[x=0] to X[x=10] with 1 division:
+Division Cell Branch Name:
+X:>10
+.
+└───📁
+    └───0'11'
+
+Division Cell Branch Name:
+X:[0,10]
+.
+└───📁
+    └───0'10'
+""";
         assertRepoIndex(expectedIndex, index);
 
         // Add the third item:
         index.add(item1); // NOTE: 1 is specifically after 10 and 11 to make sure we re-index it correctly.
 
         // Make sure the index is as expected:
-        expectedIndex =
-            """
-            Index:  from X[x=0] to X[x=10] with 1 division:
-            Division: 0 from X[x=0] to X[x=10]:
-            .
-            └───1
-                ├───📄'1'
-                ├───0
-                │   └───📄'10'
-                └───1
-                    └───📄'11'
-            """;
+        expectedIndex = """
+Index:  from X[x=0] to X[x=10] with 1 division:
+Division Cell Branch Name:
+X:>10
+.
+└───📁
+    └───0'11'
+
+Division Cell Branch Name:
+X:[0,10]
+.
+└───X:5
+    ├───<
+    │   └───📁
+    │       └───0'1'
+    └───>
+        └───📁
+            └───0'10'
+""";
         assertRepoIndex(expectedIndex, index);
+
+        // Index the items:
+        index.index();
 
         // Query the items:
         X nearest;
@@ -1196,6 +1297,9 @@ X:[0,10000]
                                     └───0'1111'
 """;
         assertRepoIndex(expectedIndex, index);
+
+        // Index the items:
+        index.index();
 
         // Query the items:
         X nearest;
@@ -1345,6 +1449,9 @@ X:[0,10000]
                                     └───0'1111'
 """;
         assertRepoIndex(expectedIndex, index);
+
+        // Index the items:
+        index.index();
 
         // Query the items:
         X nearest;

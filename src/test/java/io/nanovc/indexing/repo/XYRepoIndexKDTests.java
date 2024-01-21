@@ -39,6 +39,9 @@ Y:[0.0,0.2)
 """;
         assertIndex(expectedIndex, index);
 
+        // Index the items:
+        index.index();
+
         // Query the item:
         XY nearest = index.searchNearest(itemZero);
 
@@ -76,6 +79,9 @@ Y:[0.8,1.0]
     └───0'1.0|1.0'
 """;
         assertIndex(expectedIndex, index);
+
+        // Index the items:
+        index.index();
 
         // Query the item:
         XY nearest = index.searchNearest(itemZero);
@@ -123,6 +129,9 @@ Y:[0.8,1.0]
     └───0'1.0|1.0'
 """;
         assertIndex(expectedIndex, index);
+
+        // Index the items:
+        index.index();
 
         // Query the item:
         XY itemZeroPointTwo = new XY(0.2, 0.2);
@@ -179,6 +188,9 @@ Y:[0.8,1.0]
 """;
         assertIndex(expectedIndex, index);
 
+        // Index the items:
+        index.index();
+
         // Query the item:
         XY itemZeroPointZeroTwo = new XY(0.02, 0.02);
         XY nearest = index.searchNearest(itemZeroPointZeroTwo);
@@ -227,6 +239,9 @@ Y:[0.8,1.0]
     └───0'1.0|1.0'
 """;
         assertIndex(expectedIndex, index);
+
+        // Index the items:
+        index.index();
 
         // Query the item:
         XY itemMinusTwo = new XY(-2.0, -2.0);

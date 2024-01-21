@@ -1070,7 +1070,7 @@ public abstract class RepoIndexKDBase<
         for (DivisionCell<TContent, TArea> existingDivisionCell : divisionCube.cellsByBranchName.values())
         {
             // Create the list of cells that are the nearest for this existing cell:
-            List<DivisionCell<TContent, TArea>> nearestCells = new ArrayList<>();
+            Set<DivisionCell<TContent, TArea>> nearestCells = new LinkedHashSet<>();
 
             // Start off searching for other cells.
             // NOTE: We have a special case where there is only one cell, so we don't have to search:
@@ -1101,27 +1101,66 @@ public abstract class RepoIndexKDBase<
                     // Work out the highest index at the sphere distance for this dimension:
                     int anchorHighestValue = Math.min(anchorCoordinateValue + sphereRadius, anchorDimensionRangeSplits.size()-1);
 
+                    // Work out the ranges to iterate for each of the dimensions:
+                    int[] lowerIndexRangePerDimension = new int[dimensionCount];
+                    int[] upperIndexRangePerDimension = new int[dimensionCount];
+
+                    // Loop through every dimension to work out the index ranges that we want to iterate:
+                    for (int dimensionIndex = 0; dimensionIndex < dimensionCount; dimensionIndex++)
+                    {
+                        // Check whether this is the anchor dimension:
+                        if (dimensionIndex == anchorDimensionIndex)
+                        {
+                            // This is the anchor dimension.
+
+                            // This will be set later on when we are doing the lower and upper planes.
+                            lowerIndexRangePerDimension[dimensionIndex] = -1;
+                            upperIndexRangePerDimension[dimensionIndex] = -1;
+                        }
+                        else
+                        {
+                            // This is not the anchor dimension.
+
+                            // Get the dimension range information:
+                            var otherDimensionRangeSplits = divisionCube.rangeSplitsByDimensionIndex.get(dimensionIndex);
+
+                            // Get the coordinate for this dimension:
+                            int otherCoordinateValue = existingDivisionCell.divisionCellCoordinate.getValue(dimensionIndex);
+
+                            // Work out the lowest index at the sphere distance for this dimension:
+                            int otherLowestValue = Math.max(otherCoordinateValue - sphereRadius, 0);
+
+                            // Work out the highest index at the sphere distance for this dimension:
+                            int otherHighestValue = Math.min(otherCoordinateValue + sphereRadius, otherDimensionRangeSplits.size()-1);
+
+                            // Save the ranges:
+                            lowerIndexRangePerDimension[dimensionIndex] = otherLowestValue;
+                            upperIndexRangePerDimension[dimensionIndex] = otherHighestValue;
+                        }
+                    }
+                    // Now we have the ranges that we want to iterate.
+
                     // Check if we must search the lowest position:
                     if (anchorLowestValue != anchorCoordinateValue)
                     {
-                        // Update the anchor position to the lowest value:
-                        currentCoord[anchorDimensionIndex] = anchorLowestValue;
-
-                        // Check whether we have a cell at the lowest value:
-                        var sphereLowestValueCell = cellsByCoord.get(new DivisionCoord(currentCoord));
-                        if (sphereLowestValueCell != null) nearestCells.add(sphereLowestValueCell);
+                        // Walk the entire lowest plane:
+                        walkDivisionPlaneToFindCells(
+                            anchorLowestValue,
+                            anchorDimensionIndex, lowerIndexRangePerDimension, upperIndexRangePerDimension, currentCoord, dimensionCount, cellsByCoord, nearestCells
+                        );
                     }
+                    // Now we have walked the entire lowest plane.
 
                     // Check if we must search the highest position:
                     if (anchorHighestValue != anchorCoordinateValue)
                     {
-                        // Update the anchor position to the highest value:
-                        currentCoord[anchorDimensionIndex] = anchorHighestValue;
-
-                        // Check whether we have a cell at the highest value:
-                        var sphereHighestValueCell = cellsByCoord.get(new DivisionCoord(currentCoord));
-                        if (sphereHighestValueCell != null) nearestCells.add(sphereHighestValueCell);
+                        // Walk the entire highest plane:
+                        walkDivisionPlaneToFindCells(
+                            anchorHighestValue,
+                            anchorDimensionIndex, lowerIndexRangePerDimension, upperIndexRangePerDimension, currentCoord, dimensionCount, cellsByCoord, nearestCells
+                        );
                     }
+                    // Now we have walked the entire highest plane.
                 }
 
                 // Flag whether we have found any cells:
@@ -1131,9 +1170,79 @@ public abstract class RepoIndexKDBase<
             // Now we know we have found some cells.
 
             // Save the nearest cells for this existing cells:
-            existingDivisionCell.nearestCells = nearestCells;
+            existingDivisionCell.nearestCells = new ArrayList<>(nearestCells);
         }
 
+    }
+
+    /**
+     * This walks the set of coordinates and looks for division cells.
+     */
+    private void walkDivisionPlaneToFindCells(
+        int anchorValue,
+        int anchorDimensionIndex,
+        int[] lowerIndexRangePerDimension,
+        int[] upperIndexRangePerDimension,
+        int[] currentCoord,
+        int dimensionCount,
+        HashMap<DivisionCoord, DivisionCell<TContent, TArea>> cellsByCoord,
+        Set<DivisionCell<TContent, TArea>> nearestCells
+    )
+    {
+        // Update the anchor position to the given value:
+        lowerIndexRangePerDimension[anchorDimensionIndex] = anchorValue;
+        upperIndexRangePerDimension[anchorDimensionIndex] = anchorValue;
+
+        // Initialise the coordinate to the starting locations:
+        System.arraycopy(lowerIndexRangePerDimension, 0, currentCoord, 0, dimensionCount);
+        // Now we are at the starting locations for each dimension.
+
+        // Start working through each cell:
+        boolean stillGoing = true;
+        do
+        {
+            // Check whether we have a cell at the current value:
+            var cell = cellsByCoord.get(new DivisionCoord(currentCoord));
+            if (cell != null)
+            {
+                // We found a cell.
+
+                // Add it as one of our nearest cells:
+                nearestCells.add(cell);
+            }
+
+            // Increment the coordinate:
+            for (int dimIndex = 0; dimIndex < dimensionCount; dimIndex++)
+            {
+                // Increment the coordinate:
+                currentCoord[dimIndex] = currentCoord[dimIndex] + 1;
+
+                // Check if we have exceeded the upper bound:
+                if (currentCoord[dimIndex] > upperIndexRangePerDimension[dimIndex])
+                {
+                    // Check whether we are done iterating:
+                    if (dimIndex == dimensionCount - 1)
+                    {
+                        // We are done iterating.
+                        stillGoing = false;
+                        break;
+                    }
+                    else
+                    {
+                        // We must keep iterating.
+                        // We need to reset this dimension to the lower bound and increment the next dimension by continuing the loop:
+                        currentCoord[dimIndex] = lowerIndexRangePerDimension[dimIndex];
+                    }
+                }
+                else
+                {
+                    // We haven't exceeded any upper bound yet, so don't move to the next dimension:
+                    break;
+                }
+            }
+        }
+        while (stillGoing);
+        // Now we have iterated the entire plane.
     }
 
     /**

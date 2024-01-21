@@ -251,6 +251,62 @@ Y:[0.8,1.0]
         assertEquals(itemMinusOne, nearest);
     }
 
+    @Test
+    public void test_Index_M1_1_Square_Query_0()
+    {
+        // Create the index:
+        XYRepoIndexKD index = new XYRepoIndexKD(new XY(-1, -1), new XY(1, 1), 10);
+
+        // Add an item to the index:
+        index.add(new XY(-1.0, -1.0));
+        index.add(new XY(-1.0,  1.0));
+        index.add(new XY( 1.0, -1.0));
+        index.add(new XY( 1.0,  1.0));
+
+        // Make sure the index is as expected:
+        String expectedIndex = """
+Index:  from XY[x=-1.0, y=-1.0] to XY[x=1.0, y=1.0] with 10 divisions:
+Division Cell Branch Name:
+X:[-1.0,-0.8)
+Y:[-1.0,-0.8)
+.
+└───📁
+    └───0'-1.0|-1.0'
+
+Division Cell Branch Name:
+X:[-1.0,-0.8)
+Y:[0.8,1.0]
+.
+└───📁
+    └───0'-1.0|1.0'
+
+Division Cell Branch Name:
+X:[0.8,1.0]
+Y:[-1.0,-0.8)
+.
+└───📁
+    └───0'1.0|-1.0'
+
+Division Cell Branch Name:
+X:[0.8,1.0]
+Y:[0.8,1.0]
+.
+└───📁
+    └───0'1.0|1.0'
+""";
+        assertIndex(expectedIndex, index);
+
+        // Index the items:
+        index.index();
+
+        // Query the item:
+        XY itemZero = new XY(0.0, 0.0);
+        XY nearest = index.searchNearest(itemZero);
+
+        // Make sure the value matches:
+        assertEquals(new XY(-1.0, -1.0), nearest);
+    }
+
     public void assertIndex(String expectedIndex, XYRepoIndexKD index)
     {
         // Get the representation of the index:

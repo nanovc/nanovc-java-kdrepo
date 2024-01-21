@@ -3,6 +3,7 @@ package io.nanovc.indexing.examples.x;
 import io.nanovc.RepoPath;
 import io.nanovc.areas.StringHashMapArea;
 import io.nanovc.content.StringContent;
+import io.nanovc.indexing.Index1D;
 import io.nanovc.indexing.repo.ContentCreator;
 import io.nanovc.indexing.repo.ContentReader;
 import io.nanovc.indexing.repo.RepoIndexKDImplementation;
@@ -20,6 +21,7 @@ public class XRepoIndexKD extends RepoIndexKDImplementation<
     MemoryCommit,
     StringMemoryRepoHandler
     >
+    implements Index1D<X>
 {
 
     public XRepoIndexKD(X minRange, X maxRange, int divisions, StringMemoryRepoHandler repoHandler, RepoPath rootRepoPath, ContentCreator<X, StringContent> contentCreator, ContentReader<X, StringContent> contentReader)

@@ -1182,7 +1182,7 @@ public abstract class XIndex1DTests
         }
     }
 
-    public static class RepoTests extends XIndex1DTests<XRepoIndex1D>
+    public static class RepoTests extends XIndex1DTests<XRepoIndexKD>
     {
 
         /**
@@ -1190,9 +1190,9 @@ public abstract class XIndex1DTests
          *
          * @return A new index of the specific type.
          */
-        @Override protected XRepoIndex1D createIndex(double range)
+        @Override protected XRepoIndexKD createIndex(double range)
         {
-            return new XRepoIndex1D(new X((int) -range), new X((int) range), Math.max(1, (int) (range / 100)));
+            return new XRepoIndexKD(new X((int) -range), new X((int) range), Math.max(1, (int) (range / 100)));
         }
     }
 

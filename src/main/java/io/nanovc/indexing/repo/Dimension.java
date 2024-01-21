@@ -92,7 +92,8 @@ public class Dimension<TUnit>
      */
     public void calculateRangeSplitsForDimension(int divisions, List<Range<TUnit>> splitsToAddTo)
     {
-        this.getRangeCalculator().calculateRangeSplits(this.getRange(), divisions, this.getSmallestDivisionStepSize(), splitsToAddTo);
+        // Split the range for the dimension, making sure that we add additional ranges to catch cases where we are to the left or to the right of the extents (outside of our bounds):
+        this.getRangeCalculator().calculateRangeSplits(this.getRange(), divisions, this.getSmallestDivisionStepSize(), true, true, splitsToAddTo);
     }
 
     /**

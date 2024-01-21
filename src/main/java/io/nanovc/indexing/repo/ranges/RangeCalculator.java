@@ -390,9 +390,11 @@ public class RangeCalculator<TUnit>
      * @param range         The range that we want to split.
      * @param divisions     The number of divisions to split the range into.
      * @param smallestStep  The smallest step size that we want to split the range into.
+     * @param createAdditionalLeftRange  True to add an additional range at the beginning for everything to the left of the given range. False to just split the range given.
+     * @param createAdditionalRightRange True to add an additional range at the end for everything to the right of the given range. False to just split the range given.
      * @param splitsToAddTo The list to add th range splits to.
      */
-    public void calculateRangeSplits(Range<TUnit> range, int divisions, TUnit smallestStep, List<Range<TUnit>> splitsToAddTo)
+    public void calculateRangeSplits(Range<TUnit> range, int divisions, TUnit smallestStep, boolean createAdditionalLeftRange, boolean createAdditionalRightRange, List<Range<TUnit>> splitsToAddTo)
     {
         // Get the arithmetic implementation so that we can work out things:
         Arithmetic<TUnit> arithmetic = getArithmetic();
@@ -453,6 +455,27 @@ public class RangeCalculator<TUnit>
         int firstIndex = 0;
         int secondIndex = 1;
         int lastIndex = values.size() - 1;
+
+
+        // Check whether we want to add a range to the left of the given range (to catch out of bounds values):
+        if (createAdditionalLeftRange)
+        {
+            // We want to add a range to the left of the given range (to catch out of bounds values).
+
+            // Create the range to the left:
+            Range<TUnit> additionalLeftRange = switch (range)
+            {
+                case MinInclusiveMaxInclusiveRange<TUnit> r -> new MaxExclusiveRange<>(r.min());
+                case MinInclusiveMaxExclusiveRange<TUnit> r -> new MaxExclusiveRange<>(r.min());
+                case MinExclusiveMaxInclusiveRange<TUnit> r -> new MaxInclusiveRange<>(r.min());
+                case MinExclusiveMaxExclusiveRange<TUnit> r -> new MaxInclusiveRange<>(r.min());
+
+                default -> throw new UnsupportedOperationException("Cannot add the additional left range to the given range");
+            };
+
+            // Add this to the result:
+            splitsToAddTo.add(additionalLeftRange);
+        }
 
         // Create the ranges:
         TUnit previousValue = null;
@@ -561,6 +584,25 @@ public class RangeCalculator<TUnit>
             previousValue = currentValue;
         }
 
+        // Check whether we want to add a range to the right of the given range (to catch out of bounds values):
+        if (createAdditionalRightRange)
+        {
+            // We want to add a range to the right of the given range (to catch out of bounds values).
+
+            // Create the range to the right:
+            Range<TUnit> additionalRightRange = switch (range)
+            {
+                case MinInclusiveMaxInclusiveRange<TUnit> r -> new MinExclusiveRange<>(r.max());
+                case MinInclusiveMaxExclusiveRange<TUnit> r -> new MinInclusiveRange<>(r.max());
+                case MinExclusiveMaxInclusiveRange<TUnit> r -> new MinExclusiveRange<>(r.max());
+                case MinExclusiveMaxExclusiveRange<TUnit> r -> new MinInclusiveRange<>(r.max());
+
+                default -> throw new UnsupportedOperationException("Cannot add the additional left range to the given range");
+            };
+
+            // Add this to the result:
+            splitsToAddTo.add(additionalRightRange);
+        }
     }
 
     public Range<TUnit> createRangeLessThanOrEqualTo(TUnit value)

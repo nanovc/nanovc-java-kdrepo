@@ -67,7 +67,7 @@ public abstract class RepoIndexKDBase<
     /**
      * This is the maximum number of items that we want to keep in a bucket before we split the range further.
      */
-    private final int bucketThreshold = 1;
+    private final int bucketThreshold;
 
     /**
      * This contains information for each division of the range for the repo index.
@@ -155,7 +155,7 @@ public abstract class RepoIndexKDBase<
     public RepoIndexKDBase(
         HyperCubeDefinition hyperCubeDefinition,
         int numberOfDimensions,
-        TItem minRange, TItem maxRange, int divisions,
+        TItem minRange, TItem maxRange, int divisions, int bucketThreshold,
         Extractor<TItem> extractor, Measurer<TItem, TDistance> measurer, Comparator<TDistance> distanceComparator,
         Operator<TDistance> distanceAdder, Operator<TDistance> distanceSubtractor, TDistance maxDistance,
         RangeSplitter<TItem> rangeSplitter, RangeFinder<TItem> rangeFinder,
@@ -168,6 +168,7 @@ public abstract class RepoIndexKDBase<
         this.minRange = minRange;
         this.maxRange = maxRange;
         this.divisions = divisions;
+        this.bucketThreshold = bucketThreshold;
         this.extractor = extractor;
         this.measurer = measurer;
         this.distanceComparator = distanceComparator;

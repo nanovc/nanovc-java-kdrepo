@@ -98,7 +98,7 @@ public abstract class RepoIndexKDBase<
      * This is the cube of divisions that slices up the {@link HyperCubeDefinition} into smaller divisions.
      * This is also what defines the branches that we have because it's one branch for each {@link DivisionCell} in this {@link DivisionCube}.
      */
-    protected DivisionCube<TContent, TArea> divisionCube;
+    protected DivisionCube<TItem, TContent, TArea> divisionCube;
 
     public RepoIndexKDBase(
         HyperCubeDefinition hyperCubeDefinition,
@@ -144,7 +144,7 @@ public abstract class RepoIndexKDBase<
         HyperCoord itemCoord = extractItemCoordinate(item, hyperCubeDefinition);
 
         // Find the right division for this item at the given coordinate:
-        DivisionCell<TContent, TArea> divisionCell = getOrCreateDivisionCell(itemCoord);
+        DivisionCell<TItem, TContent, TArea> divisionCell = getOrCreateDivisionCell(itemCoord);
 
         // Make sure that we have a root node for this division cell:
         if (divisionCell.kdTreeRoot == null)
@@ -152,7 +152,7 @@ public abstract class RepoIndexKDBase<
             // We don't have a root yet.
 
             // Create the root node:
-            KDBucketNode<TContent, TArea> root = new KDBucketNode<>();
+            KDBucketNode<TItem, TContent, TArea> root = new KDBucketNode<>();
 
             // Save the reference to the division cell for this node:
             root.divisionCell = divisionCell;
@@ -191,7 +191,7 @@ public abstract class RepoIndexKDBase<
      * @param itemCoord The coordinate of the item that we want to find the cell of.
      * @return The {@link DivisionCell} that corresponds to the given {@link HyperCoord hyper coordinate}.
      */
-    protected DivisionCell<TContent, TArea> getOrCreateDivisionCell(HyperCoord itemCoord)
+    protected DivisionCell<TItem, TContent, TArea> getOrCreateDivisionCell(HyperCoord itemCoord)
     {
         // Check whether we need to create the division cube:
         if (this.divisionCube == null)
@@ -207,7 +207,7 @@ public abstract class RepoIndexKDBase<
 
             // Create the root dimension:
             //noinspection UnnecessaryLocalVariable
-            DivisionDimension<TContent, TArea> rootDimension = createDivisionDimension(0, null);
+            DivisionDimension<TItem, TContent, TArea> rootDimension = createDivisionDimension(0, null);
 
             // Save this as the root dimension for our division cube:
             this.divisionCube.rootDimension = rootDimension;
@@ -223,7 +223,7 @@ public abstract class RepoIndexKDBase<
      * @param itemCoord The coordinate of the item that we want to find the cell of.
      * @return The {@link DivisionCell} that corresponds to the given {@link HyperCoord hyper coordinate}. Null if there is no division cell for that coordinate.
      */
-    protected DivisionCell<TContent, TArea> getDivisionCell(HyperCoord itemCoord)
+    protected DivisionCell<TItem, TContent, TArea> getDivisionCell(HyperCoord itemCoord)
     {
         // Make sure we have a division cube:
         if (this.divisionCube == null) return null;
@@ -239,18 +239,18 @@ public abstract class RepoIndexKDBase<
      * @param previousDivisionDimension The previous division dimension that we are coming from. Null if this is the first dimension.
      * @return The {@link DivisionDimension} that was created.
      */
-    private DivisionDimension<TContent, TArea> createDivisionDimension(int dimensionIndexToCreate, DivisionDimension<TContent, TArea> previousDivisionDimension)
+    private DivisionDimension<TItem, TContent, TArea> createDivisionDimension(int dimensionIndexToCreate, DivisionDimension<TItem, TContent, TArea> previousDivisionDimension)
     {
         // Check whether we have more than one division dimension so that we know what type of node to create:
         int dimensionCount = this.hyperCubeDefinition.getDimensionCount();
         int lastDimensionIndex = dimensionCount - 1;
 
         // Create the root dimension:
-        DivisionDimension<TContent, TArea> divisionDimension;
+        DivisionDimension<TItem, TContent, TArea> divisionDimension;
         if (dimensionIndexToCreate == lastDimensionIndex)
         {
             // This is the last dimension index:
-            DivisionDimension.Last<TContent, TArea> last = new DivisionDimension.Last<>();
+            DivisionDimension.Last<TItem, TContent, TArea> last = new DivisionDimension.Last<>();
             divisionDimension = last;
 
             // Save the previous division dimension that we came from:
@@ -276,7 +276,7 @@ public abstract class RepoIndexKDBase<
         else if (dimensionIndexToCreate == 0)
         {
             // This is the first dimension.
-            DivisionDimension.First<TContent, TArea> first = new DivisionDimension.First<>();
+            DivisionDimension.First<TItem, TContent, TArea> first = new DivisionDimension.First<>();
             divisionDimension = first;
 
             // Set the division cube that we came from:
@@ -288,7 +288,7 @@ public abstract class RepoIndexKDBase<
         else if (dimensionIndexToCreate < lastDimensionIndex)
         {
             // This is an intermediate dimension.
-            DivisionDimension.Intermediate<TContent, TArea> intermediate = new DivisionDimension.Intermediate<>();
+            DivisionDimension.Intermediate<TItem, TContent, TArea> intermediate = new DivisionDimension.Intermediate<>();
             divisionDimension = intermediate;
 
             // Save the previous division dimension that we came from:
@@ -332,7 +332,7 @@ public abstract class RepoIndexKDBase<
      * @param parentDivisionCoord  The (partial) division coordinate of the parent. This used to create the division coordinate once we create the division cell. If this is null then this is the first dimension we are processing.
      * @return The {@link DivisionCell} that corresponds to the given {@link HyperCoord hyper coordinate}.
      */
-    private DivisionCell<TContent, TArea> getOrCreateDivisionCellRecursively(HyperCoord itemCoord, DivisionDimension<TContent, TArea> currentDimensionNode, DivisionCoord parentDivisionCoord)
+    private DivisionCell<TItem, TContent, TArea> getOrCreateDivisionCellRecursively(HyperCoord itemCoord, DivisionDimension<TItem, TContent, TArea> currentDimensionNode, DivisionCoord parentDivisionCoord)
     {
         // Get the dimensionIndex that we are processing:
         int dimensionIndex = currentDimensionNode.dimension.getDimensionIndex();
@@ -357,10 +357,10 @@ public abstract class RepoIndexKDBase<
                 // Check where we are in the dimension chain to decide how to walk next:
                 switch (currentDimensionNode)
                 {
-                    case DivisionDimension.First<TContent, TArea> firstDivisionDimension ->
+                    case DivisionDimension.First<TItem, TContent, TArea> firstDivisionDimension ->
                     {
                         // Make sure we have the next dimension to walk down:
-                        DivisionDimension<TContent, TArea> nextDivisionDimension = firstDivisionDimension.nextDivisionDimensionByIndex.get(divisionIndex);
+                        DivisionDimension<TItem, TContent, TArea> nextDivisionDimension = firstDivisionDimension.nextDivisionDimensionByIndex.get(divisionIndex);
                         if (nextDivisionDimension == null)
                         {
                             // Create the next dimension:
@@ -376,10 +376,10 @@ public abstract class RepoIndexKDBase<
                         // Walk to the next dimension until we find the division cell:
                         return getOrCreateDivisionCellRecursively(itemCoord, nextDivisionDimension, currentDivisionCoordinate);
                     }
-                    case DivisionDimension.Intermediate<TContent, TArea> intermediateDivisionDimension ->
+                    case DivisionDimension.Intermediate<TItem, TContent, TArea> intermediateDivisionDimension ->
                     {
                         // Make sure we have the next dimension to walk down:
-                        DivisionDimension<TContent, TArea> nextDivisionDimension = intermediateDivisionDimension.nextDivisionDimensionByIndex.get(divisionIndex);
+                        DivisionDimension<TItem, TContent, TArea> nextDivisionDimension = intermediateDivisionDimension.nextDivisionDimensionByIndex.get(divisionIndex);
                         if (nextDivisionDimension == null)
                         {
                             // Create the next dimension:
@@ -395,13 +395,12 @@ public abstract class RepoIndexKDBase<
                         // Walk to the next dimension until we find the division cell:
                         return getOrCreateDivisionCellRecursively(itemCoord, nextDivisionDimension, currentDivisionCoordinate);
                     }
-                    case DivisionDimension.Last<TContent, TArea> lastDivisionDimension ->
+                    case DivisionDimension.Last<TItem, TContent, TArea> lastDivisionDimension ->
                     {
                         // We are at the last dimension.
 
                         // Search for the division cell:
-                        //noinspection unchecked
-                        DivisionCell<TContent, TArea> divisionCell = (DivisionCell<TContent, TArea>) lastDivisionDimension.cellsByIndex.get(divisionIndex);
+                        DivisionCell<TItem, TContent, TArea> divisionCell = lastDivisionDimension.cellsByIndex.get(divisionIndex);
                         if (divisionCell == null)
                         {
                             // This is the first time we are accessing this division cell.
@@ -449,7 +448,7 @@ public abstract class RepoIndexKDBase<
      * @param itemCoord The coordinate of the item that we want to find the cell of.
      * @return The {@link DivisionCell} that corresponds to the given {@link HyperCoord hyper coordinate}. Null if there is not division cell for this coordinate.
      */
-    private DivisionCell<TContent, TArea> getDivisionCellRecursively(HyperCoord itemCoord, DivisionDimension<TContent, TArea> currentDimensionNode)
+    private DivisionCell<TItem, TContent, TArea> getDivisionCellRecursively(HyperCoord itemCoord, DivisionDimension<TItem, TContent, TArea> currentDimensionNode)
     {
         // Get the dimensionIndex that we are processing:
         int dimensionIndex = currentDimensionNode.dimension.getDimensionIndex();
@@ -471,10 +470,10 @@ public abstract class RepoIndexKDBase<
                 // Check where we are in the dimension chain to decide how to walk next:
                 switch (currentDimensionNode)
                 {
-                    case DivisionDimension.First<TContent, TArea> firstDivisionDimension ->
+                    case DivisionDimension.First<TItem, TContent, TArea> firstDivisionDimension ->
                     {
                         // Make sure we have the next dimension to walk down:
-                        DivisionDimension<TContent, TArea> nextDivisionDimension = firstDivisionDimension.nextDivisionDimensionByIndex.get(divisionIndex);
+                        DivisionDimension<TItem, TContent, TArea> nextDivisionDimension = firstDivisionDimension.nextDivisionDimensionByIndex.get(divisionIndex);
                         if (nextDivisionDimension == null)
                         {
                             // Flag that we don't have a division cell for this coordinate by breaking out early:
@@ -484,10 +483,10 @@ public abstract class RepoIndexKDBase<
                         // Walk to the next dimension until we find the division cell:
                         return getDivisionCellRecursively(itemCoord, nextDivisionDimension);
                     }
-                    case DivisionDimension.Intermediate<TContent, TArea> intermediateDivisionDimension ->
+                    case DivisionDimension.Intermediate<TItem, TContent, TArea> intermediateDivisionDimension ->
                     {
                         // Make sure we have the next dimension to walk down:
-                        DivisionDimension<TContent, TArea> nextDivisionDimension = intermediateDivisionDimension.nextDivisionDimensionByIndex.get(divisionIndex);
+                        DivisionDimension<TItem, TContent, TArea> nextDivisionDimension = intermediateDivisionDimension.nextDivisionDimensionByIndex.get(divisionIndex);
                         if (nextDivisionDimension == null)
                         {
                             // Flag that we don't have a division cell for this coordinate by breaking out early:
@@ -497,13 +496,12 @@ public abstract class RepoIndexKDBase<
                         // Walk to the next dimension until we find the division cell:
                         return getDivisionCellRecursively(itemCoord, nextDivisionDimension);
                     }
-                    case DivisionDimension.Last<TContent, TArea> lastDivisionDimension ->
+                    case DivisionDimension.Last<TItem, TContent, TArea> lastDivisionDimension ->
                     {
                         // We are at the last dimension.
 
                         // Search for the division cell:
-                        //noinspection unchecked
-                        DivisionCell<TContent, TArea> divisionCell = (DivisionCell<TContent, TArea>) lastDivisionDimension.cellsByIndex.get(divisionIndex);
+                        DivisionCell<TItem, TContent, TArea> divisionCell = lastDivisionDimension.cellsByIndex.get(divisionIndex);
                         if (divisionCell == null)
                         {
                             // Flag that we don't have a division cell for this coordinate by breaking out early:
@@ -552,12 +550,12 @@ public abstract class RepoIndexKDBase<
      * @param node      The node that we are walking.
      * @return The replacement node to use in place of the inputted one. This is in case the node is replaced with another one.
      */
-    protected KDNode<TContent, TArea> addItemToKDNode(TItem item, HyperCoord itemCoord, KDNode<TContent, TArea> node)
+    protected KDNode<TItem, TContent, TArea> addItemToKDNode(TItem item, HyperCoord itemCoord, KDNode<TItem, TContent, TArea> node)
     {
         // Check what type of node this is:
         switch (node)
         {
-            case KDBucketNode<TContent, TArea> bucketNode ->
+            case KDBucketNode<TItem, TContent, TArea> bucketNode ->
             {
                 // Get the dimension index that we want to index by:
                 int dimensionIndex = bucketNode.level % this.hyperCubeDefinition.getDimensionCount();
@@ -590,7 +588,7 @@ public abstract class RepoIndexKDBase<
                 if (shouldSplit)
                 {
                     // Create a new intermediate node:
-                    KDIntermediateNode<Object, TContent, TArea> newNode = new KDIntermediateNode<>();
+                    KDIntermediateNode<TItem, Object, TContent, TArea> newNode = new KDIntermediateNode<>();
                     newNode.parent = bucketNode.parent;
                     newNode.divisionCell = bucketNode.divisionCell;
                     newNode.level = bucketNode.level;
@@ -610,7 +608,7 @@ public abstract class RepoIndexKDBase<
                     newNode.repoPathNode = newNode.divisionCell.repoPathTree.getOrCreateChildNode(bucketNode.repoPathNode, newNodeName);
 
                     // Keep track of the node to return as we iterate recursively:
-                    KDNode<TContent, TArea> nodeToReturn = newNode;
+                    KDNode<TItem, TContent, TArea> nodeToReturn = newNode;
 
                     // Recursively update the new node with the items in the bucket:
                     for (Map.Entry<RepoPathNode, TContent> entry : bucketNode.contentMap.entrySet())
@@ -664,6 +662,9 @@ public abstract class RepoIndexKDBase<
                     RepoPathNode itemRepoPathNode = bucketNode.divisionCell.repoPathTree.getOrCreateChildNode(bucketNode.bucketItemsRepoPathNode, Integer.toString(itemIndex));
                     RepoPath itemRepoPath = itemRepoPathNode.getRepoPath();
 
+                    // Add the item to our item map:
+                    bucketNode.itemMap.put(itemRepoPathNode, item);
+
                     // Add the content to our content map:
                     bucketNode.contentMap.put(itemRepoPathNode, itemContent);
 
@@ -674,10 +675,10 @@ public abstract class RepoIndexKDBase<
                     return bucketNode;
                 }
             }
-            case KDIntermediateNode<?, TContent, TArea> intermediateNodeUntyped ->
+            case KDIntermediateNode<TItem, ?, TContent, TArea> intermediateNodeUntyped ->
             {
                 //noinspection unchecked
-                KDIntermediateNode<Object, TContent, TArea> intermediateNode = (KDIntermediateNode<Object, TContent, TArea>) intermediateNodeUntyped;
+                KDIntermediateNode<TItem, Object, TContent, TArea> intermediateNode = (KDIntermediateNode<TItem, Object, TContent, TArea>) intermediateNodeUntyped;
 
                 // Get the dimension that we are splitting by:
                 Dimension<Object> dimension = intermediateNode.dimension;
@@ -702,7 +703,7 @@ public abstract class RepoIndexKDBase<
                         // This is the first time we are walking down the lower node.
 
                         // Create the child node for the lower range:
-                        KDBucketNode<TContent, TArea> lowerNode = new KDBucketNode<>();
+                        KDBucketNode<TItem, TContent, TArea> lowerNode = new KDBucketNode<>();
                         intermediateNode.lowerNode = lowerNode;
                         lowerNode.level = intermediateNode.level + 1;
                         lowerNode.parent = intermediateNode;
@@ -727,7 +728,7 @@ public abstract class RepoIndexKDBase<
                         // This is the first time we are walking down the higher node.
 
                         // Create the child node for the higher range:
-                        KDBucketNode<TContent, TArea> higherNode = new KDBucketNode<>();
+                        KDBucketNode<TItem, TContent, TArea> higherNode = new KDBucketNode<>();
                         intermediateNode.higherNode = higherNode;
                         higherNode.level = intermediateNode.level + 1;
                         higherNode.parent = intermediateNode;
@@ -763,7 +764,7 @@ public abstract class RepoIndexKDBase<
      *
      * @param divisionCube The division cube to update with nearest neighbour information.
      */
-    protected void workOutNearestNeighborsForDivisionCells(DivisionCube<TContent, TArea> divisionCube)
+    protected void workOutNearestNeighborsForDivisionCells(DivisionCube<TItem, TContent, TArea> divisionCube)
     {
         // NOTE: The algorithm is to ripple out for each cell where we have a division cell in concentric multidimensional spheres.
         //       If we come across any existing division cells within that sphere radius, we need to search all items in that cell.
@@ -772,8 +773,8 @@ public abstract class RepoIndexKDBase<
         int dimensionCount = divisionCube.hyperCube.getDefinition().getDimensionCount();
 
         // Index each of the cells by their coordinates so that we can look them up easily:
-        HashMap<DivisionCoord, DivisionCell<TContent, TArea>> cellsByCoord = new HashMap<>();
-        for (DivisionCell<TContent, TArea> existingDivisionCell : divisionCube.cellsByBranchName.values())
+        HashMap<DivisionCoord, DivisionCell<TItem, TContent, TArea>> cellsByCoord = new HashMap<>();
+        for (DivisionCell<TItem, TContent, TArea> existingDivisionCell : divisionCube.cellsByBranchName.values())
         {
             cellsByCoord.put(existingDivisionCell.divisionCellCoordinate, existingDivisionCell);
         }
@@ -783,10 +784,10 @@ public abstract class RepoIndexKDBase<
         int[] currentCoord = new int[dimensionCount];
 
         // Go through each division cell that we actually have:
-        for (DivisionCell<TContent, TArea> existingDivisionCell : divisionCube.cellsByBranchName.values())
+        for (DivisionCell<TItem, TContent, TArea> existingDivisionCell : divisionCube.cellsByBranchName.values())
         {
             // Create the list of cells that are the nearest for this existing cell:
-            Set<DivisionCell<TContent, TArea>> nearestCells = new LinkedHashSet<>();
+            Set<DivisionCell<TItem, TContent, TArea>> nearestCells = new LinkedHashSet<>();
 
             // Start off searching for other cells.
             // NOTE: We have a special case where there is only one cell, so we don't have to search:
@@ -902,8 +903,8 @@ public abstract class RepoIndexKDBase<
         int[] upperIndexRangePerDimension,
         int[] currentCoord,
         int dimensionCount,
-        HashMap<DivisionCoord, DivisionCell<TContent, TArea>> cellsByCoord,
-        Set<DivisionCell<TContent, TArea>> nearestCells
+        HashMap<DivisionCoord, DivisionCell<TItem, TContent, TArea>> cellsByCoord,
+        Set<DivisionCell<TItem, TContent, TArea>> nearestCells
     )
     {
         // Update the anchor position to the given value:
@@ -974,10 +975,10 @@ public abstract class RepoIndexKDBase<
         HyperCoord itemCoordinate = extractItemCoordinate(item, hyperCubeDefinition);
 
         // Create the list of division cells to search:
-        List<DivisionCell<TContent, TArea>> divisionCellsToSearch = new ArrayList<>();
+        List<DivisionCell<TItem, TContent, TArea>> divisionCellsToSearch = new ArrayList<>();
         {
             // Find the right division for this item at the given coordinate:
-            DivisionCell<TContent, TArea> divisionCell = getDivisionCell(itemCoordinate);
+            DivisionCell<TItem, TContent, TArea> divisionCell = getDivisionCell(itemCoordinate);
 
             // Check whether we found the division cell:
             if (divisionCell == null)
@@ -1006,7 +1007,7 @@ public abstract class RepoIndexKDBase<
 
         // Search each division cell and find the nearest item:
         MeasuredItem<TItem, TDistance> bestResult = null;
-        for (DivisionCell<TContent, TArea> divisionCellToSearch : divisionCellsToSearch)
+        for (DivisionCell<TItem, TContent, TArea> divisionCellToSearch : divisionCellsToSearch)
         {
             // Search for the item in this division cell:
             MeasuredItem<TItem, TDistance> measuredItem = null;
@@ -1115,12 +1116,12 @@ public abstract class RepoIndexKDBase<
      * @param currentNode        The current node that we are searching.
      * @param bestResultToUpdate This is a measured item instance to update while searching with the best result so far. This is used so that we can avoid memory allocations.
      */
-    protected void searchNearestInKDNode(TItem itemToSearchFor, HyperCoord itemCoord, KDNode<TContent, TArea> currentNode, MeasuredItem<TItem, TDistance> bestResultToUpdate)
+    protected void searchNearestInKDNode(TItem itemToSearchFor, HyperCoord itemCoord, KDNode<TItem, TContent, TArea> currentNode, MeasuredItem<TItem, TDistance> bestResultToUpdate)
     {
         // Perform the search based on what type of node it is:
         switch (currentNode)
         {
-            case KDBucketNode<TContent, TArea> bucketNode ->
+            case KDBucketNode<TItem, TContent, TArea> bucketNode ->
             {
                 // Search through the bucket:
                 for (TContent itemContent : bucketNode.contentMap.values())
@@ -1156,10 +1157,10 @@ public abstract class RepoIndexKDBase<
                     }
                 }
             }
-            case KDIntermediateNode<?, TContent, TArea> intermediateNodeUntyped ->
+            case KDIntermediateNode<TItem, ?, TContent, TArea> intermediateNodeUntyped ->
             {
                 //noinspection unchecked
-                KDIntermediateNode<Object, TContent, TArea> intermediateNode = (KDIntermediateNode<Object, TContent, TArea>) intermediateNodeUntyped;
+                KDIntermediateNode<TItem, Object, TContent, TArea> intermediateNode = (KDIntermediateNode<TItem, Object, TContent, TArea>) intermediateNodeUntyped;
 
                 // Get the value for the dimension of this node:
                 Object value = itemCoord.getValue(intermediateNode.dimension);
@@ -1226,7 +1227,7 @@ public abstract class RepoIndexKDBase<
      * @param divisionCell   The division cell to search in.
      * @return The nearest item in that division cell. Null if there is no item in this division.
      */
-    protected MeasuredItem<TItem, TDistance> searchNearestInDivisionCell(TItem item, HyperCoord itemCoordinate, DivisionCell<TContent, TArea> divisionCell)
+    protected MeasuredItem<TItem, TDistance> searchNearestInDivisionCell(TItem item, HyperCoord itemCoordinate, DivisionCell<TItem, TContent, TArea> divisionCell)
     {
         // Search for the nearest item in this division recursively:
         MeasuredItem<TItem, TDistance> bestResultToUpdate = new MeasuredItem<>();
@@ -1298,7 +1299,7 @@ public abstract class RepoIndexKDBase<
         stringBuilder.append(":");
 
         // Go through each division cell:
-        for (DivisionCell<TContent, TArea> divisionCell : this.divisionCube.cellsByBranchName.values())
+        for (DivisionCell<TItem, TContent, TArea> divisionCell : this.divisionCube.cellsByBranchName.values())
         {
             // Write the division cell details:
             divisionCell.toString(stringBuilder);

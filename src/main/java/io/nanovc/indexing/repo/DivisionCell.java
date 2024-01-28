@@ -11,10 +11,12 @@ import java.util.NavigableMap;
  * A cell of a {@link DivisionCube}.
  * This gives us a specific volume of the kd-space that we are looking at.
  * It also contains the {@link io.nanovc.AreaAPI content area} where the content is indexed.
+ * @param <TItem>    The specific type of item that this division cell holds.
  * @param <TContent> The specific type of content that the repo commits.
  * @param <TArea>    The specific type of content area that the repo commits.
  */
 public class DivisionCell<
+    TItem,
     TContent extends ContentAPI,
     TArea extends AreaAPI<TContent>
     >
@@ -22,7 +24,7 @@ public class DivisionCell<
     /**
      * The parent dimension in the chain that we walked to get to this {@link DivisionCell}.
      */
-    public DivisionDimension<TContent, TArea> parentDimension;
+    public DivisionDimension<TItem, TContent, TArea> parentDimension;
 
     /**
      * The hyper cube of the kd-space that this {@link DivisionCell cell} represents.
@@ -38,7 +40,7 @@ public class DivisionCell<
     /**
      * The root of the kd-tree.
      */
-    public KDNode<TContent, TArea> kdTreeRoot;
+    public KDNode<TItem, TContent, TArea> kdTreeRoot;
 
     /**
      * The content area for this division.
@@ -59,7 +61,7 @@ public class DivisionCell<
     /**
      * The nearest cells to this one.
      */
-    public List<DivisionCell<TContent, TArea>> nearestCells;
+    public List<DivisionCell<TItem, TContent, TArea>> nearestCells;
 
     @Override
     public String toString()

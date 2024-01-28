@@ -23,10 +23,12 @@ import java.util.TreeMap;
  * If there is only 1 dimension then it looks like this:
  * {@link Last}
  *
+ * @param <TItem>    The specific type of item that this division dimension holds.
  * @param <TContent> The specific type of content that the repo commits.
  * @param <TArea>    The specific type of content area that the repo commits.
  */
 public abstract sealed class DivisionDimension<
+    TItem,
     TContent extends ContentAPI,
     TArea extends AreaAPI<TContent>
     >
@@ -38,7 +40,7 @@ public abstract sealed class DivisionDimension<
     /**
      * The {@link DivisionCube division cube } that this {@link DivisionDimension division dimension} belongs to.
      */
-    public DivisionCube<TContent, TArea> divisionCube;
+    public DivisionCube<TItem, TContent, TArea> divisionCube;
 
     /**
      * The {@link HyperCube} of kd-space that this node of the chain (tree) represents.
@@ -60,44 +62,48 @@ public abstract sealed class DivisionDimension<
      * This is the first {@link DivisionDimension} in the chain.
      * This corresponds to the first {@link Dimension} in the {@link HyperCubeDefinition}.
      *
+     * @param <TItem>    The specific type of item that this division dimension holds.
      * @param <TContent> The specific type of content that the repo commits.
      * @param <TArea>    The specific type of content area that the repo commits.
      */
     public static final class First<
+        TItem,
         TContent extends ContentAPI,
         TArea extends AreaAPI<TContent>
         >
-        extends DivisionDimension<TContent, TArea>
+        extends DivisionDimension<TItem, TContent, TArea>
     {
         /**
          * The next dimension node, indexed by the division index.
          * This makes up the tree structure for the KD-Repo.
          */
-        public final Map<Integer, DivisionDimension<TContent, TArea>> nextDivisionDimensionByIndex = new HashMap<>();
+        public final Map<Integer, DivisionDimension<TItem, TContent, TArea>> nextDivisionDimensionByIndex = new HashMap<>();
     }
 
     /**
      * This is an intermediate (middle) {@link DivisionDimension} in the chain.
      *
+     * @param <TItem>    The specific type of item that this division dimension holds.
      * @param <TContent> The specific type of content that the repo commits.
      * @param <TArea>    The specific type of content area that the repo commits.
      */
     public static final class Intermediate<
+        TItem,
         TContent extends ContentAPI,
         TArea extends AreaAPI<TContent>
         >
-        extends DivisionDimension<TContent, TArea>
+        extends DivisionDimension<TItem, TContent, TArea>
     {
         /**
          * A pointer to the previous dimension that we point to.
          */
-        public DivisionDimension<TContent, TArea> previousDivisionDimension;
+        public DivisionDimension<TItem, TContent, TArea> previousDivisionDimension;
 
         /**
          * The next dimension node, indexed by the division index.
          * This makes up the tree structure for the KD-Repo.
          */
-        public final Map<Integer, DivisionDimension<TContent, TArea>> nextDivisionDimensionByIndex = new HashMap<>();
+        public final Map<Integer, DivisionDimension<TItem, TContent, TArea>> nextDivisionDimensionByIndex = new HashMap<>();
     }
 
     /**
@@ -106,26 +112,28 @@ public abstract sealed class DivisionDimension<
      * If a {@link HyperCubeDefinition} only has one {@link Dimension},\
      * then we go straight to using the {@link Last} division dimension.
      *
+     * @param <TItem>    The specific type of item that this division dimension holds.
      * @param <TContent> The specific type of content that the repo commits.
      * @param <TArea>    The specific type of content area that the repo commits.
      */
     public static final class Last<
+        TItem,
         TContent extends ContentAPI,
         TArea extends AreaAPI<TContent>
         >
-        extends DivisionDimension<TContent, TArea>
+        extends DivisionDimension<TItem, TContent, TArea>
     {
         /**
          * A pointer to the previous dimension that we point to.
          * If this is null then there is only one dimension in this chain.
          */
-        public DivisionDimension<TContent, TArea> previousDivisionDimension;
+        public DivisionDimension<TItem, TContent, TArea> previousDivisionDimension;
 
         /**
          * The cells where we have indexed data.
          * We only have cells when we are in the last dimension.
          */
-        public TreeMap<Integer, DivisionCell<?, ?>> cellsByIndex = new TreeMap<>();
+        public TreeMap<Integer, DivisionCell<TItem, TContent, TArea>> cellsByIndex = new TreeMap<>();
     }
 
     @Override public String toString()

@@ -9,15 +9,22 @@ import java.util.stream.Collectors;
 
 /**
  * A node in the KD-Tree
+ * @param <TItem>    The specific type of item that this node holds.
  * @param <TContent> The specific type of content that the repo commits.
  * @param <TArea>    The specific type of content area that the repo commits.
  */
 public final class KDBucketNode<
+    TItem,
     TContent extends ContentAPI,
     TArea extends AreaAPI<TContent>
     >
-    extends KDNode<TContent, TArea>
+    extends KDNode<TItem, TContent, TArea>
 {
+    /**
+     * The map of items stored in this bucket.
+     */
+    public Map<RepoPathNode, TItem> itemMap = new LinkedHashMap<>();
+
     /**
      * The map of content stored in this bucket.
      */

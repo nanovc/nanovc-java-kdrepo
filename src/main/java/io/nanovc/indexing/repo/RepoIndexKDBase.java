@@ -794,7 +794,8 @@ public abstract class RepoIndexKDBase<
 
             // Keep increasing the sphere radius until we find something:
             int sphereRadius = 0;
-            search: while (!hasFoundAnyCells)
+            search:
+            while (!hasFoundAnyCells)
             {
                 // Increase the radius of the sphere for this iteration:
                 sphereRadius++;
@@ -815,7 +816,7 @@ public abstract class RepoIndexKDBase<
                     int anchorLowestValue = Math.max(anchorCoordinateValue - sphereRadius, 0);
 
                     // Work out the highest index at the sphere distance for this dimension:
-                    int anchorHighestValue = Math.min(anchorCoordinateValue + sphereRadius, anchorDimensionRangeSplits.size()-1);
+                    int anchorHighestValue = Math.min(anchorCoordinateValue + sphereRadius, anchorDimensionRangeSplits.size() - 1);
 
                     // Work out the ranges to iterate for each of the dimensions:
                     int[] lowerIndexRangePerDimension = new int[dimensionCount];
@@ -847,7 +848,7 @@ public abstract class RepoIndexKDBase<
                             int otherLowestValue = Math.max(otherCoordinateValue - sphereRadius, 0);
 
                             // Work out the highest index at the sphere distance for this dimension:
-                            int otherHighestValue = Math.min(otherCoordinateValue + sphereRadius, otherDimensionRangeSplits.size()-1);
+                            int otherHighestValue = Math.min(otherCoordinateValue + sphereRadius, otherDimensionRangeSplits.size() - 1);
 
                             // Save the ranges:
                             lowerIndexRangePerDimension[dimensionIndex] = otherLowestValue;
@@ -1109,16 +1110,13 @@ public abstract class RepoIndexKDBase<
     /**
      * Searches for the nearest item for this kd-node.
      *
-     * @param itemToSearchFor The item to search for.
-     * @param itemCoord       The coordinate of the item in the hyper cube.
-     * @param currentNode     The current node that we are searching.
-     * @return The nearest item. Null if there is no item that can be found.
+     * @param itemToSearchFor    The item to search for.
+     * @param itemCoord          The coordinate of the item in the hyper cube.
+     * @param currentNode        The current node that we are searching.
+     * @param bestResultToUpdate This is a measured item instance to update while searching with the best result so far. This is used so that we can avoid memory allocations.
      */
-    protected MeasuredItem<TItem, TDistance> searchNearestInKDNode(TItem itemToSearchFor, HyperCoord itemCoord, KDNode<TContent, TArea> currentNode)
+    protected void searchNearestInKDNode(TItem itemToSearchFor, HyperCoord itemCoord, KDNode<TContent, TArea> currentNode, MeasuredItem<TItem, TDistance> bestResultToUpdate)
     {
-        // Keep track of the best result so far:
-        MeasuredItem<TItem, TDistance> bestResultSoFar = null;
-
         // Perform the search based on what type of node it is:
         switch (currentNode)
         {
@@ -1135,11 +1133,12 @@ public abstract class RepoIndexKDBase<
                     {
                         // This item is equal.
 
-                        // Create the measured item:
-                        MeasuredItem<TItem, TDistance> measuredItem = new MeasuredItem<>();
-                        measuredItem.item = item;
+                        // Flag this as an exact result:
+                        bestResultToUpdate.item = item;
+                        bestResultToUpdate.distance = null;
 
-                        return measuredItem;
+                        // Break out early:
+                        return;
                     }
                     // Now we know that the items are not equal.
 
@@ -1147,14 +1146,13 @@ public abstract class RepoIndexKDBase<
                     TDistance distance = measureDistanceBetween(item, itemToSearchFor);
 
                     // Check whether this distance is the best so far:
-                    if (bestResultSoFar == null || this.distanceComparator.compare(distance, bestResultSoFar.distance) < 0)
+                    if (bestResultToUpdate.distance == null || this.distanceComparator.compare(distance, bestResultToUpdate.distance) < 0)
                     {
                         // This item is closer.
 
                         // Flag this as the best item so far:
-                        bestResultSoFar = new MeasuredItem<>();
-                        bestResultSoFar.item = item;
-                        bestResultSoFar.distance = distance;
+                        bestResultToUpdate.item = item;
+                        bestResultToUpdate.distance = distance;
                     }
                 }
             }
@@ -1175,35 +1173,19 @@ public abstract class RepoIndexKDBase<
                     // We have a lower node.
 
                     // Check whether the item is within the current best distance from the lower range:
-                    // NOTE: The bestResultSoFar is always null at this point. It might be populated when searching the higher node.
-                    if (rangeCalculator.isWithinDistanceOfRange(value, null, true, intermediateNode.rangeSplit.lower()))
+                    if (rangeCalculator.isWithinDistanceOfRange(value, bestResultToUpdate.distance, true, intermediateNode.rangeSplit.lower()))
                     {
                         // This item is either in the range or within the distance of the range that we must check.
 
                         // Walk down the lower node recursively:
-                        MeasuredItem<TItem, TDistance> measuredItem = searchNearestInKDNode(itemToSearchFor, itemCoord, intermediateNode.lowerNode);
+                        searchNearestInKDNode(itemToSearchFor, itemCoord, intermediateNode.lowerNode, bestResultToUpdate);
 
-                        // Check whether we found an item in this range:
-                        if (measuredItem != null)
+                        // Check for an exact match (no distance):
+                        if (bestResultToUpdate.hasExactMatch())
                         {
-                            // We found an item in this range.
-
-                            // Check for an exact match (no distance):
-                            if (measuredItem.hasExactMatch())
-                            {
-                                // We got an exact match.
-                                return measuredItem;
-                            }
-
-                            // Check whether this distance is the best so far:
-                            ////noinspection ConstantValue // This is always null because the lower branch is the first one. This warning doesn't kick in for the higher node because we might have a nearer path from the lower node. Leaving this code commented for symmetry.
-                            //if (bestResultSoFar == null || this.distanceComparator.compare(measuredItem.distance, bestResultSoFar.distance) < 0)
-                            {
-                                // This item is closer.
-
-                                // Flag this as the best item so far:
-                                bestResultSoFar = measuredItem;
-                            }
+                            // We got an exact match.
+                            // Break out early:
+                            return;
                         }
                     }
                 }
@@ -1214,42 +1196,25 @@ public abstract class RepoIndexKDBase<
                     // We have a higher node.
 
                     // Check whether the item is within the current best distance from the higher range:
-                    if (rangeCalculator.isWithinDistanceOfRange(value, bestResultSoFar == null ? null : bestResultSoFar.distance, true, intermediateNode.rangeSplit.higher()))
+                    if (rangeCalculator.isWithinDistanceOfRange(value, bestResultToUpdate.distance, true, intermediateNode.rangeSplit.higher()))
                     {
                         // This item is either in the range or within the distance of the range that we must check.
 
                         // Walk down the higher node recursively:
-                        MeasuredItem<TItem, TDistance> measuredItem = searchNearestInKDNode(itemToSearchFor, itemCoord, intermediateNode.higherNode);
+                        searchNearestInKDNode(itemToSearchFor, itemCoord, intermediateNode.higherNode, bestResultToUpdate);
 
-                        // Check whether we found an item in this range:
-                        if (measuredItem != null)
+                        // Check for an exact match (no distance):
+                        if (bestResultToUpdate.hasExactMatch())
                         {
-                            // We found an item in this range.
-
-                            // Check for an exact match (no distance):
-                            if (measuredItem.hasExactMatch())
-                            {
-                                // We got an exact match.
-                                return measuredItem;
-                            }
-
-                            // Check whether this distance is the best so far:
-                            if (bestResultSoFar == null || this.distanceComparator.compare(measuredItem.distance, bestResultSoFar.distance) < 0)
-                            {
-                                // This item is closer.
-
-                                // Flag this as the best item so far:
-                                bestResultSoFar = measuredItem;
-                            }
+                            // We got an exact match.
+                            // Break out early:
+                            return;
                         }
                     }
                 }
             }
             default -> throw new IllegalStateException("Unexpected value: " + currentNode);
         }
-
-        // Check whether we found an item:
-        return bestResultSoFar;
     }
 
     /**
@@ -1264,7 +1229,9 @@ public abstract class RepoIndexKDBase<
     protected MeasuredItem<TItem, TDistance> searchNearestInDivisionCell(TItem item, HyperCoord itemCoordinate, DivisionCell<TContent, TArea> divisionCell)
     {
         // Search for the nearest item in this division recursively:
-        return searchNearestInKDNode(item, itemCoordinate, divisionCell.kdTreeRoot);
+        MeasuredItem<TItem, TDistance> bestResultToUpdate = new MeasuredItem<>();
+        searchNearestInKDNode(item, itemCoordinate, divisionCell.kdTreeRoot, bestResultToUpdate);
+        return bestResultToUpdate;
     }
 
     /**
@@ -1417,6 +1384,7 @@ public abstract class RepoIndexKDBase<
 
     /**
      * Gets the definition of the hyper cube that defines the dimensions for this index.
+     *
      * @return The definition of the hyper cube that defines the dimensions for this index.
      */
     public HyperCubeDefinition getHyperCubeDefinition()

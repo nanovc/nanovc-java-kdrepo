@@ -1,13 +1,14 @@
 package io.nanovc.indexing.repo;
 
 import io.nanovc.*;
-import io.nanovc.indexing.*;
+import io.nanovc.indexing.Extractor;
+import io.nanovc.indexing.IndexKDBase;
+import io.nanovc.indexing.Measurer;
 import io.nanovc.indexing.repo.ranges.Range;
 import io.nanovc.indexing.repo.ranges.RangeCalculator;
 import io.nanovc.indexing.repo.ranges.RangeSplit;
 import io.nanovc.indexing.repo.ranges.RangeSplitInclusion;
 
-import java.nio.ByteBuffer;
 import java.util.*;
 
 /**
@@ -1116,8 +1117,7 @@ public abstract class RepoIndexKDBase<
     protected MeasuredItem<TItem, TDistance> searchNearestInKDNode(TItem itemToSearchFor, HyperCoord itemCoord, KDNode<TContent, TArea> currentNode)
     {
         // Keep track of the best result so far:
-        TItem bestItemSoFar = null;
-        TDistance bestDistanceSoFar = null;
+        MeasuredItem<TItem, TDistance> bestResultSoFar = null;
 
         // Perform the search based on what type of node it is:
         switch (currentNode)
@@ -1148,13 +1148,15 @@ public abstract class RepoIndexKDBase<
                     TDistance distance = measureDistanceBetween(item, itemToSearchFor);
 
                     // Check whether this distance is the best so far:
-                    if (bestDistanceSoFar == null || this.distanceComparator.compare(distance, bestDistanceSoFar) < 0)
+                    if (bestResultSoFar == null || this.distanceComparator.compare(distance, bestResultSoFar.distance) < 0)
                     {
                         // This item is closer.
 
                         // Flag this as the best item so far:
-                        bestItemSoFar = item;
-                        bestDistanceSoFar = distance;
+                        bestResultSoFar = new MeasuredItem<>();
+                        bestResultSoFar.item = item;
+                        bestResultSoFar.distance = distance;
+                        bestResultSoFar.coordinate = extractItemCoordinate(item, this.hyperCubeDefinition);
                     }
                 }
             }
@@ -1175,7 +1177,7 @@ public abstract class RepoIndexKDBase<
                     // We have a lower node.
 
                     // Check whether the item is within the current best distance from the lower range:
-                    if (rangeCalculator.isWithinDistanceOfRange(value, bestDistanceSoFar, true, intermediateNode.rangeSplit.lower()))
+                    if (rangeCalculator.isWithinDistanceOfRange(value, bestResultSoFar == null ? null : bestResultSoFar.distance, true, intermediateNode.rangeSplit.lower()))
                     {
                         // This item is either in the range or within the distance of the range that we must check.
 
@@ -1195,13 +1197,13 @@ public abstract class RepoIndexKDBase<
                             }
 
                             // Check whether this distance is the best so far:
-                            if (bestDistanceSoFar == null || this.distanceComparator.compare(measuredItem.distance, bestDistanceSoFar) < 0)
+                            ////noinspection ConstantValue // This is always null because the lower branch is the first one. This warning doesn't kick in for the higher node because we might have a nearer path from the lower node. Leaving this code commented for symmetry.
+                            //if (bestResultSoFar == null || this.distanceComparator.compare(measuredItem.distance, bestResultSoFar.distance) < 0)
                             {
                                 // This item is closer.
 
                                 // Flag this as the best item so far:
-                                bestItemSoFar = measuredItem.item;
-                                bestDistanceSoFar = measuredItem.distance;
+                                bestResultSoFar = measuredItem;
                             }
                         }
                     }
@@ -1213,7 +1215,7 @@ public abstract class RepoIndexKDBase<
                     // We have a higher node.
 
                     // Check whether the item is within the current best distance from the higher range:
-                    if (rangeCalculator.isWithinDistanceOfRange(value, bestDistanceSoFar, true, intermediateNode.rangeSplit.higher()))
+                    if (rangeCalculator.isWithinDistanceOfRange(value, bestResultSoFar == null ? null : bestResultSoFar.distance, true, intermediateNode.rangeSplit.higher()))
                     {
                         // This item is either in the range or within the distance of the range that we must check.
 
@@ -1233,13 +1235,12 @@ public abstract class RepoIndexKDBase<
                             }
 
                             // Check whether this distance is the best so far:
-                            if (bestDistanceSoFar == null || this.distanceComparator.compare(measuredItem.distance, bestDistanceSoFar) < 0)
+                            if (bestResultSoFar == null || this.distanceComparator.compare(measuredItem.distance, bestResultSoFar.distance) < 0)
                             {
                                 // This item is closer.
 
                                 // Flag this as the best item so far:
-                                bestItemSoFar = measuredItem.item;
-                                bestDistanceSoFar = measuredItem.distance;
+                                bestResultSoFar = measuredItem;
                             }
                         }
                     }
@@ -1249,21 +1250,7 @@ public abstract class RepoIndexKDBase<
         }
 
         // Check whether we found an item:
-        if (bestItemSoFar != null)
-        {
-            // Create the measured item:
-            MeasuredItem<TItem, TDistance> measuredItem = new MeasuredItem<>();
-            measuredItem.item = bestItemSoFar;
-            measuredItem.coordinate = extractItemCoordinate(bestItemSoFar, this.hyperCubeDefinition);
-            measuredItem.distance = bestDistanceSoFar;
-
-            return measuredItem;
-        }
-        else
-        {
-            // We didn't find an item.
-            return null;
-        }
+        return bestResultSoFar;
     }
 
     /**

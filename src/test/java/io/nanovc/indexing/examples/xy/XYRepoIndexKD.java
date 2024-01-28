@@ -30,7 +30,6 @@ public class XYRepoIndexKD extends RepoIndexKDImplementation<
     {
         super(
             XY.defineHyperCube(minRange, maxRange),
-            2,
             minRange, maxRange, divisions, 10,
             XY::extractCoordinate, XY::measureDistanceL2NormEuclidean, Double::compare,
             Double::sum, (left, right) -> left - right, Double.MAX_VALUE,

@@ -28,7 +28,6 @@ public class XRepoIndexKD extends RepoIndexKDImplementation<
     {
         super(
             X.defineHyperCube(minRange, maxRange),
-            1,
             minRange, maxRange, divisions, 10,
             X::extractCoordinate, X::measureDistance, Integer::compare,
             Integer::sum, (left, right) -> left - right, Integer.MAX_VALUE,

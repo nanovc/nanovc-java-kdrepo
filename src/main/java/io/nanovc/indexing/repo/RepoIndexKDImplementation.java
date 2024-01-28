@@ -26,7 +26,6 @@ public class RepoIndexKDImplementation<
 {
     public RepoIndexKDImplementation(
         HyperCubeDefinition hyperCubeDefinition,
-        int numberOfDimensions,
         TItem minRange, TItem maxRange, int divisions, int bucketThreshold,
         Extractor<TItem> extractor, Measurer<TItem, TDistance> measurer, Comparator<TDistance> distanceComparator,
         Operator<TDistance> distanceAdder, Operator<TDistance> distanceSubtractor, TDistance maxDistance,
@@ -37,7 +36,6 @@ public class RepoIndexKDImplementation<
     {
         super(
             hyperCubeDefinition,
-            numberOfDimensions,
             minRange, maxRange, divisions, bucketThreshold,
             extractor, measurer, distanceComparator,
             distanceAdder, distanceSubtractor, maxDistance,

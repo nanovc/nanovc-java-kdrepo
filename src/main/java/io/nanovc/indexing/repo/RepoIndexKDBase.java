@@ -44,12 +44,6 @@ public abstract class RepoIndexKDBase<
     public final static String BUCKET_ITEMS_PATH_NAME = "📁";
 
     /**
-     * The number of dimensions that this index supports.
-     * This is defined by the type of content of TItem that is being indexed.
-     */
-    private final int numberOfDimensions;
-
-    /**
      * The minimum range of this index.
      */
     private final TItem minRange;
@@ -154,7 +148,6 @@ public abstract class RepoIndexKDBase<
 
     public RepoIndexKDBase(
         HyperCubeDefinition hyperCubeDefinition,
-        int numberOfDimensions,
         TItem minRange, TItem maxRange, int divisions, int bucketThreshold,
         Extractor<TItem> extractor, Measurer<TItem, TDistance> measurer, Comparator<TDistance> distanceComparator,
         Operator<TDistance> distanceAdder, Operator<TDistance> distanceSubtractor, TDistance maxDistance,
@@ -164,7 +157,6 @@ public abstract class RepoIndexKDBase<
     )
     {
         this.hyperCubeDefinition = hyperCubeDefinition;
-        this.numberOfDimensions = numberOfDimensions;
         this.minRange = minRange;
         this.maxRange = maxRange;
         this.divisions = divisions;

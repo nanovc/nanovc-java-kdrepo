@@ -1033,7 +1033,7 @@ public abstract class RepoIndexKDBase<
 
                         // Get the coordinate in this dimension:
                         Object coordOfItemInDimension = itemCoordinate.getValue(dimensionIndex);
-                        Object coordOfNearestInDimension = bestResult.coordinate.getValue(dimensionIndex);
+                        Object coordOfNearestInDimension = extractor.extractDimensionalValue(bestResult.item, dimensionIndex);
 
                         // Get the distance between the two coordinates in this dimension:
                         Object distanceBetween = dimension.getArithmetic().distanceBetween(coordOfItemInDimension, coordOfNearestInDimension);
@@ -1138,7 +1138,6 @@ public abstract class RepoIndexKDBase<
                         // Create the measured item:
                         MeasuredItem<TItem, TDistance> measuredItem = new MeasuredItem<>();
                         measuredItem.item = item;
-                        measuredItem.coordinate = itemCoord;
 
                         return measuredItem;
                     }
@@ -1156,7 +1155,6 @@ public abstract class RepoIndexKDBase<
                         bestResultSoFar = new MeasuredItem<>();
                         bestResultSoFar.item = item;
                         bestResultSoFar.distance = distance;
-                        bestResultSoFar.coordinate = extractItemCoordinate(item, this.hyperCubeDefinition);
                     }
                 }
             }
@@ -1177,7 +1175,8 @@ public abstract class RepoIndexKDBase<
                     // We have a lower node.
 
                     // Check whether the item is within the current best distance from the lower range:
-                    if (rangeCalculator.isWithinDistanceOfRange(value, bestResultSoFar == null ? null : bestResultSoFar.distance, true, intermediateNode.rangeSplit.lower()))
+                    // NOTE: The bestResultSoFar is always null at this point. It might be populated when searching the higher node.
+                    if (rangeCalculator.isWithinDistanceOfRange(value, null, true, intermediateNode.rangeSplit.lower()))
                     {
                         // This item is either in the range or within the distance of the range that we must check.
 

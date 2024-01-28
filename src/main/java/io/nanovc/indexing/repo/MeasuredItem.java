@@ -11,11 +11,6 @@ public class MeasuredItem<TItem, TDistance>
     public TItem item;
 
     /**
-     * The coordinates of this item in the hyper-cube.
-     */
-    public HyperCoord coordinate;
-
-    /**
      * The distance to the target that was measured.
      * If this is null then the item is an exact match so the distance was not measured explicitly.
      */

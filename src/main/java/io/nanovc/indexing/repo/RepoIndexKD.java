@@ -62,13 +62,6 @@ public interface RepoIndexKD<
     Comparator<TDistance> getDistanceComparator();
 
     /**
-     * Gets the range splitter that divides the range into a set of divisions.
-     *
-     * @return The range splitter that divides the range into a set of divisions.
-     */
-    RangeSplitter<TItem> getRangeSplitter();
-
-    /**
      * Gets the repo handler to use for this repo index.
      *
      * @return The repo handler to use for this repo index.

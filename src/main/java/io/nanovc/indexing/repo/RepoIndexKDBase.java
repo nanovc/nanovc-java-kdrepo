@@ -85,16 +85,6 @@ public abstract class RepoIndexKDBase<
     private final Comparator<TDistance> distanceComparator;
 
     /**
-     * The range splitter that divides the range into a set of divisions.
-     */
-    private final RangeSplitter<TItem> rangeSplitter;
-
-    /**
-     * The splits for the range.
-     */
-    private final List<TItem> rangeSplits;
-
-    /**
      * The repo handler to use for this repo index.
      */
     private final TRepoHandler repoHandler;
@@ -140,7 +130,6 @@ public abstract class RepoIndexKDBase<
         TItem minRange, TItem maxRange, int divisions, int bucketThreshold,
         Extractor<TItem> extractor, Measurer<TItem, TDistance> measurer, Comparator<TDistance> distanceComparator,
         Operator<TDistance> distanceAdder, Operator<TDistance> distanceSubtractor,
-        RangeSplitter<TItem> rangeSplitter,
         TRepoHandler repoHandler, RepoPath rootRepoPath,
         ContentCreator<TItem, TContent> contentCreator, ContentReader<TItem, TContent> contentReader
     )
@@ -155,62 +144,10 @@ public abstract class RepoIndexKDBase<
         this.distanceComparator = distanceComparator;
         this.distanceAdder = distanceAdder;
         this.distanceSubtractor = distanceSubtractor;
-        this.rangeSplitter = rangeSplitter;
         this.repoHandler = repoHandler;
         this.rootRepoPath = rootRepoPath;
         this.contentCreator = contentCreator;
         this.contentReader = contentReader;
-
-        // Split the range:
-        this.rangeSplits = new ArrayList<>(divisions);
-        this.splitRange(minRange, maxRange, divisions, true, this.rangeSplits);
-    }
-
-    /**
-     * This splits the range given by the two items into the given number of divisions.
-     *
-     * @param minRange                   The item at the minimum range to measure the distance from.
-     * @param maxRange                   The item at the maximum range to measure the distance to.
-     * @param divisions                  The number of divisions to split the range into.
-     * @param includeExtraRightMostSplit True to include an extra item in the list (1 more than the requested number of divisions) to represent the right most edge of the range. If this is false then we only have the left edges, leading up to but not including the right part of the range.
-     * @param splitsToAddTo              The collection of splits to add to while we split the range.
-     */
-    protected void splitRange(TItem minRange, TItem maxRange, int divisions, boolean includeExtraRightMostSplit, List<TItem> splitsToAddTo)
-    {
-        this.rangeSplitter.splitRange(minRange, maxRange, divisions, includeExtraRightMostSplit, splitsToAddTo);
-    }
-
-    /**
-     * Gets the lower range of the given division.
-     *
-     * @param divisionIndex The division that we want to get the lower range value of.
-     * @return The lower range of the given division.
-     */
-    protected TItem getDivisionMinRange(int divisionIndex)
-    {
-        // Make sure we are within our bounds:
-        divisionIndex = Math.max(0, Math.min(this.rangeSplits.size() - 1, divisionIndex));
-
-        // Get the division:
-        return this.rangeSplits.get(divisionIndex);
-    }
-
-    /**
-     * Gets the upper range of the given division.
-     *
-     * @param divisionIndex The division that we want to get the lower range value of.
-     * @return The lower range of the given division.
-     */
-    protected TItem getDivisionMaxRange(int divisionIndex)
-    {
-        // Get the next division:
-        int nextDivisionIndex = divisionIndex + 1;
-
-        // Make sure we are within our bounds:
-        nextDivisionIndex = Math.max(0, Math.min(this.rangeSplits.size() - 1, nextDivisionIndex));
-
-        // Get the division:
-        return this.rangeSplits.get(nextDivisionIndex);
     }
 
     /**
@@ -1835,66 +1772,6 @@ public abstract class RepoIndexKDBase<
         return this.measurer.measureDistanceBetween(item1, item2);
     }
 
-    /**
-     * Gets the division for the given index.
-     *
-     * @param index The index of the division that we want to get the division for.
-     * @return The division for the specific index. Null if there is no division at that index yet.
-     */
-    protected Division<TItem, TContent, TArea> getDivision(int index)
-    {
-        return this.divisionsByIndex.get(index);
-    }
-
-    /**
-     * Gets or creates the division for the given index.
-     *
-     * @param index The index of the division that we want to get the division for.
-     * @return The division for the specific index.
-     */
-    protected Division<TItem, TContent, TArea> getOrCreateDivision(int index)
-    {
-        return this.divisionsByIndex.computeIfAbsent(
-            index, _unused ->
-            {
-                var division = new Division<TItem, TContent, TArea>();
-                division.divisionIndex = index;
-                division.minRange = this.getDivisionMinRange(index);
-                division.maxRange = this.getDivisionMaxRange(index);
-                division.repoPathTree = new RepoPathTree();
-                division.contentArea = this.repoHandler.createArea();
-                return division;
-            }
-        );
-    }
-
-
-    /**
-     * Gets the next nearest division that is lower than the given index.
-     *
-     * @param index The index of the division that we want to get the division for.
-     * @return The nearest division that is lower than the specific index. Null if there is no division lower than that index.
-     */
-    protected Division<TItem, TContent, TArea> getNearestLowerDivision(int index)
-    {
-        // Find the next lower entry:
-        Map.Entry<Integer, Division<TItem, TContent, TArea>> entry = this.divisionsByIndex.lowerEntry(index);
-        return entry == null ? null : entry.getValue();
-    }
-
-    /**
-     * Gets the next nearest division that is higher than the given index.
-     *
-     * @param index The index of the division that we want to get the division for.
-     * @return The nearest division that is higher than the specific index. Null if there is no division higher than that index.
-     */
-    protected Division<TItem, TContent, TArea> getNearestHigherDivision(int index)
-    {
-        // Find the next higher entry:
-        Map.Entry<Integer, Division<TItem, TContent, TArea>> entry = this.divisionsByIndex.higherEntry(index);
-        return entry == null ? null : entry.getValue();
-    }
-
     @Override public String toString()
     {
         // Print out the content tree:
@@ -1975,17 +1852,6 @@ public abstract class RepoIndexKDBase<
     public Comparator<TDistance> getDistanceComparator()
     {
         return this.distanceComparator;
-    }
-
-    /**
-     * Gets the range splitter that divides the range into a set of divisions.
-     *
-     * @return The range splitter that divides the range into a set of divisions.
-     */
-    @Override
-    public RangeSplitter<TItem> getRangeSplitter()
-    {
-        return this.rangeSplitter;
     }
 
     /**

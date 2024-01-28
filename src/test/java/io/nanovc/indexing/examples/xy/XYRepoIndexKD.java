@@ -33,7 +33,6 @@ public class XYRepoIndexKD extends RepoIndexKDImplementation<
             minRange, maxRange, divisions, 10,
             XY::extractCoordinate, XY::measureDistanceL2NormEuclidean, Double::compare,
             Double::sum, (left, right) -> left - right,
-            XY::splitRange,
             repoHandler, rootRepoPath,
             contentCreator, contentReader
             );

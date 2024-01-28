@@ -31,7 +31,6 @@ public class XRepoIndexKD extends RepoIndexKDImplementation<
             minRange, maxRange, divisions, 10,
             X::extractCoordinate, X::measureDistance, Integer::compare,
             Integer::sum, (left, right) -> left - right,
-            X::splitRange,
             repoHandler, rootRepoPath,
             contentCreator, contentReader
             );

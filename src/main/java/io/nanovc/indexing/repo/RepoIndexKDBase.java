@@ -90,11 +90,6 @@ public abstract class RepoIndexKDBase<
     private final RangeSplitter<TItem> rangeSplitter;
 
     /**
-     * The range finder that gets the index of an item in the divisions of a range.
-     */
-    private final RangeFinder<TItem> rangeFinder;
-
-    /**
      * The splits for the range.
      */
     private final List<TItem> rangeSplits;
@@ -145,7 +140,7 @@ public abstract class RepoIndexKDBase<
         TItem minRange, TItem maxRange, int divisions, int bucketThreshold,
         Extractor<TItem> extractor, Measurer<TItem, TDistance> measurer, Comparator<TDistance> distanceComparator,
         Operator<TDistance> distanceAdder, Operator<TDistance> distanceSubtractor,
-        RangeSplitter<TItem> rangeSplitter, RangeFinder<TItem> rangeFinder,
+        RangeSplitter<TItem> rangeSplitter,
         TRepoHandler repoHandler, RepoPath rootRepoPath,
         ContentCreator<TItem, TContent> contentCreator, ContentReader<TItem, TContent> contentReader
     )
@@ -161,7 +156,6 @@ public abstract class RepoIndexKDBase<
         this.distanceAdder = distanceAdder;
         this.distanceSubtractor = distanceSubtractor;
         this.rangeSplitter = rangeSplitter;
-        this.rangeFinder = rangeFinder;
         this.repoHandler = repoHandler;
         this.rootRepoPath = rootRepoPath;
         this.contentCreator = contentCreator;
@@ -1796,20 +1790,6 @@ public abstract class RepoIndexKDBase<
     }
 
     /**
-     * This finds the division index for an item in a range that is defined by two other items.
-     *
-     * @param minRange          The item at the minimum range to measure the distance from.
-     * @param maxRange          The item at the maximum range to measure the distance to.
-     * @param divisions         The number of divisions to split the range into.
-     * @param itemToFindInRange The item to find the index of for the given range.
-     * @return The index of the division of the given item in the range specified.
-     */
-    protected int findIndexInRange(TItem minRange, TItem maxRange, int divisions, TItem itemToFindInRange)
-    {
-        return this.rangeFinder.findIndexInRange(minRange, maxRange, divisions, itemToFindInRange);
-    }
-
-    /**
      * Gets the repo path for the given item details.
      *
      * @param divisionIndex The index of the division that the item is in.
@@ -2006,17 +1986,6 @@ public abstract class RepoIndexKDBase<
     public RangeSplitter<TItem> getRangeSplitter()
     {
         return this.rangeSplitter;
-    }
-
-    /**
-     * Gets the range finder that gets the index of an item in the divisions of a range.
-     *
-     * @return The range finder that gets the index of an item in the divisions of a range.
-     */
-    @Override
-    public RangeFinder<TItem> getRangeFinder()
-    {
-        return this.rangeFinder;
     }
 
     /**

@@ -29,7 +29,7 @@ public class RepoIndexKDImplementation<
         TItem minRange, TItem maxRange, int divisions, int bucketThreshold,
         Extractor<TItem> extractor, Measurer<TItem, TDistance> measurer, Comparator<TDistance> distanceComparator,
         Operator<TDistance> distanceAdder, Operator<TDistance> distanceSubtractor,
-        RangeSplitter<TItem> rangeSplitter, RangeFinder<TItem> rangeFinder,
+        RangeSplitter<TItem> rangeSplitter,
         TRepoHandler repoHandler, RepoPath rootRepoPath,
         ContentCreator<TItem, TContent> contentCreator, ContentReader<TItem, TContent> contentReader
     )
@@ -39,7 +39,7 @@ public class RepoIndexKDImplementation<
             minRange, maxRange, divisions, bucketThreshold,
             extractor, measurer, distanceComparator,
             distanceAdder, distanceSubtractor,
-            rangeSplitter, rangeFinder,
+            rangeSplitter,
             repoHandler, rootRepoPath,
             contentCreator, contentReader
         );

@@ -69,13 +69,6 @@ public interface RepoIndexKD<
     RangeSplitter<TItem> getRangeSplitter();
 
     /**
-     * Gets the range finder that gets the index of an item in the divisions of a range.
-     *
-     * @return The range finder that gets the index of an item in the divisions of a range.
-     */
-    RangeFinder<TItem> getRangeFinder();
-
-    /**
      * Gets the repo handler to use for this repo index.
      *
      * @return The repo handler to use for this repo index.

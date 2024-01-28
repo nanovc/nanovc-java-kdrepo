@@ -1123,12 +1123,18 @@ public abstract class RepoIndexKDBase<
         {
             case KDBucketNode<TItem, TContent, TArea> bucketNode ->
             {
+                // NOTE: We currently cache the items in the bucket,
+                //       but we could easily re-hydrate them from the content if we needed to
+                //       (for example if we were offloading the division cell to offline storage)
                 // Search through the bucket:
-                for (TContent itemContent : bucketNode.contentMap.values())
-                {
-                    // Get the item from the content:
-                    TItem item = readItemFromContent(itemContent);
+                // for (TContent itemContent : bucketNode.contentMap.values())
+                // {
+                //     // Get the item from the content:
+                //     TItem item = readItemFromContent(itemContent);
 
+                // Search through the bucket:
+                for (TItem item : bucketNode.itemMap.values())
+                {
                     // Check whether the existing item is equal to the item:
                     if (item.equals(itemToSearchFor))
                     {

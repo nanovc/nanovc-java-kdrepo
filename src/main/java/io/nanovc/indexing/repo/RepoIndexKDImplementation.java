@@ -28,7 +28,6 @@ public class RepoIndexKDImplementation<
         HyperCubeDefinition hyperCubeDefinition,
         int divisions, int bucketThreshold,
         Extractor<TItem> extractor, Measurer<TItem, TDistance> measurer, Comparator<TDistance> distanceComparator,
-        Operator<TDistance> distanceAdder, Operator<TDistance> distanceSubtractor,
         TRepoHandler repoHandler, RepoPath rootRepoPath,
         ContentCreator<TItem, TContent> contentCreator, ContentReader<TItem, TContent> contentReader
     )
@@ -37,7 +36,6 @@ public class RepoIndexKDImplementation<
             hyperCubeDefinition,
             divisions, bucketThreshold,
             extractor, measurer, distanceComparator,
-            distanceAdder, distanceSubtractor,
             repoHandler, rootRepoPath,
             contentCreator, contentReader
         );

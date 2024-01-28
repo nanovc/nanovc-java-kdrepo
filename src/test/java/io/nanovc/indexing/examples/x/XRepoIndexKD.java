@@ -30,7 +30,6 @@ public class XRepoIndexKD extends RepoIndexKDImplementation<
             X.defineHyperCube(minRange, maxRange),
             divisions, bucketThreshold,
             X::extractCoordinate, X::measureDistance, Integer::compare,
-            Integer::sum, (left, right) -> left - right,
             repoHandler, rootRepoPath,
             contentCreator, contentReader
             );

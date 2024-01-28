@@ -89,16 +89,6 @@ public abstract class RepoIndexKDBase<
     private final ContentReader<TItem, TContent> contentReader;
 
     /**
-     * The operator for adding distances together.
-     */
-    private final Operator<TDistance> distanceAdder;
-
-    /**
-     * The operator for subtracting distances.
-     */
-    private final Operator<TDistance> distanceSubtractor;
-
-    /**
      * The definition of the hyper cube that defines the dimensions for this index.
      */
     protected final HyperCubeDefinition hyperCubeDefinition;
@@ -113,7 +103,6 @@ public abstract class RepoIndexKDBase<
         HyperCubeDefinition hyperCubeDefinition,
         int divisions, int bucketThreshold,
         Extractor<TItem> extractor, Measurer<TItem, TDistance> measurer, Comparator<TDistance> distanceComparator,
-        Operator<TDistance> distanceAdder, Operator<TDistance> distanceSubtractor,
         TRepoHandler repoHandler, RepoPath rootRepoPath,
         ContentCreator<TItem, TContent> contentCreator, ContentReader<TItem, TContent> contentReader
     )
@@ -124,8 +113,6 @@ public abstract class RepoIndexKDBase<
         this.extractor = extractor;
         this.measurer = measurer;
         this.distanceComparator = distanceComparator;
-        this.distanceAdder = distanceAdder;
-        this.distanceSubtractor = distanceSubtractor;
         this.repoHandler = repoHandler;
         this.rootRepoPath = rootRepoPath;
         this.contentCreator = contentCreator;

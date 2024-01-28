@@ -1192,7 +1192,7 @@ public abstract class XIndex1DTests
          */
         @Override protected XRepoIndexKD createIndex(double range)
         {
-            return new XRepoIndexKD(new X((int) -range), new X((int) range), Math.max(1, (int) (range / 100)));
+            return new XRepoIndexKD(new X((int) -range), new X((int) range), Math.max(1, (int) (range / 100)), 10);
         }
     }
 

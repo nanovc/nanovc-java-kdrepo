@@ -128,9 +128,11 @@ public class HyperCubeDefinition
         int dimensionCount = this.getDimensionCount();
         for (int dimensionIndex = 0; dimensionIndex < dimensionCount; dimensionIndex++)
         {
-            if (dimensionIndex != 0) sb.append(",");
+            if (dimensionIndex != 0) sb.append(", ");
             Dimension<?> dimension = this.getDimension(dimensionIndex);
             sb.append(dimension.getName());
+            sb.append(": ");
+            sb.append(dimension.getRange().toString());
         }
         return sb.toString();
     }

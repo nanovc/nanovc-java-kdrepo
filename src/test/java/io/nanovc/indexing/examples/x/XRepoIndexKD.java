@@ -24,11 +24,11 @@ public class XRepoIndexKD extends RepoIndexKDImplementation<
     implements Index1D<X>
 {
 
-    public XRepoIndexKD(X minRange, X maxRange, int divisions, StringMemoryRepoHandler repoHandler, RepoPath rootRepoPath, ContentCreator<X, StringContent> contentCreator, ContentReader<X, StringContent> contentReader)
+    public XRepoIndexKD(X minRange, X maxRange, int divisions, int bucketThreshold, StringMemoryRepoHandler repoHandler, RepoPath rootRepoPath, ContentCreator<X, StringContent> contentCreator, ContentReader<X, StringContent> contentReader)
     {
         super(
             X.defineHyperCube(minRange, maxRange),
-            minRange, maxRange, divisions, 10,
+            divisions, bucketThreshold,
             X::extractCoordinate, X::measureDistance, Integer::compare,
             Integer::sum, (left, right) -> left - right,
             repoHandler, rootRepoPath,
@@ -36,10 +36,10 @@ public class XRepoIndexKD extends RepoIndexKDImplementation<
             );
     }
 
-    public XRepoIndexKD(X minRange, X maxRange, int divisions)
+    public XRepoIndexKD(X minRange, X maxRange, int divisions, int bucketThreshold)
     {
         this(
-            minRange, maxRange, divisions,
+            minRange, maxRange, divisions, bucketThreshold,
             new StringMemoryRepoHandler(), RepoPath.atRoot(),
             XRepoIndexKD::createXContent, XRepoIndexKD::readXFromContent
         );

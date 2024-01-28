@@ -44,16 +44,6 @@ public abstract class RepoIndexKDBase<
     public final static String BUCKET_ITEMS_PATH_NAME = "📁";
 
     /**
-     * The minimum range of this index.
-     */
-    private final TItem minRange;
-
-    /**
-     * The maximum range of this index.
-     */
-    private final TItem maxRange;
-
-    /**
      * The number of divisions to use for this grid index.
      */
     private final int divisions;
@@ -62,12 +52,6 @@ public abstract class RepoIndexKDBase<
      * This is the maximum number of items that we want to keep in a bucket before we split the range further.
      */
     private final int bucketThreshold;
-
-    /**
-     * This contains information for each division of the range for the repo index.
-     * Each division corresponds to the grid based split of the range for this index {@link #getMinRange()} {@link #getMaxRange()}.
-     */
-    private final NavigableMap<Integer, Division<TItem, TContent, TArea>> divisionsByIndex = new TreeMap<>();
 
     /**
      * This is used for extracting specific dimensional values from an item.
@@ -127,7 +111,7 @@ public abstract class RepoIndexKDBase<
 
     public RepoIndexKDBase(
         HyperCubeDefinition hyperCubeDefinition,
-        TItem minRange, TItem maxRange, int divisions, int bucketThreshold,
+        int divisions, int bucketThreshold,
         Extractor<TItem> extractor, Measurer<TItem, TDistance> measurer, Comparator<TDistance> distanceComparator,
         Operator<TDistance> distanceAdder, Operator<TDistance> distanceSubtractor,
         TRepoHandler repoHandler, RepoPath rootRepoPath,
@@ -135,8 +119,6 @@ public abstract class RepoIndexKDBase<
     )
     {
         this.hyperCubeDefinition = hyperCubeDefinition;
-        this.minRange = minRange;
-        this.maxRange = maxRange;
         this.divisions = divisions;
         this.bucketThreshold = bucketThreshold;
         this.extractor = extractor;
@@ -1648,85 +1630,6 @@ public abstract class RepoIndexKDBase<
     }
 
     /**
-     * Searches for the nearest item by doing a full scan of the global item map.
-     * WARNING: Slow performance.
-     *
-     * @param itemToSearchFor The item to search for.
-     * @return The nearest item. Null if there are no items in this division.
-     */
-    protected MeasuredItem<TItem, TDistance> searchIndexWithFullScan(TItem itemToSearchFor)
-    {
-        // Keep track of the best result so far:
-        TItem bestItemSoFar = null;
-        TDistance bestDistanceSoFar = null;
-
-        // Search through each division:
-        for (Division<TItem, TContent, TArea> division : this.divisionsByIndex.values())
-        {
-            // Go through all content in this division:
-            for (AreaEntry<TContent> entry : division.contentArea)
-            {
-                // Get the path for the entry:
-                RepoPath repoPath = entry.getPath();
-
-                // Check whether this is content for items:
-                if (repoPath.path.endsWith(CONTENT_PATH_NAME))
-                {
-                    // This is content for an item.
-
-                    // Get the content for this item:
-                    TContent itemContent = entry.getContent();
-
-                    // Get the item from this content:
-                    TItem item = readItemFromContent(itemContent);
-
-                    // Check whether the existing item is equal to the item:
-                    if (item.equals(itemToSearchFor))
-                    {
-                        // This item is equal.
-
-                        // Create the measured item:
-                        MeasuredItem<TItem, TDistance> measuredItem = new MeasuredItem<>();
-                        measuredItem.item = item;
-
-                        return measuredItem;
-                    }
-                    // Now we know that the items are not equal.
-
-                    // Get the distance to the item:
-                    TDistance distance = measureDistanceBetween(item, itemToSearchFor);
-
-                    // Check whether this distance is the best so far:
-                    if (bestDistanceSoFar == null || this.distanceComparator.compare(distance, bestDistanceSoFar) < 0)
-                    {
-                        // This item is closer.
-
-                        // Flag this as the best item so far:
-                        bestItemSoFar = item;
-                        bestDistanceSoFar = distance;
-                    }
-                }
-            }
-        }
-
-        // Check whether we found an item:
-        if (bestItemSoFar != null)
-        {
-            // Create the measured item:
-            MeasuredItem<TItem, TDistance> measuredItem = new MeasuredItem<>();
-            measuredItem.item = bestItemSoFar;
-            measuredItem.distance = bestDistanceSoFar;
-
-            return measuredItem;
-        }
-        else
-        {
-            // We didn't find an item.
-            return null;
-        }
-    }
-
-    /**
      * Gets the repo path for the given item details.
      *
      * @param divisionIndex The index of the division that the item is in.
@@ -1777,12 +1680,12 @@ public abstract class RepoIndexKDBase<
         // Print out the content tree:
         StringBuilder stringBuilder = new StringBuilder();
 
+        // Get parameters:
+        HyperCubeDefinition hyperCubeDefinition = this.getHyperCubeDefinition();
+
         // Print out details of the index:
-        stringBuilder.append("Index: ");
-        stringBuilder.append(" from ");
-        stringBuilder.append(this.getMinRange());
-        stringBuilder.append(" to ");
-        stringBuilder.append(this.getMaxRange());
+        stringBuilder.append("KDRepo Index for: ");
+        stringBuilder.append(hyperCubeDefinition == null ? "" : hyperCubeDefinition.toString());
         stringBuilder.append(" with ");
         stringBuilder.append(this.getDivisions());
         stringBuilder.append(" division");
@@ -1797,28 +1700,6 @@ public abstract class RepoIndexKDBase<
         }
 
         return stringBuilder.toString();
-    }
-
-    /**
-     * Gets the minimum range of this index.
-     *
-     * @return The minimum range of this index.
-     */
-    @Override
-    public TItem getMinRange()
-    {
-        return this.minRange;
-    }
-
-    /**
-     * Gets the maximum range of this index.
-     *
-     * @return The maximum range of this index.
-     */
-    @Override
-    public TItem getMaxRange()
-    {
-        return this.maxRange;
     }
 
     /**
@@ -1894,5 +1775,14 @@ public abstract class RepoIndexKDBase<
     public ContentReader<TItem, TContent> getContentReader()
     {
         return this.contentReader;
+    }
+
+    /**
+     * Gets the definition of the hyper cube that defines the dimensions for this index.
+     * @return The definition of the hyper cube that defines the dimensions for this index.
+     */
+    public HyperCubeDefinition getHyperCubeDefinition()
+    {
+        return hyperCubeDefinition;
     }
 }

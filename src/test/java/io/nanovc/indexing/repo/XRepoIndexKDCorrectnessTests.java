@@ -44,7 +44,7 @@ public class XRepoIndexKDCorrectnessTests
     {
         // Create the indexes:
         XLinearIndex1D linearIndex = new XLinearIndex1D();
-        XRepoIndexKD repoIndex = new XRepoIndexKD(new X(addMin), new X(addMax), divisions);
+        XRepoIndexKD repoIndex = new XRepoIndexKD(new X(addMin), new X(addMax), divisions, 10);
 
         // Create the random number generators:
         Random addRandom = new Random(addSeed);

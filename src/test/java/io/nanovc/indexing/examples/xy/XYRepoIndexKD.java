@@ -23,14 +23,14 @@ public class XYRepoIndexKD extends RepoIndexKDImplementation<
 {
 
     public XYRepoIndexKD(
-        XY minRange, XY maxRange, int divisions,
+        XY minRange, XY maxRange, int divisions, int bucketThreshold,
         StringMemoryRepoHandler repoHandler, RepoPath rootRepoPath,
         ContentCreator<XY, StringContent> contentCreator, ContentReader<XY, StringContent> contentReader
     )
     {
         super(
             XY.defineHyperCube(minRange, maxRange),
-            minRange, maxRange, divisions, 10,
+            divisions, bucketThreshold,
             XY::extractCoordinate, XY::measureDistanceL2NormEuclidean, Double::compare,
             Double::sum, (left, right) -> left - right,
             repoHandler, rootRepoPath,
@@ -38,10 +38,10 @@ public class XYRepoIndexKD extends RepoIndexKDImplementation<
             );
     }
 
-    public XYRepoIndexKD(XY minRange, XY maxRange, int divisions)
+    public XYRepoIndexKD(XY minRange, XY maxRange, int divisions, int bucketThreshold)
     {
         this(
-            minRange, maxRange, divisions,
+            minRange, maxRange, divisions, bucketThreshold,
             new StringMemoryRepoHandler(), RepoPath.atRoot(),
             XYRepoIndexKD::createXYContent, XYRepoIndexKD::readXYFromContent
         );

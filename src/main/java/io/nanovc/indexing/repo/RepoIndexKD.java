@@ -27,20 +27,6 @@ public interface RepoIndexKD<
 {
 
     /**
-     * Gets the minimum range of this index.
-     *
-     * @return The minimum range of this index.
-     */
-    TItem getMinRange();
-
-    /**
-     * Gets the maximum range of this index.
-     *
-     * @return The maximum range of this index.
-     */
-    TItem getMaxRange();
-
-    /**
      * Gets the number of divisions to use for this grid index.
      *
      * @return The number of divisions to use for this grid index.
@@ -88,4 +74,10 @@ public interface RepoIndexKD<
      * @return The content reader to use for getting an item from the given content.
      */
     ContentReader<TItem, TContent> getContentReader();
+
+    /**
+     * Gets the definition of the hyper cube that defines the dimensions for this index.
+     * @return The definition of the hyper cube that defines the dimensions for this index.
+     */
+    HyperCubeDefinition getHyperCubeDefinition();
 }

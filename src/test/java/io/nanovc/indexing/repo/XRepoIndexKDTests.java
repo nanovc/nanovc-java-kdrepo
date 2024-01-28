@@ -16,14 +16,14 @@ public class XRepoIndexKDTests
     @Test
     public void creationTest()
     {
-        new XRepoIndexKD(new X(-1), new X(1), 10);
+        new XRepoIndexKD(new X(-1), new X(1), 10, 1);
     }
 
     @Test
     public void test_Index_0_Query_0()
     {
         // Create the index:
-        XRepoIndexKD index = new XRepoIndexKD(new X(-1), new X(1), 10);
+        XRepoIndexKD index = new XRepoIndexKD(new X(-1), new X(1), 10, 1);
 
         // Add an item to the index:
         X itemZero = new X(0);
@@ -40,7 +40,7 @@ public class XRepoIndexKDTests
     public void test_Index_0_Query_0_1()
     {
         // Create the index:
-        XRepoIndexKD index = new XRepoIndexKD(new X(-1), new X(1), 10);
+        XRepoIndexKD index = new XRepoIndexKD(new X(-1), new X(1), 10, 1);
 
         // Add an item to the index:
         X itemZero = new X(0);
@@ -64,7 +64,7 @@ public class XRepoIndexKDTests
     public void test_Index_1_10_11_Query_1_10_11()
     {
         // Create the index:
-        XRepoIndexKD index = new XRepoIndexKD(new X(-1), new X(1), 10);
+        XRepoIndexKD index = new XRepoIndexKD(new X(-1), new X(1), 10, 1);
 
         // Define the items of interest:
         X item1 = new X(1);
@@ -96,7 +96,7 @@ public class XRepoIndexKDTests
     public void test_Index_1_10_11_Query_0_9_12()
     {
         // Create the index:
-        XRepoIndexKD index = new XRepoIndexKD(new X(-1), new X(1), 10);
+        XRepoIndexKD index = new XRepoIndexKD(new X(-1), new X(1), 10, 1);
 
         // Define the items of interest:
         X item0 = new X(0);
@@ -112,7 +112,7 @@ public class XRepoIndexKDTests
         index.add(item11);
 
         var expectedIndex = """
-Index:  from X[x=-1] to X[x=1] with 10 divisions:
+KDRepo Index for: X: [-1,1] with 10 divisions:
 Division Cell Branch Name:
 X:>1
 .
@@ -148,7 +148,7 @@ X:[0,1]
     public void test_NearMisses_0()
     {
         // Create the index:
-        XRepoIndexKD index = new XRepoIndexKD(new X(-1), new X(1), 10);
+        XRepoIndexKD index = new XRepoIndexKD(new X(-1), new X(1), 10, 1);
 
         // Define the items of interest:
         int[] itemsOfInterest = {
@@ -163,7 +163,7 @@ X:[0,1]
 
         // Make sure the index is as expected:
         var expectedIndex = """
-Index:  from X[x=-1] to X[x=1] with 10 divisions:
+KDRepo Index for: X: [-1,1] with 10 divisions:
 Division Cell Branch Name:
 X:[0,1]
 .
@@ -192,7 +192,7 @@ X:[0,1]
     public void test_NearMisses_1()
     {
         // Create the index:
-        XRepoIndexKD index = new XRepoIndexKD(new X(-1), new X(1), 10);
+        XRepoIndexKD index = new XRepoIndexKD(new X(-1), new X(1), 10, 1);
 
         // Define the items of interest:
         int[] itemsOfInterest = {
@@ -207,7 +207,7 @@ X:[0,1]
 
         // Make sure the index is as expected:
         var expectedIndex = """
-Index:  from X[x=-1] to X[x=1] with 10 divisions:
+KDRepo Index for: X: [-1,1] with 10 divisions:
 Division Cell Branch Name:
 X:[0,1]
 .
@@ -245,7 +245,7 @@ X:[0,1]
     public void test_NearMisses_1_10()
     {
         // Create the index:
-        XRepoIndexKD index = new XRepoIndexKD(new X(-1), new X(1), 10);
+        XRepoIndexKD index = new XRepoIndexKD(new X(-1), new X(1), 10, 1);
 
         // Define the items of interest:
         int[] itemsOfInterest = {
@@ -260,7 +260,7 @@ X:[0,1]
 
         // Make sure the index is as expected:
         var expectedIndex = """
-Index:  from X[x=-1] to X[x=1] with 10 divisions:
+KDRepo Index for: X: [-1,1] with 10 divisions:
 Division Cell Branch Name:
 X:>1
 .
@@ -346,7 +346,7 @@ X:[0,1]
     public void test_NearMisses_1_9_10()
     {
         // Create the index:
-        XRepoIndexKD index = new XRepoIndexKD(new X(-1), new X(1), 10);
+        XRepoIndexKD index = new XRepoIndexKD(new X(-1), new X(1), 10, 1);
 
         // Define the items of interest:
         int[] itemsOfInterest = {
@@ -361,7 +361,7 @@ X:[0,1]
 
         // Make sure the index is as expected:
         var expectedIndex = """
-Index:  from X[x=-1] to X[x=1] with 10 divisions:
+KDRepo Index for: X: [-1,1] with 10 divisions:
 Division Cell Branch Name:
 X:>1
 .
@@ -448,7 +448,7 @@ X:[0,1]
     public void test_NearMisses_1_2_9_10()
     {
         // Create the index:
-        XRepoIndexKD index = new XRepoIndexKD(new X(0), new X(10), 10);
+        XRepoIndexKD index = new XRepoIndexKD(new X(0), new X(10), 10, 1);
 
         // Define the items of interest:
         int[] itemsOfInterest = {
@@ -463,7 +463,7 @@ X:[0,1]
 
         // Make sure the index is as expected:
         var expectedIndex = """
-Index:  from X[x=0] to X[x=10] with 10 divisions:
+KDRepo Index for: X: [0,10] with 10 divisions:
 Division Cell Branch Name:
 X:[1,2)
 .
@@ -730,7 +730,7 @@ X:[9,10]
     public void test_Index_Random_1234()
     {
         // Create the index:
-        XRepoIndexKD index = new XRepoIndexKD(new X(0), new X(1000), 10);
+        XRepoIndexKD index = new XRepoIndexKD(new X(0), new X(1000), 10, 1);
 
         // Add the items to the index:
         Random random = new Random(1234);
@@ -742,7 +742,7 @@ X:[9,10]
         }
 
         var expectedIndex = """
-Index:  from X[x=0] to X[x=1000] with 10 divisions:
+KDRepo Index for: X: [0,1000] with 10 divisions:
 Division Cell Branch Name:
 X:[0,100)
 .
@@ -878,7 +878,7 @@ X:[600,700)
     public void Reindex_10_1_Query_1()
     {
         // Create the index:
-        XRepoIndexKD index = new XRepoIndexKD(new X(0), new X(10), 1);
+        XRepoIndexKD index = new XRepoIndexKD(new X(0), new X(10), 1, 1);
 
         // Define the items of interest:
         X item10 = new X(10);
@@ -889,7 +889,7 @@ X:[600,700)
 
         // Make sure the index is as expected:
         var expectedIndex = """
-Index:  from X[x=0] to X[x=10] with 1 division:
+KDRepo Index for: X: [0,10] with 1 division:
 Division Cell Branch Name:
 X:[0,10]
 .
@@ -903,7 +903,7 @@ X:[0,10]
 
         // Make sure the index is as expected:
         expectedIndex = """
-Index:  from X[x=0] to X[x=10] with 1 division:
+KDRepo Index for: X: [0,10] with 1 division:
 Division Cell Branch Name:
 X:[0,10]
 .
@@ -934,7 +934,7 @@ X:[0,10]
     public void Reindex_111_11_Query_111_11()
     {
         // Create the index:
-        XRepoIndexKD index = new XRepoIndexKD(new X(0), new X(1000), 1);
+        XRepoIndexKD index = new XRepoIndexKD(new X(0), new X(1000), 1, 1);
 
         // Define the items of interest:
         X item111 = new X(111);
@@ -945,7 +945,7 @@ X:[0,10]
 
         // Make sure the index is as expected:
         var expectedIndex = """
-Index:  from X[x=0] to X[x=1000] with 1 division:
+KDRepo Index for: X: [0,1000] with 1 division:
 Division Cell Branch Name:
 X:[0,1000]
 .
@@ -959,7 +959,7 @@ X:[0,1000]
 
         // Make sure the index is as expected:
         expectedIndex = """
-Index:  from X[x=0] to X[x=1000] with 1 division:
+KDRepo Index for: X: [0,1000] with 1 division:
 Division Cell Branch Name:
 X:[0,1000]
 .
@@ -996,7 +996,7 @@ X:[0,1000]
     public void Reindex_10_11_1_Query_1()
     {
         // Create the index:
-        XRepoIndexKD index = new XRepoIndexKD(new X(0), new X(10), 1);
+        XRepoIndexKD index = new XRepoIndexKD(new X(0), new X(10), 1, 1);
 
         // Define the items of interest:
         X item10 = new X(10);
@@ -1010,7 +1010,7 @@ X:[0,1000]
 
         // Make sure the index is as expected:
         expectedIndex = """
-Index:  from X[x=0] to X[x=10] with 1 division:
+KDRepo Index for: X: [0,10] with 1 division:
 Division Cell Branch Name:
 X:[0,10]
 .
@@ -1024,7 +1024,7 @@ X:[0,10]
 
         // Make sure the index is as expected:
         expectedIndex = """
-Index:  from X[x=0] to X[x=10] with 1 division:
+KDRepo Index for: X: [0,10] with 1 division:
 Division Cell Branch Name:
 X:>10
 .
@@ -1044,7 +1044,7 @@ X:[0,10]
 
         // Make sure the index is as expected:
         expectedIndex = """
-Index:  from X[x=0] to X[x=10] with 1 division:
+KDRepo Index for: X: [0,10] with 1 division:
 Division Cell Branch Name:
 X:>10
 .
@@ -1084,7 +1084,7 @@ X:[0,10]
     public void Reindex_111_11_1_Query_1()
     {
         // Create the index:
-        XRepoIndexKD index = new XRepoIndexKD(new X(0), new X(10), 1);
+        XRepoIndexKD index = new XRepoIndexKD(new X(0), new X(10), 1, 1);
 
         // Define the items of interest:
         X item10 = new X(10);
@@ -1098,7 +1098,7 @@ X:[0,10]
 
         // Make sure the index is as expected:
         expectedIndex = """
-Index:  from X[x=0] to X[x=10] with 1 division:
+KDRepo Index for: X: [0,10] with 1 division:
 Division Cell Branch Name:
 X:[0,10]
 .
@@ -1112,7 +1112,7 @@ X:[0,10]
 
         // Make sure the index is as expected:
         expectedIndex = """
-Index:  from X[x=0] to X[x=10] with 1 division:
+KDRepo Index for: X: [0,10] with 1 division:
 Division Cell Branch Name:
 X:>10
 .
@@ -1132,7 +1132,7 @@ X:[0,10]
 
         // Make sure the index is as expected:
         expectedIndex = """
-Index:  from X[x=0] to X[x=10] with 1 division:
+KDRepo Index for: X: [0,10] with 1 division:
 Division Cell Branch Name:
 X:>10
 .
@@ -1172,7 +1172,7 @@ X:[0,10]
     public void Reindex_111_1111_11_1_Query_1_11_111_1111()
     {
         // Create the index:
-        XRepoIndexKD index = new XRepoIndexKD(new X(0), new X(10_000), 1);
+        XRepoIndexKD index = new XRepoIndexKD(new X(0), new X(10_000), 1, 1);
 
         // Define the items of interest:
         X item111 = new X(111);
@@ -1187,7 +1187,7 @@ X:[0,10]
 
         // Make sure the index is as expected:
         expectedIndex = """
-Index:  from X[x=0] to X[x=10000] with 1 division:
+KDRepo Index for: X: [0,10000] with 1 division:
 Division Cell Branch Name:
 X:[0,10000]
 .
@@ -1201,7 +1201,7 @@ X:[0,10000]
 
         // Make sure the index is as expected:
         expectedIndex = """
-Index:  from X[x=0] to X[x=10000] with 1 division:
+KDRepo Index for: X: [0,10000] with 1 division:
 Division Cell Branch Name:
 X:[0,10000]
 .
@@ -1226,7 +1226,7 @@ X:[0,10000]
 
         // Make sure the index is as expected:
         expectedIndex = """
-Index:  from X[x=0] to X[x=10000] with 1 division:
+KDRepo Index for: X: [0,10000] with 1 division:
 Division Cell Branch Name:
 X:[0,10000]
 .
@@ -1260,7 +1260,7 @@ X:[0,10000]
 
         // Make sure the index is as expected:
         expectedIndex = """
-Index:  from X[x=0] to X[x=10000] with 1 division:
+KDRepo Index for: X: [0,10000] with 1 division:
 Division Cell Branch Name:
 X:[0,10000]
 .
@@ -1321,7 +1321,7 @@ X:[0,10000]
     public void Reindex_111_1111_11_11_Query_11_111_1111()
     {
         // Create the index:
-        XRepoIndexKD index = new XRepoIndexKD(new X(0), new X(10_000), 1);
+        XRepoIndexKD index = new XRepoIndexKD(new X(0), new X(10_000), 1, 1);
 
         // Define the items of interest:
         X item111 = new X(111);
@@ -1335,7 +1335,7 @@ X:[0,10000]
 
         // Make sure the index is as expected:
         expectedIndex = """
-Index:  from X[x=0] to X[x=10000] with 1 division:
+KDRepo Index for: X: [0,10000] with 1 division:
 Division Cell Branch Name:
 X:[0,10000]
 .
@@ -1349,7 +1349,7 @@ X:[0,10000]
 
         // Make sure the index is as expected:
         expectedIndex = """
-Index:  from X[x=0] to X[x=10000] with 1 division:
+KDRepo Index for: X: [0,10000] with 1 division:
 Division Cell Branch Name:
 X:[0,10000]
 .
@@ -1374,7 +1374,7 @@ X:[0,10000]
 
         // Make sure the index is as expected:
         expectedIndex = """
-Index:  from X[x=0] to X[x=10000] with 1 division:
+KDRepo Index for: X: [0,10000] with 1 division:
 Division Cell Branch Name:
 X:[0,10000]
 .
@@ -1408,7 +1408,7 @@ X:[0,10000]
 
         // Make sure the index is as expected:
         expectedIndex = """
-Index:  from X[x=0] to X[x=10000] with 1 division:
+KDRepo Index for: X: [0,10000] with 1 division:
 Division Cell Branch Name:
 X:[0,10000]
 .

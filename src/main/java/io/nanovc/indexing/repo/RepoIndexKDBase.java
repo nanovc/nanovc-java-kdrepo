@@ -130,12 +130,6 @@ public abstract class RepoIndexKDBase<
     private final Operator<TDistance> distanceSubtractor;
 
     /**
-     * The maximum value for the distance to start out with.
-     * This is used to initialise the best distance so far when looking for nearest neighbours.
-     */
-    private final TDistance maxDistance;
-
-    /**
      * The definition of the hyper cube that defines the dimensions for this index.
      */
     protected final HyperCubeDefinition hyperCubeDefinition;
@@ -150,7 +144,7 @@ public abstract class RepoIndexKDBase<
         HyperCubeDefinition hyperCubeDefinition,
         TItem minRange, TItem maxRange, int divisions, int bucketThreshold,
         Extractor<TItem> extractor, Measurer<TItem, TDistance> measurer, Comparator<TDistance> distanceComparator,
-        Operator<TDistance> distanceAdder, Operator<TDistance> distanceSubtractor, TDistance maxDistance,
+        Operator<TDistance> distanceAdder, Operator<TDistance> distanceSubtractor,
         RangeSplitter<TItem> rangeSplitter, RangeFinder<TItem> rangeFinder,
         TRepoHandler repoHandler, RepoPath rootRepoPath,
         ContentCreator<TItem, TContent> contentCreator, ContentReader<TItem, TContent> contentReader
@@ -166,7 +160,6 @@ public abstract class RepoIndexKDBase<
         this.distanceComparator = distanceComparator;
         this.distanceAdder = distanceAdder;
         this.distanceSubtractor = distanceSubtractor;
-        this.maxDistance = maxDistance;
         this.rangeSplitter = rangeSplitter;
         this.rangeFinder = rangeFinder;
         this.repoHandler = repoHandler;

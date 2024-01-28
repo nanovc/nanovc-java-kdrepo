@@ -32,7 +32,7 @@ public class XYRepoIndexKD extends RepoIndexKDImplementation<
             XY.defineHyperCube(minRange, maxRange),
             minRange, maxRange, divisions, 10,
             XY::extractCoordinate, XY::measureDistanceL2NormEuclidean, Double::compare,
-            Double::sum, (left, right) -> left - right, Double.MAX_VALUE,
+            Double::sum, (left, right) -> left - right,
             XY::splitRange, XY::findIndexInRange,
             repoHandler, rootRepoPath,
             contentCreator, contentReader
